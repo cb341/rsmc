@@ -64,10 +64,10 @@ pub fn generate_world_system(
 
     batched_positions.enumerate().for_each(|(index, batch)| {
         let request_positions = batch.to_vec();
-        info!(
-            "Sending chunk batch request for {:?}",
-            request_positions.len()
-        );
+        // info!(
+        //     "Sending chunk batch request for {:?}",
+        //     request_positions.len()
+        // );
         let message = bincode::serialize(&NetworkingMessage::ChunkBatchRequest(request_positions));
         info!("requesting chunks #{}", index);
         client.send_message(DefaultChannel::ReliableUnordered, message.unwrap());
@@ -81,10 +81,10 @@ pub fn handle_chunk_mesh_update_events_system(
     mut tasks: ResMut<MesherTasks>,
 ) {
     for event in chunk_mesh_update_events.read() {
-        info!(
-            "Received chunk mesh update event for chunk {:?}",
-            event.position
-        );
+        // info!(
+        //     "Received chunk mesh update event for chunk {:?}",
+        //     event.position
+        // );
         let chunk_option = chunk_manager.get_chunk(event.position);
         match chunk_option {
             Some(chunk) => {
@@ -249,7 +249,7 @@ pub fn handle_terrain_regeneration_events_system(
     chunk_manager: ResMut<ChunkManager>,
 ) {
     for _ in world_regenerate_events.read() {
-        info!("Rerequesting all chunks from server");
+        // info!("Rerequesting all chunks from server");
         let all_chunk_positions = chunk_manager.get_all_chunk_positions();
         let message =
             bincode::serialize(&NetworkingMessage::ChunkBatchRequest(all_chunk_positions));

@@ -70,12 +70,12 @@ pub fn receive_message_system(
             debug!("Received message: {:?}", message);
             match message {
                 NetworkingMessage::ChunkBatchResponse(chunks) => {
-                    info!("Client received chunk batch response message.");
+                    // info!("Client received chunk batch response message.");
                     for chunk in chunks {
-                        info!(
-                            "Client received chunk response message for: {:?}",
-                            chunk.position
-                        );
+                        // info!(
+                        //     "Client received chunk response message for: {:?}",
+                        //     chunk.position
+                        // );
                         let chunk_position = chunk.position;
                         chunk_manager.insert_chunk(chunk);
                         chunk_mesh_events.send(terrain_events::ChunkMeshUpdateEvent {
@@ -97,7 +97,7 @@ pub fn receive_message_system(
                         .send(remote_player_events::RemotePlayerSyncEvent { players: event });
                 }
                 NetworkingMessage::ServerAsksClientNicelyToRerequestChunkBatch() => {
-                    info!("Client asked for chunk batch.");
+                    // info!("Client asked for chunk batch.");
                     world_regenerate_events.send(terrain_events::WorldRegenerateEvent);
                 }
                 _ => {

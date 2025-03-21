@@ -16,10 +16,13 @@ pub struct MyExtension {
 impl MaterialExtension for MyExtension {
     fn vertex_shader() -> ShaderRef {
         SHADER_ASSET_PATH.into()
+        // ShaderRef::Default
+        // SHADER_ASSET_PATH.into()
     }
 
     fn fragment_shader() -> ShaderRef {
-        ShaderRef::Default
+        SHADER_ASSET_PATH.into()
+        // ShaderRef::Default
     }
 
     fn prepass_vertex_shader() -> ShaderRef {
