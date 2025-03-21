@@ -1,9 +1,12 @@
 use crate::prelude::*;
 use bevy::{
-    color::palettes::css::RED, pbr::MaterialExtension, reflect::Reflect, render::render_resource::{AsBindGroup, ShaderRef}
+    color::palettes::css::RED,
+    pbr::MaterialExtension,
+    reflect::Reflect,
+    render::render_resource::{AsBindGroup, ShaderRef},
 };
 
-const SHADER_ASSET_PATH: &str = "shaders/my_material.wgsl";
+const SHADER_ASSET_PATH: &str = "shaders/my_material.vert";
 
 #[derive(Asset, AsBindGroup, Reflect, Debug, Clone)]
 pub struct MyExtension {
@@ -14,17 +17,17 @@ pub struct MyExtension {
 }
 
 impl MaterialExtension for MyExtension {
-    // fn vertex_shader() -> ShaderRef {
-    //     // SHADER_ASSET_PATH.into()
-    //     // ShaderRef::Default
-    //     // SHADER_ASSET_PATH.into()
-    // }
-    //
-    fn fragment_shader() -> ShaderRef {
-        //     SHADER_ASSET_PATH.into()
-        //     // ShaderRef::Default
+    fn vertex_shader() -> ShaderRef {
         SHADER_ASSET_PATH.into()
+        // ShaderRef::Default
+        // SHADER_ASSET_PATH.into()
     }
+    //
+    //fn fragment_shader() -> ShaderRef {
+    //    //     SHADER_ASSET_PATH.into()
+    //    //     // ShaderRef::Default
+    //    SHADER_ASSET_PATH.into()
+    //}
     //
     // fn prepass_vertex_shader() -> ShaderRef {
     //     ShaderRef::Default
