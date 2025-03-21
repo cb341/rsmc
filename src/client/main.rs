@@ -54,7 +54,7 @@ fn main() {
         wireframe_config::wireframe_plugin(),
         FrameTimeDiagnosticsPlugin,
         EntityCountDiagnosticsPlugin,
-        SystemInformationDiagnosticsPlugin,
+        // SystemInformationDiagnosticsPlugin,
         PerfUiPlugin,
         gui::GuiPlugin,
         networking::NetworkingPlugin,

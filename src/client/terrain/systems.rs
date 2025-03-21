@@ -69,7 +69,7 @@ pub fn generate_world_system(
         //     request_positions.len()
         // );
         let message = bincode::serialize(&NetworkingMessage::ChunkBatchRequest(request_positions));
-        info!("requesting chunks #{}", index);
+        // info!("requesting chunks #{}", index);
         client.send_message(DefaultChannel::ReliableUnordered, message.unwrap());
     });
 }
