@@ -6,7 +6,7 @@ use bevy::{
     render::render_resource::{AsBindGroup, ShaderRef},
 };
 
-const SHADER_ASSET_PATH: &str = "shaders/my_material.vert";
+const SHADER_ASSET_PATH: &str = "shaders/my_material.wgsl";
 
 #[derive(Asset, AsBindGroup, Reflect, Debug, Clone)]
 pub struct MyExtension {
@@ -19,40 +19,7 @@ pub struct MyExtension {
 impl MaterialExtension for MyExtension {
     fn vertex_shader() -> ShaderRef {
         SHADER_ASSET_PATH.into()
-        // ShaderRef::Default
-        // SHADER_ASSET_PATH.into()
     }
-    //
-    //fn fragment_shader() -> ShaderRef {
-    //    //     SHADER_ASSET_PATH.into()
-    //    //     // ShaderRef::Default
-    //    SHADER_ASSET_PATH.into()
-    //}
-    //
-    // fn prepass_vertex_shader() -> ShaderRef {
-    //     ShaderRef::Default
-    // }
-    //
-    // fn prepass_fragment_shader() -> ShaderRef {
-    //     ShaderRef::Default
-    // }
-    //
-    // fn deferred_vertex_shader() -> ShaderRef {
-    //     ShaderRef::Default
-    // }
-    //
-    // fn deferred_fragment_shader() -> ShaderRef {
-    //     ShaderRef::Default
-    // }
-    //
-    // fn specialize(
-    //     pipeline: &MaterialExtensionPipeline,
-    //     descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
-    //     layout: &bevy::render::mesh::MeshVertexBufferLayoutRef,
-    //     key: MaterialExtensionKey<Self>,
-    // ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
-    //     Ok(())
-    // }
 }
 
 pub fn create_base_material(
