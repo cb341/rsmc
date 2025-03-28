@@ -5,7 +5,7 @@ edition = "2021"
 rust-version = "1.83.0"
 
 [dependencies]
-bevy = "0.15.1"
+bevy = { version = "0.15.1", features = ["wayland"] }
 bevy_fps_controller = "0.15.0"
 bevy_mod_raycast = { git = "https://github.com/CuddlyBunion341/bevy_mod_raycast.git", branch = "main" }
 bevy_rapier3d = "0.28.0"
@@ -26,12 +26,33 @@ renet_visualizer = { git = "https://github.com/CuddlyBunion341/renet.git", featu
   "bevy",
 ] }
 egui_plot = "0.30.0"
+getrandom = { version = "0.2", features = ["js"] }
+
+# WASM specific dependencies
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2.92"
+wasm-bindgen-futures = "0.4.42"
+web-sys = { version = "0.3.69", features = [
+  "Document",
+  "Window",
+  "Element",
+  "Location",
+]}
+js-sys = "0.3.69"
 
 [profile.dev.package."*"]
 opt-level = 3
 
 [profile.release]
 opt-level = 3
+
+# WASM optimizations
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z" # Optimize for size
+lto = true # Link Time Optimization
+codegen-units = 1 # More effective optimizations
 
 [[bin]]
 name = "client"
@@ -40,6 +61,12 @@ path = "src/client/main.rs"
 [[bin]]
 name = "server"
 path = "src/server/main.rs"
+
+# For WASM builds
+[lib]
+name = "rsmc_wasm"
+crate-type = ["cdylib", "rlib"]
+path = "src/wasm/lib.rs"
 
 [features]
 default = ["chat"]
@@ -63,3 +90,6 @@ physics_debug = []
 raycast_debug = []
 skip_terrain = []
 visual_debug = ["wireframe", "physics_debug", "raycast_debug"]
+
+# wasm
+wasm = ["bevy/webgl2"]

@@ -4482,8 +4482,11 @@ dependencies = [
  "bincode",
  "cgmath",
  "chrono",
+ "console_error_panic_hook",
  "egui_plot",
+ "getrandom 0.2.15",
  "iyes_perf_ui",
+ "js-sys",
  "noise",
  "rand 0.9.0",
  "rayon",
@@ -4491,6 +4494,9 @@ dependencies = [
  "renet_visualizer",
  "serde",
  "serde-big-array",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
