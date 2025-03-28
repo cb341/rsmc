@@ -1,0 +1,26 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command: cargo build --release --bin server
+    volumes:
+      - ./target:/usr/src/app/target
+    ports:
+      - "7777:7777"
+    environment:
+      - RUST_LOG=info
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command: cargo build --release --bin client
+    volumes:
+      - ./target:/usr/src/app/target
+    environment:
+      - RUST_LOG=info
+    depends_on:
+      - server 
