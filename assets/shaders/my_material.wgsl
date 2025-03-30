@@ -12,7 +12,6 @@ struct MyExtensionMaterial {
 @group(2) @binding(100)
 var<uniform> my_extension: MyExtensionMaterial;
 
-// Quantize a position based on the number of steps
 fn quantize_position(position: vec3<f32>, steps: u32) -> vec3<f32> {
     if (steps > 0u) {
         let step_size = 1.0 / f32(steps);
@@ -30,34 +29,24 @@ fn vertex(
 ) -> VertexOutput {
     var out: VertexOutput;
     
-    // Get model matrix and convert to mat4x4
     let model_affine = mesh_bindings::mesh[instance_index].world_from_local;
     let model = affine3_to_square(model_affine);
     
-    // Transform position to world space
     let world_position = model * vec4<f32>(position, 1.0);
     
-    // Apply quantization
     var quantized_position = world_position;
     let quantized_xyz = quantize_position(world_position.xyz, my_extension.quantize_steps);
     quantized_position.x = quantized_xyz.x;
     quantized_position.y = quantized_xyz.y;
     quantized_position.z = quantized_xyz.z;
     
-    // Transform to clip space using clip_from_world
     out.position = mesh_view_bindings::view.clip_from_world * quantized_position;
     
-    // Set other vertex attributes
     out.world_position = world_position;
     
-    // Use model to transform normal
     out.world_normal = (model * vec4<f32>(normal, 0.0)).xyz; 
     
     out.uv = uv;
     
     return out;
 }
-
-// No need to implement the full vertex/fragment shaders
-// In a MaterialExtension, Bevy only uses the vertex_shader function to inject custom 
-// functions into the standard PBR shader pipeline
