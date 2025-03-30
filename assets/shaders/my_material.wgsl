@@ -1,9 +1,9 @@
-// Vertex shader for a Bevy PBR material extension
-// The shader preprocessor directives are processed by Bevy before compilation
+#define_import_path bevy_pbr::my_material
 
 #import bevy_pbr::mesh_view_bindings
-#import bevy_pbr::mesh_bindings mesh
-#import bevy_pbr::mesh_functions
+#import bevy_pbr::mesh_bindings
+#import bevy_pbr::forward_io::VertexOutput
+#import bevy_render::maths::affine3_to_square
 
 struct MyExtensionMaterial {
     quantize_steps: u32,
@@ -12,12 +12,14 @@ struct MyExtensionMaterial {
 @group(2) @binding(100)
 var<uniform> my_extension: MyExtensionMaterial;
 
-struct VertexOutput {
-    @builtin(position) clip_position: vec4<f32>,
-    @location(0) world_position: vec4<f32>,
-    @location(1) world_normal: vec3<f32>,
-    @location(2) uv: vec2<f32>,
-};
+// Quantize a position based on the number of steps
+fn quantize_position(position: vec3<f32>, steps: u32) -> vec3<f32> {
+    if (steps > 0u) {
+        let step_size = 1.0 / f32(steps);
+        return floor(position / step_size) * step_size;
+    }
+    return position;
+}
 
 @vertex
 fn vertex(
@@ -28,25 +30,34 @@ fn vertex(
 ) -> VertexOutput {
     var out: VertexOutput;
     
-    // Get model matrix
-    let model = mesh_functions::get_world_from_local(instance_index);
+    // Get model matrix and convert to mat4x4
+    let model_affine = mesh_bindings::mesh[instance_index].world_from_local;
+    let model = affine3_to_square(model_affine);
     
-    // Transform to world space
+    // Transform position to world space
     let world_position = model * vec4<f32>(position, 1.0);
     
-    // Transform to clip space
-    out.clip_position = mesh_view_bindings::view.view_proj * world_position;
+    // Apply quantization
+    var quantized_position = world_position;
+    let quantized_xyz = quantize_position(world_position.xyz, my_extension.quantize_steps);
+    quantized_position.x = quantized_xyz.x;
+    quantized_position.y = quantized_xyz.y;
+    quantized_position.z = quantized_xyz.z;
     
-    // Save world position
+    // Transform to clip space using clip_from_world
+    out.position = mesh_view_bindings::view.clip_from_world * quantized_position;
+    
+    // Set other vertex attributes
     out.world_position = world_position;
     
-    // Transform normal to world space (simplification)
-    out.world_normal = (model * vec4<f32>(normal, 0.0)).xyz;
+    // Use model to transform normal
+    out.world_normal = (model * vec4<f32>(normal, 0.0)).xyz; 
     
-    // Pass UV coordinates
     out.uv = uv;
     
     return out;
 }
 
-// Fragment shader not needed as we're extending the StandardMaterial and using its fragment shader
+// No need to implement the full vertex/fragment shaders
+// In a MaterialExtension, Bevy only uses the vertex_shader function to inject custom 
+// functions into the standard PBR shader pipeline
