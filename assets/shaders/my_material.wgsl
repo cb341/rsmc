@@ -1,45 +1,52 @@
-struct VertexInput {
-    @location(0) position: vec4f,
-    @location(1) texcoords: vec2f,
-}
+// Vertex shader for a Bevy PBR material extension
+// The shader preprocessor directives are processed by Bevy before compilation
 
-//struct VertexOutput {
-//    @builtin(position) position: vec4f,
-//    @location(1) texcoords: vec2f,
-//}
+#import bevy_pbr::mesh_view_bindings
+#import bevy_pbr::mesh_bindings mesh
+#import bevy_pbr::mesh_functions
+
+struct MyExtensionMaterial {
+    quantize_steps: u32,
+};
+
+@group(2) @binding(100)
+var<uniform> my_extension: MyExtensionMaterial;
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) world_position: vec4<f32>,
-    @location(1) color: vec3<f32>,
-}
-
-
-struct FragmentInput {
-    @location(1) texcoords: vec2f,
-}
-
-struct FragmentOutput {
-    @location(0) color: vec4f,
-}
-
-@group(0) @binding(0) var<uniform> matrix: mat4x4f;
-@group(0) @binding(1) var baseTexture: texture_2d<f32>;
-@group(0) @binding(2) var baseSampler: sampler;
+    @location(1) world_normal: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+};
 
 @vertex
-fn vertex(input: VertexInput) -> VertexOutput {
-    var output: VertexOutput;
-
-    output.clip_position = matrix * input.position;
-    // output.texcoords = input.texcoords;
-
-    return output;
+fn vertex(
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+    @builtin(instance_index) instance_index: u32,
+) -> VertexOutput {
+    var out: VertexOutput;
+    
+    // Get model matrix
+    let model = mesh_functions::get_world_from_local(instance_index);
+    
+    // Transform to world space
+    let world_position = model * vec4<f32>(position, 1.0);
+    
+    // Transform to clip space
+    out.clip_position = mesh_view_bindings::view.view_proj * world_position;
+    
+    // Save world position
+    out.world_position = world_position;
+    
+    // Transform normal to world space (simplification)
+    out.world_normal = (model * vec4<f32>(normal, 0.0)).xyz;
+    
+    // Pass UV coordinates
+    out.uv = uv;
+    
+    return out;
 }
 
-@fragment
-fn fragment(input: FragmentInput) -> FragmentOutput {
-    var output: FragmentOutput;
-    output.color = textureLoad(baseTexture, input.texcoords, baseSampler);
-    return output;
-}
+// Fragment shader not needed as we're extending the StandardMaterial and using its fragment shader
