@@ -4,6 +4,9 @@ version = "0.1.1"
 edition = "2021"
 rust-version = "1.83.0"
 
+[profile.dev.package.objc2]
+debug-assertions = false
+
 [dependencies]
 bevy = "0.15.1"
 bevy_fps_controller = "0.15.0"
