@@ -62,9 +62,6 @@ impl<'de> Deserialize<'de> for Chunk {
             .try_into()
             .map_err(|_| serde::de::Error::custom("Failed to convert data to BlockId array"))?;
 
-        Ok(Chunk {
-            data: data_as_block_id,
-            position,
-        })
+        Ok(Chunk::with_data(data_as_block_id, position))
     }
 }

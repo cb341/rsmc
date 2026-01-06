@@ -4,23 +4,52 @@ use bevy::{math::Vec3, prelude::Resource};
 
 use super::BlockId;
 
-pub const CHUNK_SIZE: usize = 32;
+pub const CHUNK_SIZE: usize = 30;
 pub const PADDED_CHUNK_SIZE: usize = CHUNK_SIZE + 2;
 pub const PADDED_CHUNK_USIZE: usize = PADDED_CHUNK_SIZE;
 pub const CHUNK_LENGTH: usize = PADDED_CHUNK_SIZE * PADDED_CHUNK_SIZE * PADDED_CHUNK_SIZE;
+pub const TOTAL_BLOCKS_PER_CHUNK: usize = CHUNK_LENGTH;
+pub const BLOCK_COUNT_PER_REGION: usize = 512;
+pub const TOTAL_REGIONS_PER_CHUNK: usize = TOTAL_BLOCKS_PER_CHUNK / BLOCK_COUNT_PER_REGION;
+pub const CHUNK_REGION_LENGTH: usize = PADDED_CHUNK_SIZE;
+
+pub const REGION_COUNT_FULL: usize = CHUNK_REGION_LENGTH;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Chunk {
+    solid_region_count: u8,
+    solid_count_per_region: [u8; TOTAL_REGIONS_PER_CHUNK],
     pub data: [BlockId; CHUNK_LENGTH],
     pub position: Vec3,
 }
 
 impl Chunk {
+    // TODO: add optimized iterator over all non empty blocks with triplet
+    pub fn with_data(data: [BlockId; CHUNK_LENGTH], position: Vec3) -> Self {
+        Self {
+            solid_region_count: 0, // TODO: count total
+            solid_count_per_region: [0; TOTAL_REGIONS_PER_CHUNK], // TODO: update regions
+            data,
+            position,
+        }
+
+    }
+
     pub fn new(position: Vec3) -> Self {
         Self {
+            solid_region_count: 0,
+            solid_count_per_region: [0; TOTAL_REGIONS_PER_CHUNK],
             data: [BlockId::Air; CHUNK_LENGTH],
             position,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.solid_region_count == 0
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.solid_region_count == TOTAL_REGIONS_PER_CHUNK as u8
     }
 
     pub fn valid_padded(x: usize, y: usize, z: usize) -> bool {
@@ -55,6 +84,7 @@ impl Chunk {
     }
 
     pub fn set_unpadded(&mut self, x: usize, y: usize, z: usize, value: BlockId) {
+        // TODO: update region / total count
         self.data[Self::index(x, y, z)] = value;
     }
 
@@ -68,6 +98,19 @@ impl Chunk {
 
     pub fn key_eq_pos(key: [i32; 3], position: Vec3) -> bool {
         position.x as i32 == key[0] && position.y as i32 == key[1] && position.z as i32 == key[2]
+    }
+
+    fn fill(&mut self, block_id: BlockId) {
+        self.data = [block_id; CHUNK_LENGTH];
+
+        let is_solid = block_id == BlockId::Air; // FIXME: respect block properties
+        if is_solid {
+            self.solid_region_count = TOTAL_REGIONS_PER_CHUNK as u8;
+            self.solid_count_per_region = [0; TOTAL_REGIONS_PER_CHUNK];
+        } else {
+            self.solid_region_count = 0;
+            self.solid_count_per_region = [0; TOTAL_REGIONS_PER_CHUNK];
+        }
     }
 }
 
@@ -267,6 +310,23 @@ mod tests {
             chunk_manager.chunks.len(),
             (render_diameter * render_diameter * render_diameter) as usize
         );
+    }
+
+    #[test]
+    fn test_chunk_fullness_lifecycle() {
+        let position = Vec3::new(0.0, 0.0, 0.0);
+        let mut chunk = Chunk::new(position);
+        assert!(chunk.is_empty());
+        assert!(!chunk.is_full());
+        chunk.set(0,0,0, BlockId::Air);
+        assert!(chunk.is_empty());
+        assert!(!chunk.is_full());
+        chunk.set(0,0,0, BlockId::Stone);
+        assert!(!chunk.is_empty());
+        assert!(!chunk.is_full());
+        chunk.fill(BlockId::Stone);
+        assert!(!chunk.is_empty());
+        assert!(chunk.is_full());
     }
 
     #[test]

@@ -86,10 +86,12 @@ pub fn handle_chunk_mesh_update_events_system(
         let chunk_option = chunk_manager.get_chunk(event.position);
         match chunk_option {
             Some(chunk) => {
-                tasks.task_list.push(FutureChunkMesh {
-                    position: chunk.position,
-                    meshes_task: create_mesh_task(chunk, &texture_manager),
-                });
+                if !chunk.is_full() && !chunk.is_empty() {
+                    tasks.task_list.push(FutureChunkMesh {
+                        position: chunk.position,
+                        meshes_task: create_mesh_task(chunk, &texture_manager),
+                    });
+                }
             }
             None => {
                 println!("No chunk found");
