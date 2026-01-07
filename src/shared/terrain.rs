@@ -1,3 +1,6 @@
+#![feature(gen_blocks)] //
+#![feature(coroutines)] //
+
 use std::collections::HashMap;
 
 use bevy::{math::Vec3, prelude::Resource};
@@ -15,6 +18,7 @@ pub const TOTAL_BLOCKS_PER_CHUNK: usize = CHUNK_LENGTH;
 
 const REGION_WIDTH: usize = PADDED_CHUNK_SIZE / REGION_COUNT_PER_SIDE_OF_CHUNK;
 const REGION_COUNT_PER_SIDE_OF_CHUNK: usize = 4;
+const RC: usize = REGION_COUNT_PER_SIDE_OF_CHUNK;
 const BLOCK_COUNT_PER_REGION: usize = REGION_WIDTH * REGION_WIDTH * REGION_WIDTH;
 const TOTAL_REGIONS_PER_CHUNK: usize = TOTAL_BLOCKS_PER_CHUNK / BLOCK_COUNT_PER_REGION;
 
@@ -38,6 +42,37 @@ impl Default for Chunk {
             data: [BlockId::Air; CHUNK_LENGTH],
             position: Vec3::ZERO,
         }
+    }
+}
+
+impl Chunk {
+    fn block_iterator<I: IntoIterator<Item = (usize,usize,usize,BlockId)>>() -> impl Iterator<Item = (usize,usize,usize,BlockId)> {
+        gen {
+            for rx in 0..RC {
+                for ry in 0..RC {
+                    for rz in 0..RC {
+                        let region = self.chunk.sub_regions[Chunk::region_index(rx, ry, rz)];
+                        if region.solid_count != 0 || region.mixed_count != 0 {
+                            for dx in 0..REGION_WIDTH {
+
+                                for dy in 0..REGION_WIDTH {
+
+                                    for dz in 0..REGION_WIDTH {
+                                        let x = rx * REGION_WIDTH + dx;
+                                        let y = ry * REGION_WIDTH + dy;
+                                        let z = rz * REGION_WIDTH + dz;
+
+                                        let block_id = self.chunk.get_unpadded(x,y,z);
+
+                                        yield((x,y,z,block_id))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }.into_iter()
     }
 }
 
@@ -416,14 +451,17 @@ mod tests {
     fn test_index() {
         assert_eq!(Chunk::region_index(0, 0, 0), 0);
         assert_eq!(Chunk::region_index(1, 0, 0), 1);
-        assert_eq!(Chunk::region_index(3,3,3), 63);
+        assert_eq!(Chunk::region_index(3, 3, 3), 63);
 
         assert_eq!(Chunk::region_index_from_block(0, 0, 0), 0);
         assert_eq!(Chunk::region_index_from_block(1, 0, 0), 0);
         assert_eq!(Chunk::region_index_from_block(8, 0, 0), 1);
-        assert_eq!(Chunk::region_index_from_block(31,31,31), 63);
+        assert_eq!(Chunk::region_index_from_block(31, 31, 31), 63);
 
-        assert_eq!(Chunk::region_index(1,2,3), Chunk::region_index_from_block(8,16,24));
+        assert_eq!(
+            Chunk::region_index(1, 2, 3),
+            Chunk::region_index_from_block(8, 16, 24)
+        );
     }
 
     #[test]

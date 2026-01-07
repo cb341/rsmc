@@ -1,3 +1,5 @@
+#![feature(gen_blocks)] // smth
+
 use crate::prelude::*;
 
 pub mod prelude;
