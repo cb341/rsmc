@@ -8,16 +8,15 @@ use super::BlockId;
 
 pub const CHUNK_SIZE: usize = 30;
 pub const PADDED_CHUNK_SIZE: usize = CHUNK_SIZE + 2;
-pub const REGION_WIDTH: usize = PADDED_CHUNK_SIZE / 4;
 
 pub const PADDED_CHUNK_USIZE: usize = PADDED_CHUNK_SIZE;
 pub const CHUNK_LENGTH: usize = PADDED_CHUNK_SIZE * PADDED_CHUNK_SIZE * PADDED_CHUNK_SIZE;
 pub const TOTAL_BLOCKS_PER_CHUNK: usize = CHUNK_LENGTH;
-pub const BLOCK_COUNT_PER_REGION: usize = REGION_WIDTH * REGION_WIDTH * REGION_WIDTH;
-pub const TOTAL_REGIONS_PER_CHUNK: usize = TOTAL_BLOCKS_PER_CHUNK / BLOCK_COUNT_PER_REGION;
-pub const CHUNK_REGION_LENGTH: usize = PADDED_CHUNK_SIZE;
 
-pub const REGION_COUNT_FULL: usize = CHUNK_REGION_LENGTH;
+const REGION_WIDTH: usize = PADDED_CHUNK_SIZE / REGION_COUNT_PER_SIDE_OF_CHUNK;
+const REGION_COUNT_PER_SIDE_OF_CHUNK: usize = 4;
+const BLOCK_COUNT_PER_REGION: usize = REGION_WIDTH * REGION_WIDTH * REGION_WIDTH;
+const TOTAL_REGIONS_PER_CHUNK: usize = TOTAL_BLOCKS_PER_CHUNK / BLOCK_COUNT_PER_REGION;
 
 #[derive(Debug, Clone, Copy, Default)]
 struct SubRegion {
@@ -27,7 +26,6 @@ struct SubRegion {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Chunk {
-    solid_region_count: u8,
     sub_regions: [SubRegion; TOTAL_REGIONS_PER_CHUNK],
     pub data: [BlockId; CHUNK_LENGTH],
     pub position: Vec3,
@@ -36,7 +34,6 @@ pub struct Chunk {
 impl Default for Chunk {
     fn default() -> Self {
         Self {
-            solid_region_count: 0,
             sub_regions: [SubRegion::default(); TOTAL_REGIONS_PER_CHUNK],
             data: [BlockId::Air; CHUNK_LENGTH],
             position: Vec3::ZERO,
@@ -47,15 +44,36 @@ impl Default for Chunk {
 impl Chunk {
     // TODO: add optimized iterator over all non empty blocks with triplet
     pub fn with_data(data: [BlockId; CHUNK_LENGTH], position: Vec3) -> Self {
-        Self { data, position, ..Chunk::default() }
+        let mut chunk = Self {
+            data,
+            position,
+            ..Chunk::default()
+        };
+        chunk.recount_regions();
+        chunk
     }
 
     pub fn new(position: Vec3) -> Self {
-        Self { position, ..Chunk::default() }
+        Self {
+            position,
+            ..Chunk::default()
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.sub_regions
+            .iter()
+            .map(|region| region.solid_count + region.mixed_count)
+            .sum::<u16>()
+            == 0
     }
 
     pub fn is_full(&self) -> bool {
-        self.solid_region_count == TOTAL_REGIONS_PER_CHUNK as u8
+        self.sub_regions
+            .iter()
+            .map(|region| region.solid_count)
+            .sum::<u16>()
+            == TOTAL_BLOCKS_PER_CHUNK as u16
     }
 
     pub fn valid_padded(x: usize, y: usize, z: usize) -> bool {
@@ -90,50 +108,61 @@ impl Chunk {
     }
 
     pub fn set_unpadded(&mut self, x: usize, y: usize, z: usize, value: BlockId) {
-        self.data[Self::index(x, y, z)] = value;
+        // println!("Setting ({:?}:{:?}) at ({},{},{})", value, value.cull_type(), x,y,z);
+
         let value_before = self.data[Self::index(x, y, z)];
         let value_after = value;
 
-        if value_before == value_after { return; }
+        self.data[Self::index(x, y, z)] = value;
 
-        if value_before.cull_type() != value_after.cull_type() {
-            let mut region = self.sub_regions[Self::region_index(x,y,z)];
+        if value_before.cull_type() == value_after.cull_type() {
+            return;
+        }
 
-            if value_before.cull_type() == CullType::Solid {
-                if region.solid_count == REGION_COUNT_FULL as u16 {
-                    self.solid_region_count += 1;
-                }
-                region.solid_count -= 1;
-            }
-            if value_before.cull_type() == CullType::Mixed {
-                region.mixed_count -= 1;
-            }
-            if value_after.cull_type() == CullType::Solid {
-                region.solid_count += 1;
-                if region.solid_count == REGION_COUNT_FULL as u16 {
-                    self.solid_region_count += 1;
-                }
-            }
-            if value_after.cull_type() == CullType::Mixed {
-                region.mixed_count += 1;
-            }
+        let index = Self::region_index_from_block(x, y, z);
+        let region = &mut self.sub_regions[index];
+
+        match value_before.cull_type() {
+            CullType::Empty => {}
+            CullType::Solid => region.solid_count -= 1,
+            CullType::Mixed => region.mixed_count -= 1,
+        }
+        match value_after.cull_type() {
+            CullType::Empty => {}
+            CullType::Solid => region.solid_count += 1,
+            CullType::Mixed => region.mixed_count += 1,
         }
     }
 
-    #[rustfmt::skip]
     pub fn index(x: usize, y: usize, z: usize) -> usize {
-        if (x >= PADDED_CHUNK_SIZE) || (y >= PADDED_CHUNK_SIZE) || (z >= PADDED_CHUNK_SIZE) {
-            panic!("Index out of bounds: ({}, {}, {})", x, y, z);
-        }
+        assert!(
+            ((x < PADDED_CHUNK_SIZE) || (y < PADDED_CHUNK_SIZE) || (z < PADDED_CHUNK_SIZE)),
+            "Index out of bounds: ({}, {}, {})",
+            x,
+            y,
+            z
+        );
+
         x + PADDED_CHUNK_USIZE * (y + PADDED_CHUNK_USIZE * z)
     }
 
-    #[rustfmt::skip]
     pub fn region_index(x: usize, y: usize, z: usize) -> usize {
-        if (x >= REGION_WIDTH) || (y >= REGION_WIDTH) || (z >= REGION_WIDTH) {
-            panic!("Index out of bounds: ({}, {}, {})", x, y, z);
-        }
-        x + REGION_WIDTH * (y + REGION_WIDTH * z)
+        assert!(
+            (x < REGION_COUNT_PER_SIDE_OF_CHUNK)
+                || (y < REGION_COUNT_PER_SIDE_OF_CHUNK)
+                || (z < REGION_COUNT_PER_SIDE_OF_CHUNK),
+            "Index out of bounds: ({}, {}, {})",
+            x,
+            y,
+            z
+        );
+
+        x + REGION_COUNT_PER_SIDE_OF_CHUNK * (y + REGION_COUNT_PER_SIDE_OF_CHUNK * z)
+    }
+
+    #[rustfmt::skip]
+    pub fn region_index_from_block(x: usize, y: usize, z: usize) -> usize {
+        Self::region_index(x / 8, y / 8, z / 8)
     }
 
     pub fn key_eq_pos(key: [i32; 3], position: Vec3) -> bool {
@@ -143,15 +172,33 @@ impl Chunk {
     fn fill(&mut self, block_id: BlockId) {
         self.data = [block_id; CHUNK_LENGTH];
 
-        if block_id.cull_type() == CullType::Solid {
-            self.solid_region_count = TOTAL_REGIONS_PER_CHUNK as u8;
-            self.sub_regions = [SubRegion {
-                    solid_count: BLOCK_COUNT_PER_REGION as u16,
-                    mixed_count: 0,
-                }; TOTAL_REGIONS_PER_CHUNK];
-        } else {
-            self.solid_region_count = 0;
-            self.sub_regions = [SubRegion::default(); TOTAL_REGIONS_PER_CHUNK];
+        let base_region = match block_id.cull_type() {
+            CullType::Solid => SubRegion {
+                solid_count: BLOCK_COUNT_PER_REGION as u16,
+                mixed_count: 0,
+            },
+            CullType::Empty => SubRegion::default(),
+            CullType::Mixed => SubRegion {
+                solid_count: 0,
+                mixed_count: BLOCK_COUNT_PER_REGION as u16,
+            },
+        };
+        self.sub_regions = [base_region; TOTAL_REGIONS_PER_CHUNK]
+    }
+
+    fn recount_regions(&mut self) {
+        for x in 0..PADDED_CHUNK_SIZE {
+            for y in 0..PADDED_CHUNK_SIZE {
+                for z in 0..PADDED_CHUNK_SIZE {
+                    let block_id = self.get_unpadded(x, y, z);
+                    let region = &mut self.sub_regions[Self::region_index_from_block(x, y, z)];
+                    match block_id.cull_type() {
+                        CullType::Empty => {}
+                        CullType::Solid => region.solid_count += 1,
+                        CullType::Mixed => region.mixed_count += 1,
+                    }
+                }
+            }
         }
     }
 }
@@ -352,17 +399,31 @@ mod tests {
     fn test_chunk_fullness_lifecycle() {
         let position = Vec3::new(0.0, 0.0, 0.0);
         let mut chunk = Chunk::new(position);
-        // assert!(chunk.is_empty());
+        assert!(chunk.is_empty());
         assert!(!chunk.is_full());
         chunk.set(0, 0, 0, BlockId::Air);
-        // assert!(chunk.is_empty());
+        assert!(chunk.is_empty());
         assert!(!chunk.is_full());
         chunk.set(0, 0, 0, BlockId::Stone);
-        // assert!(!chunk.is_empty());
+        assert!(!chunk.is_empty());
         assert!(!chunk.is_full());
         chunk.fill(BlockId::Stone);
-        // assert!(!chunk.is_empty());
+        assert!(!chunk.is_empty());
         assert!(chunk.is_full());
+    }
+
+    #[test]
+    fn test_index() {
+        assert_eq!(Chunk::region_index(0, 0, 0), 0);
+        assert_eq!(Chunk::region_index(1, 0, 0), 1);
+        assert_eq!(Chunk::region_index(3,3,3), 63);
+
+        assert_eq!(Chunk::region_index_from_block(0, 0, 0), 0);
+        assert_eq!(Chunk::region_index_from_block(1, 0, 0), 0);
+        assert_eq!(Chunk::region_index_from_block(8, 0, 0), 1);
+        assert_eq!(Chunk::region_index_from_block(31,31,31), 63);
+
+        assert_eq!(Chunk::region_index(1,2,3), Chunk::region_index_from_block(8,16,24));
     }
 
     #[test]

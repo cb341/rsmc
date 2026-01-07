@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Serialize, Deserialize, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum BlockId {
     Air,
     Grass,
@@ -13,7 +13,7 @@ pub enum BlockId {
     Tallgrass,
 }
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub enum CullType { Empty, Solid, Mixed }
 
 use serde::{Deserialize, Serialize};
