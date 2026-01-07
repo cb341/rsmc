@@ -13,6 +13,9 @@ pub enum BlockId {
     Tallgrass,
 }
 
+#[derive(Eq, PartialEq, Hash)]
+pub enum CullType { Empty, Solid, Mixed }
+
 use serde::{Deserialize, Serialize};
 use BlockId::*;
 
@@ -70,7 +73,24 @@ impl BlockId {
         ]
     }
 
+    pub fn cull_type(&self) -> CullType {
+        match *self {
+            Air => CullType::Empty,
+            Tallgrass => CullType::Mixed,
+            _ => CullType::Solid
+        }
+    }
+
     pub fn supports_grass(&self) -> bool {
         *self == Grass || *self == Dirt
     }
 }
+
+
+#[test]
+fn test_culltype() {
+    assert!(BlockId::Air.cull_type() == CullType::Empty);
+    assert!(BlockId::Stone.cull_type() == CullType::Solid);
+    assert!(BlockId::Tallgrass.cull_type() == CullType::Mixed);
+}
+
