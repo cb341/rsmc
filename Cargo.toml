@@ -29,7 +29,6 @@ renet_visualizer = { git = "https://github.com/CuddlyBunion341/renet.git", featu
   "bevy",
 ] }
 egui_plot = "0.30.0"
-genawaiter = "0.99.1"
 
 [profile.dev.package."*"]
 opt-level = 3
