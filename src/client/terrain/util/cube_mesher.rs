@@ -3,11 +3,6 @@ use terrain_util::{
     client_block::{MeshRepresentation, block_properties},
     create_cube_mesh_from_data,
 };
-const REGION_WIDTH: usize = PADDED_CHUNK_SIZE / REGION_COUNT_PER_SIDE_OF_CHUNK;
-const REGION_COUNT_PER_SIDE_OF_CHUNK: usize = 4;
-const RC: usize = REGION_COUNT_PER_SIDE_OF_CHUNK;
-const BLOCK_COUNT_PER_REGION: usize = REGION_WIDTH * REGION_WIDTH * REGION_WIDTH;
-const TOTAL_REGIONS_PER_CHUNK: usize = TOTAL_BLOCKS_PER_CHUNK / BLOCK_COUNT_PER_REGION;
 
 use crate::prelude::*;
 
@@ -138,64 +133,10 @@ pub fn create_cube_mesh_for_chunk(chunk: &Chunk, texture_manager: &TextureManage
 
     let instant = Instant::now();
 
-    //
-    let mut region_index = 0;
-
-    let mut rx = 0;
-    let mut ry = 0;
-    let mut rz = 0;
-
-    let mut dx = 0;
-    let mut dy = 0;
-    let mut dz = 0;
-    loop {
-        if region_index >= TOTAL_REGIONS_PER_CHUNK {
-            break;
-        }
-
-        let region = chunk.sub_regions[region_index];
-        if region.is_empty() {
-            region_index += 1;
-            (rx, ry, rz) = Chunk::xyz_from_index(RC, region_index);
-            dx = 0;
-            dy = 0;
-            dz = 0;
-            continue;
-        }
-
-        let rw = REGION_WIDTH;
-
-        let x = rx * rw + dx;
-        let y = ry * rw + dy;
-        let z = rz * rw + dz;
-
-        // advance local block coordinates
-        dx += 1;
-        if dx == rw {
-            dx = 0;
-            dy += 1;
-            if dy == rw {
-                dy = 0;
-                dz += 1;
-                if dz == rw {
-                    dz = 0;
-                    region_index += 1;
-                    if region_index < TOTAL_REGIONS_PER_CHUNK {
-                        (rx, ry, rz) = Self::xyz_from_index(RC, region_index);
-                    }
-                }
-            }
-        }
-
-        if Chunk::is_unpadded_pos_at_border(x, y, z) {
-            continue;
-        }
-
-        let block_id = chunk.get_unpadded(x, y, z);
-
+    chunk.block_iterator().for_each(|(x, y, z, block_id)| {
         match block_properties(block_id).mesh_representation {
             MeshRepresentation::Cube(_) => {}
-            _ => continue,
+            _ => return,
         }
 
         fn update_mask(chunk: &Chunk, mask: &mut u8, value: u8, x: usize, y: usize, z: usize) {
@@ -234,7 +175,7 @@ pub fn create_cube_mesh_for_chunk(chunk: &Chunk, texture_manager: &TextureManage
         geometry_data.position.extend(cube_data.position);
         geometry_data.uv.extend(cube_data.uv);
         geometry_data.normal.extend(cube_data.normal);
-    }
+    });
 
     let new = instant.elapsed();
 
