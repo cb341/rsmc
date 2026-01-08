@@ -20,7 +20,7 @@ const BLOCK_COUNT_PER_REGION: usize = REGION_WIDTH * REGION_WIDTH * REGION_WIDTH
 const TOTAL_REGIONS_PER_CHUNK: usize = TOTAL_BLOCKS_PER_CHUNK / BLOCK_COUNT_PER_REGION;
 
 #[derive(Debug, Clone, Copy, Default)]
-struct SubRegion {
+pub struct SubRegion {
     pub solid_count: u16,
     pub mixed_count: u16,
 }
@@ -53,7 +53,7 @@ impl Default for Chunk {
 }
 
 impl Chunk {
-    fn xyz_from_index(n: usize, index: usize) -> (usize, usize, usize) {
+    pub fn xyz_from_index(n: usize, index: usize) -> (usize, usize, usize) {
         let x = index % n;
         let y = (index / n) % n;
         let z = index / (n * n);
@@ -61,48 +61,68 @@ impl Chunk {
         (x, y, z)
     }
 
-    pub fn block_iterator(&self) -> impl Iterator<Item = (usize, usize, usize, BlockId)> {
+    pub fn block_iterator(&self) -> impl Iterator<Item = (usize, usize, usize, BlockId)> + '_ {
         let mut region_index = 0;
-        let mut block_index = 0;
+
+        let mut rx = 0;
+        let mut ry = 0;
+        let mut rz = 0;
+
+        let mut dx = 0;
+        let mut dy = 0;
+        let mut dz = 0;
 
         std::iter::from_fn(move || {
-            while region_index < TOTAL_REGIONS_PER_CHUNK {
+            loop {
+                if region_index >= TOTAL_REGIONS_PER_CHUNK {
+                    return None;
+                }
+
                 let region = self.sub_regions[region_index];
-                if region.is_empty() { // TODO: expose this
+                if region.is_empty() {
                     region_index += 1;
-                    block_index = 0;
+                    (rx, ry, rz) = Self::xyz_from_index(RC, region_index);
+                    dx = 0;
+                    dy = 0;
+                    dz = 0;
                     continue;
                 }
 
                 let rw = REGION_WIDTH;
-                let rc = RC;
-
-                let (rx, ry, rz) = Self::xyz_from_index(rc, region_index);
-                let (dx, dy, dz) = Self::xyz_from_index(rw, block_index);
 
                 let x = rx * rw + dx;
                 let y = ry * rw + dy;
                 let z = rz * rw + dz;
 
-                block_index += 1;
-                if block_index == BLOCK_COUNT_PER_REGION {
-                    region_index += 1;
-                    block_index = 0;
+                // advance local block coordinates
+                dx += 1;
+                if dx == rw {
+                    dx = 0;
+                    dy += 1;
+                    if dy == rw {
+                        dy = 0;
+                        dz += 1;
+                        if dz == rw {
+                            dz = 0;
+                            region_index += 1;
+                            if region_index < TOTAL_REGIONS_PER_CHUNK {
+                                (rx, ry, rz) = Self::xyz_from_index(RC, region_index);
+                            }
+                        }
+                    }
                 }
 
-                if Self::is_unpadded_pos_at_border(x, y, z) { // TODO: make this optional
+                if Self::is_unpadded_pos_at_border(x, y, z) {
                     continue;
                 }
 
                 let block = self.data[Self::index(x, y, z)];
                 return Some((x, y, z, block));
             }
-
-            None
         })
     }
 
-    fn is_unpadded_pos_at_border(x: usize, y: usize, z: usize) -> bool {
+    pub fn is_unpadded_pos_at_border(x: usize, y: usize, z: usize) -> bool {
         let min = 0;
         let max = PADDED_CHUNK_SIZE - 1;
 
@@ -494,7 +514,7 @@ mod tests {
 
         let b = BlockId::Stone;
         chunk.fill(b);
-        chunk.set_unpadded(2,1,1, BlockId::Dirt);
+        chunk.set_unpadded(2, 1, 1, BlockId::Dirt);
         let mut iterator = chunk.block_iterator();
         assert_eq!(iterator.next().unwrap(), (1, 1, 1, b));
         assert_eq!(iterator.next().unwrap(), (2, 1, 1, BlockId::Dirt));
