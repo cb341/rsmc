@@ -64,6 +64,8 @@ pub fn create_cube_mesh_for_chunk(chunk: &Chunk, texture_manager: &TextureManage
         indices: Vec::new(),
     };
 
+    let instant = Instant::now();
+
     chunk.block_iterator().for_each(|(x, y, z, block_id)| {
         match block_properties(block_id).mesh_representation {
             MeshRepresentation::Cube(_) => {}
@@ -107,6 +109,8 @@ pub fn create_cube_mesh_for_chunk(chunk: &Chunk, texture_manager: &TextureManage
         geometry_data.uv.extend(cube_data.uv);
         geometry_data.normal.extend(cube_data.normal);
     });
+
+    println!("Elapsed: {:?}", instant.elapsed());
 
     create_cube_mesh_from_data(geometry_data)
 }
