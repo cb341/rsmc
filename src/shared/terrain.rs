@@ -52,29 +52,7 @@ impl Default for Chunk {
     }
 }
 
-struct ChunkIterator<'a> {
-    region_index: usize,
-    block_index: usize,
-    chunk: &'a Chunk,
-    steps_taken: usize,
-    current_pos: Option<(usize, usize, usize)>,
-}
-
-impl<'a> ChunkIterator<'a> {
-    fn new(chunk: &'a Chunk) -> Self {
-        Self {
-            region_index: 0,
-            block_index: 0,
-            steps_taken: 0,
-            current_pos: Some((0, 0, 0)),
-            chunk,
-        }
-    }
-
-    fn current_region(&self) -> SubRegion {
-        self.chunk.sub_regions[self.region_index]
-    }
-
+impl Chunk {
     fn xyz_from_index(n: usize, index: usize) -> (usize, usize, usize) {
         let x = index % n;
         let y = (index / n) % n;
@@ -83,68 +61,45 @@ impl<'a> ChunkIterator<'a> {
         (x, y, z)
     }
 
-    fn region_pos(&self) -> (usize, usize, usize) {
-        Self::xyz_from_index(RC, self.region_index)
-    }
-
-    fn region_block_pos(&self) -> (usize, usize, usize) {
-        Self::xyz_from_index(REGION_WIDTH, self.block_index)
-    }
-
-    fn chunk_block_pos(&self) -> (usize, usize, usize) {
-        let (rx, ry, rz) = Self::region_pos(self);
-        let (dx, dy, dz) = Self::region_block_pos(self);
-
-        let x = rx * REGION_WIDTH + dx;
-        let y = ry * REGION_WIDTH + dy;
-        let z = rz * REGION_WIDTH + dz;
-
-        (x, y, z)
-    }
-
-    fn next_region(&mut self) -> bool {
-        self.region_index += 1;
-
-        while self.region_index < TOTAL_REGIONS_PER_CHUNK && self.current_region().is_empty() {
-            self.region_index += 1;
-        }
-
-        self.region_index < TOTAL_REGIONS_PER_CHUNK
-    }
-
-    fn advance(&mut self) {
-        self.steps_taken += 1;
-
-        self.block_index += 1;
-
-        if self.block_index == BLOCK_COUNT_PER_REGION {
-            self.block_index = 0;
-
-            if !self.next_region() {
-                self.current_pos = None;
-                return;
-            }
-        }
-
-        self.current_pos = Some(self.chunk_block_pos());
-    }
-}
-
-impl Iterator for ChunkIterator<'_> {
-    type Item = (usize, usize, usize, BlockId);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let (x, y, z) = self.current_pos?;
-        let block_id = self.chunk.get_unpadded(x, y, z);
-        self.advance();
-
-        Some((x, y, z, block_id))
-    }
-}
-
-impl Chunk {
     pub fn block_iterator(&self) -> impl Iterator<Item = (usize, usize, usize, BlockId)> {
-        ChunkIterator::new(self)
+        let mut region_index = 0;
+        let mut block_index = 0;
+
+        std::iter::from_fn(move || {
+            while region_index < TOTAL_REGIONS_PER_CHUNK {
+                let region = self.sub_regions[region_index];
+                if region.is_empty() { // TODO: expose this
+                    region_index += 1;
+                    block_index = 0;
+                    continue;
+                }
+
+                let rw = REGION_WIDTH;
+                let rc = RC;
+
+                let (rx, ry, rz) = Self::xyz_from_index(rc, region_index);
+                let (dx, dy, dz) = Self::xyz_from_index(rw, block_index);
+
+                let x = rx * rw + dx;
+                let y = ry * rw + dy;
+                let z = rz * rw + dz;
+
+                block_index += 1;
+                if block_index == BLOCK_COUNT_PER_REGION {
+                    region_index += 1;
+                    block_index = 0;
+                }
+
+                if Self::is_unpadded_pos_at_border(x, y, z) { // TODO: make this optional
+                    continue;
+                }
+
+                let block = self.data[Self::index(x, y, z)];
+                return Some((x, y, z, block));
+            }
+
+            None
+        })
     }
 
     fn is_unpadded_pos_at_border(x: usize, y: usize, z: usize) -> bool {
@@ -279,7 +234,7 @@ impl Chunk {
 
     #[rustfmt::skip]
     pub fn region_index_from_block(x: usize, y: usize, z: usize) -> usize {
-        Self::region_index(x / 8, y / 8, z / 8)
+        Self::region_index(x / REGION_WIDTH, y / REGION_WIDTH, z / REGION_WIDTH)
     }
 
     pub fn key_eq_pos(key: [i32; 3], position: Vec3) -> bool {
@@ -527,6 +482,28 @@ mod tests {
         chunk.fill(BlockId::Stone);
         assert!(!chunk.is_empty());
         assert!(chunk.is_full());
+    }
+
+    #[test]
+    fn test_chunk_iterator() {
+        let position = Vec3::new(0.0, 0.0, 0.0);
+        let mut chunk = Chunk::new(position);
+        chunk.block_iterator().for_each(|_| {
+            panic!();
+        });
+
+        let b = BlockId::Stone;
+        chunk.fill(b);
+        chunk.set_unpadded(2,1,1, BlockId::Dirt);
+        let mut iterator = chunk.block_iterator();
+        assert_eq!(iterator.next().unwrap(), (1, 1, 1, b));
+        assert_eq!(iterator.next().unwrap(), (2, 1, 1, BlockId::Dirt));
+        assert_eq!(iterator.next().unwrap(), (3, 1, 1, b));
+        assert_eq!(iterator.next().unwrap(), (4, 1, 1, b));
+        assert_eq!(iterator.next().unwrap(), (5, 1, 1, b));
+        assert_eq!(iterator.next().unwrap(), (6, 1, 1, b));
+        assert_eq!(iterator.next().unwrap(), (7, 1, 1, b));
+        assert_eq!(iterator.next().unwrap(), (1, 2, 1, b));
     }
 
     #[test]
