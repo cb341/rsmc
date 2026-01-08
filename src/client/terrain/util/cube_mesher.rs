@@ -63,62 +63,56 @@ pub fn create_cube_mesh_for_chunk(chunk: &Chunk, texture_manager: &TextureManage
         indices: Vec::new(),
     };
 
-    for x in 1..CHUNK_SIZE + 1 {
-        for y in 1..CHUNK_SIZE + 1 {
-            for z in 1..CHUNK_SIZE + 1 {
-                let block_id = chunk.get_unpadded(x, y, z);
+    chunk.block_iterator().for_each(|(x,y,z,block_id)| {
+        match block_properties(block_id).mesh_representation {
+            MeshRepresentation::Cube(_) => {}
+            _ => return,
+        }
 
-                match block_properties(block_id).mesh_representation {
-                    MeshRepresentation::Cube(_) => {}
-                    _ => continue,
-                }
-
-                fn update_mask(
-                    chunk: &Chunk,
-                    mask: &mut u8,
-                    value: u8,
-                    x: usize,
-                    y: usize,
-                    z: usize,
-                ) {
-                    match block_properties(chunk.get_unpadded(x, y, z)).mesh_representation {
-                        MeshRepresentation::Cube(_) => {}
-                        _ => *mask |= value,
-                    }
-                }
-
-                let mut mask = 0b000000;
-
-                update_mask(chunk, &mut mask, 0b000001, x, y + 1, z);
-                update_mask(chunk, &mut mask, 0b000010, x, y - 1, z);
-
-                update_mask(chunk, &mut mask, 0b000100, x + 1, y, z);
-                update_mask(chunk, &mut mask, 0b001000, x - 1, y, z);
-
-                update_mask(chunk, &mut mask, 0b010000, x, y, z - 1);
-                update_mask(chunk, &mut mask, 0b100000, x, y, z + 1);
-
-                let cube_data = create_cube_geometry_data(
-                    (x - 1) as f32,
-                    (y - 1) as f32,
-                    (z - 1) as f32,
-                    mask,
-                    block_id,
-                    texture_manager,
-                );
-
-                geometry_data.indices.extend(
-                    cube_data
-                        .indices
-                        .iter()
-                        .map(|i| i + geometry_data.position.len() as u32),
-                );
-                geometry_data.position.extend(cube_data.position);
-                geometry_data.uv.extend(cube_data.uv);
-                geometry_data.normal.extend(cube_data.normal);
+        fn update_mask(
+            chunk: &Chunk,
+            mask: &mut u8,
+            value: u8,
+            x: usize,
+            y: usize,
+            z: usize,
+        ) {
+            match block_properties(chunk.get_unpadded(x, y, z)).mesh_representation {
+                MeshRepresentation::Cube(_) => {}
+                _ => *mask |= value,
             }
         }
-    }
+
+        let mut mask = 0b000000;
+
+        update_mask(chunk, &mut mask, 0b000001, x, y + 1, z);
+        update_mask(chunk, &mut mask, 0b000010, x, y - 1, z);
+
+        update_mask(chunk, &mut mask, 0b000100, x + 1, y, z);
+        update_mask(chunk, &mut mask, 0b001000, x - 1, y, z);
+
+        update_mask(chunk, &mut mask, 0b010000, x, y, z - 1);
+        update_mask(chunk, &mut mask, 0b100000, x, y, z + 1);
+
+        let cube_data = create_cube_geometry_data(
+            (x - 1) as f32,
+            (y - 1) as f32,
+            (z - 1) as f32,
+            mask,
+            block_id,
+            texture_manager,
+        );
+
+        geometry_data.indices.extend(
+            cube_data
+                .indices
+                .iter()
+                .map(|i| i + geometry_data.position.len() as u32),
+        );
+        geometry_data.position.extend(cube_data.position);
+        geometry_data.uv.extend(cube_data.uv);
+        geometry_data.normal.extend(cube_data.normal);
+    });
 
     create_cube_mesh_from_data(geometry_data)
 }

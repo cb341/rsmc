@@ -1,6 +1,3 @@
-#![feature(gen_blocks)] //
-#![feature(coroutines)] //
-
 use std::collections::HashMap;
 
 use bevy::{math::Vec3, prelude::Resource};
@@ -46,12 +43,12 @@ impl Default for Chunk {
 }
 
 impl Chunk {
-    fn block_iterator<I: IntoIterator<Item = (usize,usize,usize,BlockId)>>() -> impl Iterator<Item = (usize,usize,usize,BlockId)> {
+    pub fn block_iterator(&self) -> impl Iterator<Item = (usize,usize,usize,BlockId)> {
         gen {
             for rx in 0..RC {
                 for ry in 0..RC {
                     for rz in 0..RC {
-                        let region = self.chunk.sub_regions[Chunk::region_index(rx, ry, rz)];
+                        let region = self.sub_regions[Self::region_index(rx, ry, rz)];
                         if region.solid_count != 0 || region.mixed_count != 0 {
                             for dx in 0..REGION_WIDTH {
 
@@ -62,9 +59,11 @@ impl Chunk {
                                         let y = ry * REGION_WIDTH + dy;
                                         let z = rz * REGION_WIDTH + dz;
 
-                                        let block_id = self.chunk.get_unpadded(x,y,z);
+                                        let block_id = self.get_unpadded(x,y,z);
 
-                                        yield((x,y,z,block_id))
+                                        if !Self::is_unpadded_pos_at_border(x,y,z) {
+                                            yield(x,y,z,block_id)
+                                        }
                                     }
                                 }
                             }
@@ -72,7 +71,17 @@ impl Chunk {
                     }
                 }
             }
-        }.into_iter()
+        }
+    }
+
+    fn is_unpadded_pos_at_border(x: usize, y: usize, z: usize) -> bool {
+        let min = 0;
+        let max = PADDED_CHUNK_SIZE - 1;
+
+        let at_min_border = x == min || y == min || z == min;
+        let at_max_border = x == max || y == max || z == max;
+
+        at_min_border || at_max_border
     }
 }
 
