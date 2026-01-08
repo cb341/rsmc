@@ -1,6 +1,7 @@
 use terrain_util::{
-    client_block::{block_properties, MeshRepresentation},
-    create_cube_mesh_from_data, GeometryData, TextureManager, Vertex,
+    GeometryData, TextureManager, Vertex,
+    client_block::{MeshRepresentation, block_properties},
+    create_cube_mesh_from_data,
 };
 
 use crate::prelude::*;
@@ -63,20 +64,13 @@ pub fn create_cube_mesh_for_chunk(chunk: &Chunk, texture_manager: &TextureManage
         indices: Vec::new(),
     };
 
-    chunk.block_iterator().for_each(|(x,y,z,block_id)| {
+    chunk.block_iterator().for_each(|(x, y, z, block_id)| {
         match block_properties(block_id).mesh_representation {
             MeshRepresentation::Cube(_) => {}
             _ => return,
         }
 
-        fn update_mask(
-            chunk: &Chunk,
-            mask: &mut u8,
-            value: u8,
-            x: usize,
-            y: usize,
-            z: usize,
-        ) {
+        fn update_mask(chunk: &Chunk, mask: &mut u8, value: u8, x: usize, y: usize, z: usize) {
             match block_properties(chunk.get_unpadded(x, y, z)).mesh_representation {
                 MeshRepresentation::Cube(_) => {}
                 _ => *mask |= value,
@@ -186,12 +180,9 @@ mod tests {
     #[test]
     fn test_create_cube_mesh_from_data() {
         let geometry_data = GeometryData {
-            position: vec![
-                [0.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [1.0, 1.0, 0.0],
-                [0.0, 1.0, 0.0],
-            ],
+            position: vec![[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [
+                0.0, 1.0, 0.0,
+            ]],
             uv: vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
             normal: vec![[0.0, 0.0, 1.0]; 4],
             indices: vec![0, 1, 2, 2, 3, 0],

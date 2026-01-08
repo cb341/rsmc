@@ -1,8 +1,8 @@
+use crate::BlockId;
+use crate::CHUNK_LENGTH;
+use crate::Chunk;
 use crate::deserialize_buffer;
 use crate::serialize_buffer;
-use crate::BlockId;
-use crate::Chunk;
-use crate::CHUNK_LENGTH;
 use bevy::math::Vec3;
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};

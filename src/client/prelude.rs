@@ -8,8 +8,8 @@ pub use bevy::asset::Assets;
 pub use bevy::diagnostic::*;
 pub use bevy::ecs::{event::*, query::*, system::*};
 pub use bevy::gizmos::gizmos::*;
-pub use bevy::input::{keyboard::*, mouse::*, ButtonInput};
-pub use bevy::math::{primitives::Cuboid, EulerRot, Quat, Ray3d, Vec3};
+pub use bevy::input::{ButtonInput, keyboard::*, mouse::*};
+pub use bevy::math::{EulerRot, Quat, Ray3d, Vec3, primitives::Cuboid};
 pub use bevy::pbr::*;
 pub use bevy::prelude::*;
 pub use bevy::render::{camera::*, mesh::Mesh};
@@ -52,8 +52,8 @@ pub use crate::collider::components as collider_components;
 pub use crate::collider::events as collider_events;
 pub use crate::collider::systems as collider_systems;
 
-pub use crate::networking::systems as networking_systems;
 pub use crate::networking::NetworkingPlugin;
+pub use crate::networking::systems as networking_systems;
 
 pub use crate::player::components as player_components;
 pub use crate::player::events as player_events;

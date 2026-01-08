@@ -4,19 +4,19 @@ pub use std::net::UdpSocket;
 pub use std::time::SystemTime;
 
 // bevy crates
+pub use bevy::MinimalPlugins;
 pub use bevy::app::{App, Plugin, Startup, Update};
 pub use bevy::ecs::event::*;
 pub use bevy::ecs::system::*;
 pub use bevy::log::{debug, error, info, warn};
 pub use bevy::math::*;
-pub use bevy::MinimalPlugins;
 
 // networking crates
+pub use bevy_renet::RenetServerPlugin;
 pub use bevy_renet::netcode::NetcodeServerPlugin;
 pub use bevy_renet::netcode::NetcodeServerTransport;
 pub use bevy_renet::netcode::ServerAuthentication;
 pub use bevy_renet::netcode::ServerConfig;
-pub use bevy_renet::RenetServerPlugin;
 pub use renet::DefaultChannel;
 pub use renet::*;
 pub use serde::Deserialize;

@@ -113,13 +113,10 @@ pub fn handle_events_system(
         match event {
             ServerEvent::ClientConnected { client_id } => {
                 println!("Client {client_id} connected");
-                player_states.players.insert(
-                    *client_id,
-                    PlayerState {
-                        position: Vec3::ZERO,
-                        rotation: Quat::IDENTITY,
-                    },
-                );
+                player_states.players.insert(*client_id, PlayerState {
+                    position: Vec3::ZERO,
+                    rotation: Quat::IDENTITY,
+                });
 
                 #[cfg(feature = "chat")]
                 chat_sync_events.send(chat_events::SyncPlayerChatMessagesEvent {

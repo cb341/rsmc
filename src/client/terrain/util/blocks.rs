@@ -84,8 +84,8 @@ pub mod client_block {
     }
 }
 
-use client_block::block_properties;
 use TextureName::*;
+use client_block::block_properties;
 
 #[derive(Resource, Clone)]
 pub struct TextureManager {

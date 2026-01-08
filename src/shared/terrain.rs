@@ -43,7 +43,7 @@ impl Default for Chunk {
 }
 
 impl Chunk {
-    pub fn block_iterator(&self) -> impl Iterator<Item = (usize,usize,usize,BlockId)> {
+    pub fn block_iterator(&self) -> impl Iterator<Item = (usize, usize, usize, BlockId)> {
         gen {
             for rx in 0..RC {
                 for ry in 0..RC {
@@ -51,18 +51,16 @@ impl Chunk {
                         let region = self.sub_regions[Self::region_index(rx, ry, rz)];
                         if region.solid_count != 0 || region.mixed_count != 0 {
                             for dx in 0..REGION_WIDTH {
-
                                 for dy in 0..REGION_WIDTH {
-
                                     for dz in 0..REGION_WIDTH {
                                         let x = rx * REGION_WIDTH + dx;
                                         let y = ry * REGION_WIDTH + dy;
                                         let z = rz * REGION_WIDTH + dz;
 
-                                        let block_id = self.get_unpadded(x,y,z);
+                                        let block_id = self.get_unpadded(x, y, z);
 
-                                        if !Self::is_unpadded_pos_at_border(x,y,z) {
-                                            yield(x,y,z,block_id)
+                                        if !Self::is_unpadded_pos_at_border(x, y, z) {
+                                            yield (x, y, z, block_id)
                                         }
                                     }
                                 }

@@ -14,10 +14,14 @@ pub enum BlockId {
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
-pub enum CullType { Empty, Solid, Mixed }
+pub enum CullType {
+    Empty,
+    Solid,
+    Mixed,
+}
 
-use serde::{Deserialize, Serialize};
 use BlockId::*;
+use serde::{Deserialize, Serialize};
 
 impl From<u8> for BlockId {
     fn from(value: u8) -> Self {
@@ -77,7 +81,7 @@ impl BlockId {
         match *self {
             Air => CullType::Empty,
             Tallgrass => CullType::Mixed,
-            _ => CullType::Solid
+            _ => CullType::Solid,
         }
     }
 
@@ -86,11 +90,9 @@ impl BlockId {
     }
 }
 
-
 #[test]
 fn test_culltype() {
     assert!(BlockId::Air.cull_type() == CullType::Empty);
     assert!(BlockId::Stone.cull_type() == CullType::Solid);
     assert!(BlockId::Tallgrass.cull_type() == CullType::Mixed);
 }
-

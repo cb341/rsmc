@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bevy::input::{keyboard::KeyboardInput, ButtonState};
+use bevy::input::{ButtonState, keyboard::KeyboardInput};
 use bevy_flair::style::components::{ClassList, NodeStyleSheet};
 use chat_events::ChatMessageSendEvent;
 
@@ -296,7 +296,7 @@ mod tests {
         let message_count = messages.iter(app.world()).count();
         assert_eq!(message_count, 1);
         assert_eq!(
-            messages.iter(app.world()).next().unwrap().0 .0,
+            messages.iter(app.world()).next().unwrap().0.0,
             "Hello World"
         );
     }

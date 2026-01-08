@@ -37,7 +37,7 @@ mod visualizer {
 
     use rayon::iter::ParallelIterator;
     use renet::{DefaultChannel, RenetServer};
-    use rsmc::{Chunk, ChunkManager, NetworkingMessage, CHUNK_SIZE};
+    use rsmc::{CHUNK_SIZE, Chunk, ChunkManager, NetworkingMessage};
 
     use super::{
         terrain_events,
@@ -217,9 +217,7 @@ mod visualizer {
     }
 
     macro_rules! add_slider_const {
-        ($ui: expr, $value:expr, $range:expr, $text:expr) => {{
-            $ui.add(egui::widgets::Slider::new($value, $range).text($text))
-        }};
+        ($ui: expr, $value:expr, $range:expr, $text:expr) => {{ $ui.add(egui::widgets::Slider::new($value, $range).text($text)) }};
     }
 
     macro_rules! add_noise_sliders {
