@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::math::{Quat, Vec3};
+use bevy::math::{IVec3, Quat, Vec3};
 use chrono::DateTime;
 use renet::{ChannelConfig, ClientId, ConnectionConfig, SendType};
 use serde::{Deserialize, Serialize};
@@ -44,12 +44,12 @@ pub enum NetworkingMessage {
     PlayerLeave(ClientId),
     PlayerUpdate(PlayerState),
     PlayerSync(HashMap<ClientId, PlayerState>),
-    ChunkBatchRequest(Vec<Vec3>),
+    ChunkBatchRequest(Vec<IVec3>),
     ChunkBatchResponse(Vec<Chunk>),
     ChatMessageSend(String),
     SingleChatMessageSync(ChatMessage),
     ChatMessageSync(Vec<ChatMessage>),
-    BlockUpdate { position: Vec3, block: BlockId },
+    BlockUpdate { position: IVec3, block: BlockId },
     ServerAsksClientNicelyToRerequestChunkBatch(),
 }
 

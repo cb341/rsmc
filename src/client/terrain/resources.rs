@@ -24,7 +24,7 @@ pub struct ChunkMeshes {
 
 pub struct MeshTask(pub Task<ChunkMeshes>);
 pub struct FutureChunkMesh {
-    pub position: Vec3,
+    pub position: IVec3,
     pub meshes_task: MeshTask,
 }
 

@@ -4,11 +4,11 @@ pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
     generator: Res<terrain_resources::Generator>,
 ) {
-    let render_distance = Vec3::new(8.0, 3.0, 8.0);
+    let render_distance = IVec3::new(8, 3, 8);
 
     info!("Generating chunks");
 
-    let mut chunks = ChunkManager::instantiate_chunks(Vec3::ZERO, render_distance);
+    let mut chunks = ChunkManager::instantiate_chunks(IVec3::ZERO, render_distance);
 
     chunks.par_iter_mut().for_each(|chunk| {
         info!("Generating chunk at {:?}", chunk.position);

@@ -18,8 +18,8 @@ macro_rules! for_each_chunk_coordinate {
                         continue;
                     }
 
-                    let chunk_origin = $chunk.position * CHUNK_SIZE as f32;
-                    let local_position = Vec3::new(x as f32, y as f32, z as f32);
+                    let chunk_origin = $chunk.position * CHUNK_SIZE as i32;
+                    let local_position = IVec3::new(x as i32, y as i32, z as i32);
                     let world_position = chunk_origin + local_position;
 
                     $body(x, y, z, world_position);
@@ -43,7 +43,7 @@ impl Generator {
     }
 
     pub fn generate_chunk(&self, chunk: &mut Chunk) {
-        if chunk.position.y < 0.0 {
+        if chunk.position.y < 0 {
             return;
         }
 
@@ -53,11 +53,7 @@ impl Generator {
         });
 
         for_each_chunk_coordinate!(chunk, |x, y, z, _| {
-            let pos = Vec3 {
-                x: x as f32,
-                y: y as f32,
-                z: z as f32,
-            };
+            let pos = IVec3::new(x as i32, y as i32, z as i32);
 
             self.decorate_block(chunk, pos);
         });
@@ -71,22 +67,22 @@ impl Generator {
         let proposal = Self::propose_tree_blocks(self);
 
         struct Bounds {
-            min: Vec3,
-            max: Vec3,
+            min: IVec3,
+            max: IVec3,
         }
 
         let proposal_bounds = proposal.iter().fold(
             Bounds {
-                min: Vec3::ZERO,
-                max: Vec3::ZERO,
+                min: IVec3::ZERO,
+                max: IVec3::ZERO,
             },
             |bounds, (relative_pos, _block_id)| Bounds {
-                min: Vec3 {
+                min: IVec3 {
                     x: bounds.min.x.min(relative_pos.x),
                     y: bounds.min.y.min(relative_pos.y),
                     z: bounds.min.z.min(relative_pos.z),
                 },
-                max: Vec3 {
+                max: IVec3 {
                     x: bounds.max.x.max(relative_pos.x),
                     y: bounds.max.y.max(relative_pos.y),
                     z: bounds.max.z.max(relative_pos.z),
@@ -95,13 +91,13 @@ impl Generator {
         );
 
         let sapling_x: usize = rand::random_range(
-            proposal_bounds.min.x.abs()..(CHUNK_SIZE as f32 - proposal_bounds.max.x),
+            proposal_bounds.min.x.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.x),
         ) as usize;
         let sapling_y: usize = rand::random_range(
-            proposal_bounds.min.y.abs()..(CHUNK_SIZE as f32 - proposal_bounds.max.y),
+            proposal_bounds.min.y.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.y),
         ) as usize;
         let sapling_z: usize = rand::random_range(
-            proposal_bounds.min.z.abs()..(CHUNK_SIZE as f32 - proposal_bounds.max.z),
+            proposal_bounds.min.z.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.z),
         ) as usize;
 
         if chunk.get(sapling_x, sapling_y, sapling_z) != BlockId::Grass {
@@ -109,15 +105,15 @@ impl Generator {
         }
 
         let proposal_valid = proposal.iter().all(|(relative_pos, _block)| {
-            let Vec3 { x, y, z } = relative_pos;
-            Chunk::valid_padded(
-                (sapling_x as f32 + *x) as usize,
-                (sapling_y as f32 + *y) as usize,
-                (sapling_z as f32 + *z) as usize,
+            let IVec3 { x, y, z } = relative_pos;
+            Chunk::valid_local(
+                (sapling_x as i32 + { *x }) as usize,
+                (sapling_y as i32 + { *y }) as usize,
+                (sapling_z as i32 + { *z }) as usize,
             ) && chunk.get(
-                (sapling_x as f32 + *x) as usize,
-                (sapling_y as f32 + *y) as usize,
-                (sapling_z as f32 + *z) as usize,
+                (sapling_x as i32 + { *x }) as usize,
+                (sapling_y as i32 + { *y }) as usize,
+                (sapling_z as i32 + { *z }) as usize,
             ) == BlockId::Air
         });
 
@@ -126,23 +122,24 @@ impl Generator {
         }
 
         proposal.iter().for_each(|(relative_pos, block_id)| {
-            let Vec3 { x, y, z } = relative_pos;
+            let IVec3 { x, y, z } = relative_pos;
             chunk.set(
-                (sapling_x as f32 + *x) as usize,
-                (sapling_y as f32 + *y) as usize,
-                (sapling_z as f32 + *z) as usize,
+                (sapling_x as i32 + { *x }) as usize,
+                (sapling_y as i32 + { *y }) as usize,
+                (sapling_z as i32 + { *z }) as usize,
                 *block_id,
             );
         });
     }
 
-    fn propose_tree_blocks(&self) -> Vec<(Vec3, BlockId)> {
+    fn propose_tree_blocks(&self) -> Vec<(IVec3, BlockId)> {
         let mut blocks = Vec::new();
 
         let min_tree_stump_height = self.params.tree.min_stump_height;
         let max_tree_stump_height = self.params.tree.max_stump_height;
 
-        let tree_stump_height = rand::random_range(min_tree_stump_height..max_tree_stump_height);
+        let tree_stump_height =
+            rand::random_range(min_tree_stump_height..max_tree_stump_height) as i32;
 
         let bush_radius: i32 =
             rand::random_range(self.params.tree.min_bush_radius..self.params.tree.max_bush_radius)
@@ -154,10 +151,10 @@ impl Generator {
                     let distance_from_center = dx * dx + dy * dy + dz * dz;
                     if distance_from_center < bush_radius * bush_radius {
                         blocks.push((
-                            Vec3 {
-                                x: dx as f32,
-                                y: (tree_stump_height as i32 + dy) as f32,
-                                z: dz as f32,
+                            IVec3 {
+                                x: dx,
+                                y: tree_stump_height + dy,
+                                z: dz,
                             },
                             BlockId::OakLeaves,
                         ));
@@ -167,20 +164,13 @@ impl Generator {
         }
 
         for dy in 1..tree_stump_height {
-            blocks.push((
-                Vec3 {
-                    x: 0.0,
-                    y: dy as f32,
-                    z: 0.0,
-                },
-                BlockId::OakLog,
-            ));
+            blocks.push((IVec3 { x: 0, y: dy, z: 0 }, BlockId::OakLog));
         }
 
         blocks
     }
 
-    fn decorate_block(&self, chunk: &mut Chunk, position: Vec3) {
+    fn decorate_block(&self, chunk: &mut Chunk, position: IVec3) {
         let x = position.x as usize;
         let y = position.y as usize;
         let z = position.z as usize;
@@ -226,16 +216,16 @@ impl Generator {
         chunk.set_unpadded(x, y, z, block);
     }
 
-    fn generate_block(&self, position: Vec3) -> BlockId {
-        if self.is_inside_cave(position) {
+    fn generate_block(&self, position: IVec3) -> BlockId {
+        if self.is_inside_cave(position.as_vec3()) {
             return BlockId::Air;
         }
 
-        if (position.y as f64) < self.determine_terrain_height(position) {
+        if (position.y as f64) < self.determine_terrain_height(position.as_vec3()) {
             return BlockId::Stone;
         }
 
-        if self.determine_terrain_density(position) > 0.0 {
+        if self.determine_terrain_density(position.as_vec3()) > 0.0 {
             return BlockId::Stone;
         }
 
@@ -362,7 +352,7 @@ mod tests {
     #[test]
     fn test_generate_chunk() {
         let generator = Generator::default();
-        let mut chunk = Chunk::new(Vec3::new(0.0, 0.0, 0.0));
+        let mut chunk = Chunk::new(IVec3::ZERO);
 
         generator.generate_chunk(&mut chunk);
 

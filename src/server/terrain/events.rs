@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Event)]
 pub struct BlockUpdateEvent {
-    pub position: Vec3,
+    pub position: IVec3,
     pub block: BlockId,
 }
 
