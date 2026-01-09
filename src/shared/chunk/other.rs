@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use bevy::{math::Vec3, prelude::Resource};
+use bevy::{math::Vec3};
 
 use crate::*;
 
@@ -49,7 +47,9 @@ impl Chunk {
 
     #[rustfmt::skip]
     pub fn index(x: usize, y: usize, z: usize) -> usize {
-        if (x >= PADDED_CHUNK_SIZE) || (y >= PADDED_CHUNK_SIZE) || (z >= PADDED_CHUNK_SIZE) {
+        if (x >= PADDED_CHUNK_SIZE) ||
+           (y >= PADDED_CHUNK_SIZE) ||
+           (z >= PADDED_CHUNK_SIZE) {
             panic!("Index out of bounds: ({}, {}, {})", x, y, z);
         }
         x + PADDED_CHUNK_USIZE * (y + PADDED_CHUNK_USIZE * z)
