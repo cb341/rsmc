@@ -1,4 +1,7 @@
-use bevy::{tasks::{AsyncComputeTaskPool, futures_lite::future}, utils::HashSet};
+use bevy::{
+    tasks::{futures_lite::future, AsyncComputeTaskPool},
+    utils::HashSet,
+};
 use terrain_components::ChunkMesh;
 use terrain_resources::{
     ChunkMeshes, FutureChunkMesh, MeshTask, MeshType, MesherTasks, RenderMaterials,
