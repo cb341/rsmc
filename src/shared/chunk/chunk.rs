@@ -1,21 +1,21 @@
-use bevy::math::Vec3;
+use bevy::math::{IVec3, Vec3};
 
 use crate::*;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Chunk {
     pub data: [BlockId; CHUNK_LENGTH],
-    pub position: Vec3,
+    pub position: IVec3,
 }
 
 impl Default for Chunk {
     fn default() -> Self {
-        Self::new(Vec3::ZERO)
+        Self::new(IVec3::ZERO)
     }
 }
 
 impl Chunk {
-    pub fn new(position: Vec3) -> Self {
+    pub fn new(position: IVec3) -> Self {
         Self {
             position,
             data: [BlockId::Air; CHUNK_LENGTH],

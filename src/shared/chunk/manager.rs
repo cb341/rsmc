@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bevy::{math::Vec3, prelude::Resource};
+use bevy::{math::IVec3, prelude::Resource};
 
 use crate::*;
 
@@ -22,7 +22,7 @@ impl ChunkManager {
         }
     }
 
-    pub fn instantiate_chunks(position: Vec3, render_distance: Vec3) -> Vec<Chunk> {
+    pub fn instantiate_chunks(position: IVec3, render_distance: IVec3) -> Vec<Chunk> {
         let render_distance_x = render_distance.x as i32;
         let render_distance_y = render_distance.y as i32;
         let render_distance_z = render_distance.z as i32;
@@ -32,10 +32,10 @@ impl ChunkManager {
         for x in -render_distance_x..render_distance_x {
             for y in -render_distance_y..render_distance_y {
                 for z in -render_distance_z..render_distance_z {
-                    let chunk_position = Vec3::new(
-                        x as f32 + position.x,
-                        y as f32 + position.y,
-                        z as f32 + position.z,
+                    let chunk_position = IVec3::new(
+                        x + position.x,
+                        y + position.y,
+                        z + position.z,
                     );
                     let chunk = Chunk::new(chunk_position);
                     chunks.push(chunk);
@@ -46,7 +46,7 @@ impl ChunkManager {
         chunks
     }
 
-    pub fn instantiate_new_chunks(&mut self, position: Vec3, render_distance: Vec3) -> Vec<Chunk> {
+    pub fn instantiate_new_chunks(&mut self, position: IVec3, render_distance: IVec3) -> Vec<Chunk> {
         let chunks = Self::instantiate_chunks(position, render_distance);
 
         chunks
@@ -70,37 +70,37 @@ impl ChunkManager {
         }
     }
 
-    pub fn position_to_key(position: Vec3) -> [i32; 3] {
+    pub fn position_to_key(position: IVec3) -> [i32; 3] {
         [position.x as i32, position.y as i32, position.z as i32]
     }
 
-    pub fn set_chunk(&mut self, position: Vec3, chunk: Chunk) {
-        let Vec3 { x, y, z } = position;
+    pub fn set_chunk(&mut self, position: IVec3, chunk: Chunk) {
+        let IVec3 { x, y, z } = position;
 
         self.chunks.insert([x as i32, y as i32, z as i32], chunk);
     }
 
-    pub fn get_chunk(&self, position: Vec3) -> Option<&Chunk> {
-        let Vec3 { x, y, z } = position.floor();
+    pub fn get_chunk(&self, position: IVec3) -> Option<&Chunk> {
+        let IVec3 { x, y, z } = position;
 
         self.chunks.get(&[x as i32, y as i32, z as i32])
     }
 
-    pub fn get_chunk_mut(&mut self, position: Vec3) -> Option<&mut Chunk> {
-        let Vec3 { x, y, z } = position.floor();
+    pub fn get_chunk_mut(&mut self, position: IVec3) -> Option<&mut Chunk> {
+        let IVec3 { x, y, z } = position;
 
         self.chunks.get_mut(&[x as i32, y as i32, z as i32])
     }
 
-    pub fn update_block(&mut self, position: Vec3, block: BlockId) {
+    pub fn update_block(&mut self, position: IVec3, block: BlockId) {
         match self.chunk_from_selection(position) {
             Some(chunk) => {
-                let chunk_position = Vec3::new(
-                    chunk.position[0] * CHUNK_SIZE as f32,
-                    chunk.position[1] * CHUNK_SIZE as f32,
-                    chunk.position[2] * CHUNK_SIZE as f32,
+                let chunk_position = IVec3::new(
+                    chunk.position[0] * CHUNK_SIZE as i32,
+                    chunk.position[1] * CHUNK_SIZE as i32,
+                    chunk.position[2] * CHUNK_SIZE as i32,
                 );
-                let local_position = (position - chunk_position).floor();
+                let local_position = position - chunk_position;
                 chunk.update(
                     local_position.x as usize,
                     local_position.y as usize,
@@ -114,15 +114,15 @@ impl ChunkManager {
         }
     }
 
-    pub fn get_block(&mut self, position: Vec3) -> Option<BlockId> {
+    pub fn get_block(&mut self, position: IVec3) -> Option<BlockId> {
         match self.chunk_from_selection(position) {
             Some(chunk) => {
-                let chunk_position = Vec3::new(
-                    chunk.position[0] * CHUNK_SIZE as f32,
-                    chunk.position[1] * CHUNK_SIZE as f32,
-                    chunk.position[2] * CHUNK_SIZE as f32,
+                let chunk_position = IVec3::new(
+                    chunk.position[0] * CHUNK_SIZE as i32,
+                    chunk.position[1] * CHUNK_SIZE as i32,
+                    chunk.position[2] * CHUNK_SIZE as i32,
                 );
-                let local_position = (position - chunk_position).floor();
+                let local_position = position - chunk_position;
                 Some(chunk.get(
                     local_position.x as usize,
                     local_position.y as usize,
@@ -136,15 +136,15 @@ impl ChunkManager {
         }
     }
 
-    fn chunk_from_selection(&mut self, position: Vec3) -> Option<&mut Chunk> {
-        let chunk_position = position / CHUNK_SIZE as f32;
+    fn chunk_from_selection(&mut self, position: IVec3) -> Option<&mut Chunk> {
+        let chunk_position = position / CHUNK_SIZE as i32;
         self.get_chunk_mut(chunk_position)
     }
 
-    pub fn get_all_chunk_positions(&self) -> Vec<Vec3> {
+    pub fn get_all_chunk_positions(&self) -> Vec<IVec3> {
         self.chunks
             .keys()
-            .map(|key| Vec3::new(key[0] as f32, key[1] as f32, key[2] as f32))
+            .map(|key| IVec3::new(key[0], key[1], key[2]))
             .collect()
     }
 }
@@ -161,13 +161,13 @@ mod tests {
 
     #[test]
     fn test_instantiate_chunks() {
-        let position = Vec3::new(0.0, 0.0, 0.0);
+        let position = IVec3::new(0, 0, 0);
 
         let width = 2;
         let height = 3;
         let depth = 4;
 
-        let render_distance = Vec3::new(width as f32, height as f32, depth as f32);
+        let render_distance = IVec3::new(width, height, depth);
 
         let chunks = ChunkManager::instantiate_chunks(position, render_distance);
         assert_eq!(chunks.len(), (2 * width * 2 * height * 2 * depth) as usize,);
@@ -176,14 +176,14 @@ mod tests {
     #[test]
     fn test_insert_chunks() {
         let mut chunk_manager = ChunkManager::new();
-        let position = Vec3::new(0.0, 0.0, 0.0);
+        let position = IVec3::new(0, 0, 0);
         let render_distance = 2;
         let chunks = ChunkManager::instantiate_chunks(
             position,
-            Vec3::new(
-                render_distance as f32,
-                render_distance as f32,
-                render_distance as f32,
+            IVec3::new(
+                render_distance,
+                render_distance,
+                render_distance,
             ),
         );
 
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn test_set_and_get_chunk_mut() {
         let mut chunk_manager = ChunkManager::new();
-        let position = Vec3::new(0.0, 0.0, 0.0);
+        let position = IVec3::new(0, 0, 0);
         let chunk = Chunk::new(position);
 
         chunk_manager.set_chunk(position, chunk);
@@ -210,11 +210,11 @@ mod tests {
     #[test]
     fn test_set_and_get_block() {
         let mut chunk_manager = ChunkManager::new();
-        let position = Vec3::new(0.0, 0.0, 0.0);
+        let position = IVec3::new(0, 0, 0);
         let chunk = Chunk::new(position);
 
         chunk_manager.set_chunk(position, chunk);
-        let block_position = Vec3::new(1.0, 1.0, 1.0);
+        let block_position = IVec3::new(1, 1, 1);
         let block_id = BlockId::Stone;
 
         chunk_manager.update_block(block_position, block_id);
@@ -225,9 +225,9 @@ mod tests {
     #[test]
     fn test_get_all_chunk_positions() {
         let mut chunk_manager = ChunkManager::new();
-        chunk_manager.set_chunk(Vec3::new(0.0, 0.0, 0.0), Chunk::default());
-        chunk_manager.set_chunk(Vec3::new(2.0, 0.0, 0.0), Chunk::default());
-        chunk_manager.set_chunk(Vec3::new(1.0, 0.0, 3.0), Chunk::default());
+        chunk_manager.set_chunk(IVec3::new(0, 0, 0), Chunk::default());
+        chunk_manager.set_chunk(IVec3::new(2, 0, 0), Chunk::default());
+        chunk_manager.set_chunk(IVec3::new(1, 0, 3), Chunk::default());
 
         let retrieved_chunk_positions = chunk_manager.get_all_chunk_positions();
         assert_eq!(retrieved_chunk_positions.len(), 3);
@@ -237,12 +237,12 @@ mod tests {
     #[rustfmt::skip]
     fn test_tallgrass_update() {
         let mut chunk_manager = ChunkManager::new();
-        let chunk_position = Vec3::new(0.0, 0.0, 0.0);
+        let chunk_position = IVec3::new(0, 0, 0);
         let chunk = Chunk::new(chunk_position);
         chunk_manager.set_chunk(chunk_position, chunk);
 
-        let grass_position = Vec3::new(0.0, 0.0, 0.0);
-        let tallgrass_position = Vec3::new(0.0, 1.0, 0.0);
+        let grass_position = IVec3::new(0, 0, 0);
+        let tallgrass_position = IVec3::new(0, 1, 0);
 
         chunk_manager.update_block(grass_position, BlockId::Grass);
         assert_eq!(chunk_manager.get_block(grass_position).unwrap(), BlockId::Grass);
