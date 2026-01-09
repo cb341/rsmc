@@ -6,7 +6,7 @@ use crate::*;
 
 #[derive(Resource)]
 pub struct ChunkManager {
-    pub chunks: HashMap<[i32; 3], Chunk>,
+    pub chunks: HashMap<IVec3, Chunk>,
 }
 
 impl Default for ChunkManager {
@@ -61,7 +61,7 @@ impl ChunkManager {
 
     pub fn insert_chunk(&mut self, chunk: Chunk) {
         self.chunks
-            .insert(Self::position_to_key(chunk.position), chunk);
+            .insert(chunk.position, chunk);
     }
 
     pub fn insert_chunks(&mut self, chunks: Vec<Chunk>) {
@@ -70,26 +70,16 @@ impl ChunkManager {
         }
     }
 
-    pub fn position_to_key(position: IVec3) -> [i32; 3] {
-        [position.x, position.y, position.z]
-    }
-
     pub fn set_chunk(&mut self, position: IVec3, chunk: Chunk) {
-        let IVec3 { x, y, z } = position;
-
-        self.chunks.insert([x, y, z], chunk);
+        self.chunks.insert(position, chunk);
     }
 
     pub fn get_chunk(&self, position: IVec3) -> Option<&Chunk> {
-        let IVec3 { x, y, z } = position;
-
-        self.chunks.get(&[x, y, z])
+        self.chunks.get(&position)
     }
 
     pub fn get_chunk_mut(&mut self, position: IVec3) -> Option<&mut Chunk> {
-        let IVec3 { x, y, z } = position;
-
-        self.chunks.get_mut(&[x, y, z])
+        self.chunks.get_mut(&position)
     }
 
     pub fn update_block(&mut self, position: IVec3, block: BlockId) {
