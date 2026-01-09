@@ -33,8 +33,8 @@ pub fn handle_mouse_events_system(
         return;
     }
 
-    let position = block_selection.position.unwrap();
-    let normal = block_selection.normal.unwrap();
+    let position = block_selection.position.unwrap().as_ivec3();
+    let normal = block_selection.normal.unwrap().as_ivec3();
 
     for event in mouse_events.read() {
         if event.button == MouseButton::Left && event.state.is_pressed() {

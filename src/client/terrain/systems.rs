@@ -37,9 +37,9 @@ pub fn generate_simple_ground_system(
 pub fn prepare_spawn_area_system(mut client: ResMut<RenetClient>) {
     info!("Sending chunk requests for spawn area");
 
-    let chunks = ChunkManager::instantiate_chunks(Vec3::ZERO, Vec3::ONE);
+    let chunks = ChunkManager::instantiate_chunks(IVec3::ZERO, IVec3::ONE);
 
-    let positions: Vec<Vec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
+    let positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
     let message = bincode::serialize(&NetworkingMessage::ChunkBatchRequest(positions));
     info!("requesting world");
     client.send_message(DefaultChannel::ReliableUnordered, message.unwrap());
@@ -49,13 +49,13 @@ pub fn generate_world_system(
     mut client: ResMut<RenetClient>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
-    let render_distance = Vec3::new(8.0, 4.0, 8.0);
+    let render_distance = IVec3::new(8, 4, 8);
 
     info!("Sending chunk requests for chunks");
 
-    let chunks = chunk_manager.instantiate_new_chunks(Vec3::new(0.0, 0.0, 0.0), render_distance);
+    let chunks = chunk_manager.instantiate_new_chunks(IVec3::ZERO, render_distance);
 
-    let positions: Vec<Vec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
+    let positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
 
     let batched_positions = positions.chunks(16);
     assert!(batched_positions.len() > 0, "Batched positions is empty");
@@ -135,7 +135,7 @@ pub fn handle_chunk_tasks_system(
             if mesh_option.cross_mesh.is_some() {
                 commands.spawn(create_chunk_bundle(
                     meshes.add(mesh_option.cross_mesh.unwrap()),
-                    chunk_position,
+                    chunk_position.as_vec3(),
                     MeshType::Transparent,
                     materials.transparent_material.clone().unwrap(),
                 ));
@@ -145,7 +145,7 @@ pub fn handle_chunk_tasks_system(
                 commands
                     .spawn(create_chunk_bundle(
                         meshes.add(mesh_option.cube_mesh.unwrap()),
-                        chunk_position,
+                        chunk_position.as_vec3(),
                         MeshType::Solid,
                         materials.chunk_material.clone().unwrap(),
                     ))

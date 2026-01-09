@@ -23,20 +23,16 @@ impl ChunkManager {
     }
 
     pub fn instantiate_chunks(position: IVec3, render_distance: IVec3) -> Vec<Chunk> {
-        let render_distance_x = render_distance.x as i32;
-        let render_distance_y = render_distance.y as i32;
-        let render_distance_z = render_distance.z as i32;
+        let render_distance_x = render_distance.x;
+        let render_distance_y = render_distance.y;
+        let render_distance_z = render_distance.z;
 
         let mut chunks: Vec<Chunk> = Vec::new();
 
         for x in -render_distance_x..render_distance_x {
             for y in -render_distance_y..render_distance_y {
                 for z in -render_distance_z..render_distance_z {
-                    let chunk_position = IVec3::new(
-                        x + position.x,
-                        y + position.y,
-                        z + position.z,
-                    );
+                    let chunk_position = IVec3::new(x + position.x, y + position.y, z + position.z);
                     let chunk = Chunk::new(chunk_position);
                     chunks.push(chunk);
                 }
@@ -46,7 +42,11 @@ impl ChunkManager {
         chunks
     }
 
-    pub fn instantiate_new_chunks(&mut self, position: IVec3, render_distance: IVec3) -> Vec<Chunk> {
+    pub fn instantiate_new_chunks(
+        &mut self,
+        position: IVec3,
+        render_distance: IVec3,
+    ) -> Vec<Chunk> {
         let chunks = Self::instantiate_chunks(position, render_distance);
 
         chunks
@@ -71,25 +71,25 @@ impl ChunkManager {
     }
 
     pub fn position_to_key(position: IVec3) -> [i32; 3] {
-        [position.x as i32, position.y as i32, position.z as i32]
+        [position.x, position.y, position.z]
     }
 
     pub fn set_chunk(&mut self, position: IVec3, chunk: Chunk) {
         let IVec3 { x, y, z } = position;
 
-        self.chunks.insert([x as i32, y as i32, z as i32], chunk);
+        self.chunks.insert([x, y, z], chunk);
     }
 
     pub fn get_chunk(&self, position: IVec3) -> Option<&Chunk> {
         let IVec3 { x, y, z } = position;
 
-        self.chunks.get(&[x as i32, y as i32, z as i32])
+        self.chunks.get(&[x, y, z])
     }
 
     pub fn get_chunk_mut(&mut self, position: IVec3) -> Option<&mut Chunk> {
         let IVec3 { x, y, z } = position;
 
-        self.chunks.get_mut(&[x as i32, y as i32, z as i32])
+        self.chunks.get_mut(&[x, y, z])
     }
 
     pub fn update_block(&mut self, position: IVec3, block: BlockId) {
@@ -180,11 +180,7 @@ mod tests {
         let render_distance = 2;
         let chunks = ChunkManager::instantiate_chunks(
             position,
-            IVec3::new(
-                render_distance,
-                render_distance,
-                render_distance,
-            ),
+            IVec3::new(render_distance, render_distance, render_distance),
         );
 
         let render_diameter = render_distance * 2;

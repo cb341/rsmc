@@ -18,8 +18,8 @@ macro_rules! for_each_chunk_coordinate {
                         continue;
                     }
 
-                    let chunk_origin = $chunk.position * CHUNK_SIZE as f32;
-                    let local_position = Vec3::new(x as f32, y as f32, z as f32);
+                    let chunk_origin = $chunk.position * CHUNK_SIZE as i32;
+                    let local_position = IVec3::new(x as i32, y as i32, z as i32);
                     let world_position = chunk_origin + local_position;
 
                     $body(x, y, z, world_position);
@@ -43,7 +43,7 @@ impl Generator {
     }
 
     pub fn generate_chunk(&self, chunk: &mut Chunk) {
-        if chunk.position.y < 0.0 {
+        if chunk.position.y < 0 {
             return;
         }
 
@@ -53,11 +53,7 @@ impl Generator {
         });
 
         for_each_chunk_coordinate!(chunk, |x, y, z, _| {
-            let pos = Vec3 {
-                x: x as f32,
-                y: y as f32,
-                z: z as f32,
-            };
+            let pos = IVec3::new(x as i32, y as i32, z as i32);
 
             self.decorate_block(chunk, pos);
         });
@@ -180,7 +176,7 @@ impl Generator {
         blocks
     }
 
-    fn decorate_block(&self, chunk: &mut Chunk, position: Vec3) {
+    fn decorate_block(&self, chunk: &mut Chunk, position: IVec3) {
         let x = position.x as usize;
         let y = position.y as usize;
         let z = position.z as usize;
@@ -226,16 +222,16 @@ impl Generator {
         chunk.set_unpadded(x, y, z, block);
     }
 
-    fn generate_block(&self, position: Vec3) -> BlockId {
-        if self.is_inside_cave(position) {
+    fn generate_block(&self, position: IVec3) -> BlockId {
+        if self.is_inside_cave(position.as_vec3()) {
             return BlockId::Air;
         }
 
-        if (position.y as f64) < self.determine_terrain_height(position) {
+        if (position.y as f64) < self.determine_terrain_height(position.as_vec3()) {
             return BlockId::Stone;
         }
 
-        if self.determine_terrain_density(position) > 0.0 {
+        if self.determine_terrain_density(position.as_vec3()) > 0.0 {
             return BlockId::Stone;
         }
 
@@ -362,7 +358,7 @@ mod tests {
     #[test]
     fn test_generate_chunk() {
         let generator = Generator::default();
-        let mut chunk = Chunk::new(Vec3::new(0.0, 0.0, 0.0));
+        let mut chunk = Chunk::new(IVec3::ZERO);
 
         generator.generate_chunk(&mut chunk);
 

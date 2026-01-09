@@ -54,7 +54,7 @@ pub fn handle_collider_update_events_system(
             let relative_position = collider.relative_position;
             let collider_position = (event_position + relative_position).floor();
 
-            let block = chunk_manager.get_block(collider_position);
+            let block = chunk_manager.get_block(collider_position.as_ivec3());
 
             match block {
                 Some(block) => {
@@ -126,23 +126,9 @@ mod tests {
 
         let block = BlockId::Dirt;
         let mut resource = app.world_mut().get_resource_mut::<ChunkManager>().unwrap();
-        let chunks = ChunkManager::instantiate_chunks(
-            Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            },
-            Vec3::new(1.0, 1.0, 1.0),
-        );
+        let chunks = ChunkManager::instantiate_chunks(IVec3::ZERO, IVec3::ONE);
         resource.insert_chunks(chunks);
-        resource.update_block(
-            Vec3 {
-                x: 6.0,
-                y: 7.0,
-                z: 8.0,
-            },
-            block,
-        );
+        resource.update_block(IVec3 { x: 6, y: 7, z: 8 }, block);
 
         app.world_mut().send_event(ColliderUpdateEvent {
             grid_center_position: [5.0, 5.0, 5.0],

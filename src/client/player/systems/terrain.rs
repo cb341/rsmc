@@ -12,7 +12,7 @@ pub fn handle_block_update_events(
         info!("Block update message: {:?}", event.position);
 
         chunk_mesh_update_events.send(terrain_events::ChunkMeshUpdateEvent {
-            position: event.position / CHUNK_SIZE as f32,
+            position: event.position / CHUNK_SIZE as i32,
         });
 
         player_collider_events.send(player_events::PlayerColliderUpdateEvent);

@@ -1,4 +1,4 @@
-use bevy::math::{IVec3, Vec3};
+use bevy::math::IVec3;
 
 use crate::*;
 
@@ -59,15 +59,13 @@ impl Chunk {
 
     #[rustfmt::skip]
     pub fn index(x: usize, y: usize, z: usize) -> usize {
-        if (x >= PADDED_CHUNK_SIZE) ||
-           (y >= PADDED_CHUNK_SIZE) ||
-           (z >= PADDED_CHUNK_SIZE) {
-            panic!("Index out of bounds: ({}, {}, {})", x, y, z);
-        }
-        x + PADDED_CHUNK_USIZE * (y + PADDED_CHUNK_USIZE * z)
+        let n  = PADDED_CHUNK_SIZE;
+        assert!(x <  n && y < n && z < n, "Index out of bounds: ({}, {}, {})", x,y,z);
+
+        x + n * (y + n * z)
     }
 
-    pub fn key_eq_pos(key: [i32; 3], position: Vec3) -> bool {
-        position.x as i32 == key[0] && position.y as i32 == key[1] && position.z as i32 == key[2]
+    pub fn key_eq_pos(key: [i32; 3], position: IVec3) -> bool {
+        position.x == key[0] && position.y == key[1] && position.z == key[2]
     }
 }

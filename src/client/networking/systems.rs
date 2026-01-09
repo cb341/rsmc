@@ -82,11 +82,7 @@ pub fn receive_message_system(
                             position: chunk_position,
                         });
 
-                        if chunk_position.eq(&Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }) {
+                        if chunk_position.eq(&IVec3::ZERO) {
                             info!("Spawn area loaded.");
                             spawn_area_loaded.0 = true;
                         }
