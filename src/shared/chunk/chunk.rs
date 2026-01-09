@@ -22,7 +22,7 @@ impl Chunk {
         }
     }
 
-    pub fn valid_padded(x: usize, y: usize, z: usize) -> bool {
+    pub fn valid_local(x: usize, y: usize, z: usize) -> bool {
         x < CHUNK_SIZE && y < CHUNK_SIZE && z < CHUNK_SIZE
     }
 
@@ -46,7 +46,7 @@ impl Chunk {
         self.set(x, y, z, value);
 
         if !value.supports_grass()
-            && Self::valid_padded(x, y + 1, z)
+            && Self::valid_local(x, y + 1, z)
             && self.get(x, y + 1, z) == BlockId::Tallgrass
         {
             self.set(x, y + 1, z, BlockId::Air);
