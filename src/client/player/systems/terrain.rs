@@ -9,11 +9,14 @@ pub fn handle_block_update_events(
 ) {
     for event in block_update_events.read() {
         info!("Block update message: {:?}", event.position);
-        chunk_manager.update_block(event.position, event.block).iter().for_each(|affected_chunk_position| {
-            chunk_mesh_update_events.send(terrain_events::ChunkMeshUpdateEvent {
-                chunk_position: *affected_chunk_position
+        chunk_manager
+            .update_block(event.position, event.block)
+            .iter()
+            .for_each(|affected_chunk_position| {
+                chunk_mesh_update_events.send(terrain_events::ChunkMeshUpdateEvent {
+                    chunk_position: *affected_chunk_position,
+                });
             });
-        });
 
         player_collider_events.send(player_events::PlayerColliderUpdateEvent);
 

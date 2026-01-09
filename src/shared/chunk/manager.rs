@@ -84,7 +84,7 @@ impl ChunkManager {
     pub fn update_block(&mut self, position: IVec3, block: BlockId) -> Vec<IVec3> {
         Self::chunk_positions_containing_world_pos(position)
             .iter()
-            .map(|chunk_position| {
+            .flat_map(|chunk_position| {
                 let chunk_option = self.get_chunk_mut(chunk_position);
                 match chunk_option {
                     Some(chunk) => {
@@ -113,8 +113,6 @@ impl ChunkManager {
                     }
                 }
             })
-            .filter(|v| v.is_some())
-            .map(|v| v.unwrap())
             .collect()
     }
 
