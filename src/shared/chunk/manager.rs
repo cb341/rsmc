@@ -100,7 +100,17 @@ impl ChunkManager {
                     chunk.position[1] * CHUNK_SIZE as i32,
                     chunk.position[2] * CHUNK_SIZE as i32,
                 );
-                let local_position = position - chunk_position;
+
+                let local_position = IVec3::new(
+                    position.x.rem_euclid(CHUNK_SIZE as i32),
+                    position.y.rem_euclid(CHUNK_SIZE as i32),
+                    position.z.rem_euclid(CHUNK_SIZE as i32),
+                );
+
+                assert!(local_position.x >= 0 && local_position.x < CHUNK_SIZE as i32);
+                assert!(local_position.y >= 0 && local_position.y < CHUNK_SIZE as i32);
+                assert!(local_position.z >= 0 && local_position.z < CHUNK_SIZE as i32);
+
                 chunk.update(
                     local_position.x as usize,
                     local_position.y as usize,
