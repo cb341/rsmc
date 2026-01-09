@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bevy::{math::IVec3, prelude::Resource};
+use bevy::{log::info, math::IVec3, prelude::Resource};
 
 use crate::*;
 
@@ -88,20 +88,19 @@ impl ChunkManager {
                 let chunk_option = self.get_chunk_mut(chunk_position);
                 match chunk_option {
                     Some(chunk) => {
-                        let local_position = IVec3::new(
-                            position.x.rem_euclid(CHUNK_SIZE as i32),
-                            position.y.rem_euclid(CHUNK_SIZE as i32),
-                            position.z.rem_euclid(CHUNK_SIZE as i32),
-                        );
+                        let chunk_origin = *chunk_position * CHUNK_SIZE as i32;
+                        let local_position = position - chunk_origin;
 
-                        assert!(local_position.x >= 0 && local_position.x < CHUNK_SIZE as i32);
-                        assert!(local_position.y >= 0 && local_position.y < CHUNK_SIZE as i32);
-                        assert!(local_position.z >= 0 && local_position.z < CHUNK_SIZE as i32);
+                        info!("[update_block] Performing local update at {:?}", local_position);
+
+                        assert!(local_position.x >= -1 && local_position.x <= CHUNK_SIZE as i32);
+                        assert!(local_position.y >= -1 && local_position.y <= CHUNK_SIZE as i32);
+                        assert!(local_position.z >= -1 && local_position.z <= CHUNK_SIZE as i32);
 
                         chunk.update(
-                            local_position.x as usize,
-                            local_position.y as usize,
-                            local_position.z as usize,
+                            local_position.x,
+                            local_position.y,
+                            local_position.z,
                             block,
                         );
 
@@ -126,9 +125,9 @@ impl ChunkManager {
                 );
                 let local_position = position - chunk_position;
                 Some(chunk.get(
-                    local_position.x as usize,
-                    local_position.y as usize,
-                    local_position.z as usize,
+                    local_position.x,
+                    local_position.y,
+                    local_position.z,
                 ))
             }
             None => {

@@ -26,27 +26,35 @@ impl Chunk {
         x < CHUNK_SIZE && y < CHUNK_SIZE && z < CHUNK_SIZE
     }
 
+    pub fn valid_something(x: i32, y: i32, z: i32) -> bool {
+        x >= -1 && y >= -1 && z >= -1 && x <= CHUNK_SIZE as i32 && y <= CHUNK_SIZE as i32 && z <= CHUNK_SIZE as i32
+
+    }
+
     pub fn valid_unpadded(x: usize, y: usize, z: usize) -> bool {
         x < PADDED_CHUNK_SIZE && y < PADDED_CHUNK_SIZE && z < PADDED_CHUNK_SIZE
     }
 
-    pub fn get(&self, x: usize, y: usize, z: usize) -> BlockId {
-        self.get_unpadded(x + 1, y + 1, z + 1)
+    pub fn get(&self, x: i32, y: i32, z: i32) -> BlockId {
+        self.get_unpadded((x + 1) as usize, (y + 1) as usize, (z + 1) as usize)
     }
 
     pub fn get_unpadded(&self, x: usize, y: usize, z: usize) -> BlockId {
         self.data[Self::index(x, y, z)]
     }
 
-    pub fn set(&mut self, x: usize, y: usize, z: usize, value: BlockId) {
-        self.set_unpadded(x + 1, y + 1, z + 1, value);
+    pub fn set(&mut self, x: i32, y: i32, z: i32, value: BlockId) {
+        assert!(x >= -1);
+        assert!(y >= -1);
+        assert!(z >= -1);
+        self.set_unpadded((x + 1) as usize, (y + 1) as usize, (z + 1) as usize, value);
     }
 
-    pub fn update(&mut self, x: usize, y: usize, z: usize, value: BlockId) {
+    pub fn update(&mut self, x: i32, y: i32, z: i32, value: BlockId) {
         self.set(x, y, z, value);
 
         if !value.supports_grass()
-            && Self::valid_local(x, y + 1, z)
+            && Self::valid_something(x, y + 1, z)
             && self.get(x, y + 1, z) == BlockId::Tallgrass
         {
             self.set(x, y + 1, z, BlockId::Air);
