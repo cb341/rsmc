@@ -95,12 +95,6 @@ impl ChunkManager {
     pub fn update_block(&mut self, position: IVec3, block: BlockId) {
         match self.chunk_from_selection(position) {
             Some(chunk) => {
-                let chunk_position = IVec3::new(
-                    chunk.position[0] * CHUNK_SIZE as i32,
-                    chunk.position[1] * CHUNK_SIZE as i32,
-                    chunk.position[2] * CHUNK_SIZE as i32,
-                );
-
                 let local_position = IVec3::new(
                     position.x.rem_euclid(CHUNK_SIZE as i32),
                     position.y.rem_euclid(CHUNK_SIZE as i32),
