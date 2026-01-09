@@ -60,8 +60,7 @@ impl ChunkManager {
     }
 
     pub fn insert_chunk(&mut self, chunk: Chunk) {
-        self.chunks
-            .insert(chunk.position, chunk);
+        self.chunks.insert(chunk.position, chunk);
     }
 
     pub fn insert_chunks(&mut self, chunks: Vec<Chunk>) {
