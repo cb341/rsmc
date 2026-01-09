@@ -137,7 +137,11 @@ impl ChunkManager {
     }
 
     fn chunk_from_selection(&mut self, position: IVec3) -> Option<&mut Chunk> {
-        let chunk_position = position / CHUNK_SIZE as i32;
+        let chunk_position = IVec3 {
+            x: position.x.div_euclid(CHUNK_SIZE as i32),
+            y: position.y.div_euclid(CHUNK_SIZE as i32),
+            z: position.z.div_euclid(CHUNK_SIZE as i32),
+        };
         self.get_chunk_mut(chunk_position)
     }
 
@@ -252,5 +256,13 @@ mod tests {
         chunk_manager.update_block(grass_position, BlockId::Air);
         assert_eq!(chunk_manager.get_block(grass_position).unwrap(), BlockId::Air);
         assert_eq!(chunk_manager.get_block(tallgrass_position).unwrap(), BlockId::Air);
+    }
+
+    #[test]
+    fn test_stuff() {
+        assert_eq!((-1 / 20), 0);
+        let i: i32 = -1;
+        assert_eq!((i.div_euclid(20)), -1);
+        assert_eq!((i / 20), 0);
     }
 }
