@@ -111,7 +111,7 @@ impl ChunkManager {
     }
 
     pub fn get_block(&mut self, position: IVec3) -> Option<BlockId> {
-        match self.single_chunk_matching_world_position(position) {
+        match self.chunk_at_position(position) {
             Some(chunk) => {
                 let chunk_position = IVec3::new(
                     chunk.position[0] * CHUNK_SIZE as i32,
@@ -162,7 +162,7 @@ impl ChunkManager {
         out
     }
 
-    fn single_chunk_matching_world_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
+    fn chunk_at_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
         let chunk_position = IVec3 {
             x: position.x.div_euclid(CHUNK_SIZE as i32),
             y: position.y.div_euclid(CHUNK_SIZE as i32),
