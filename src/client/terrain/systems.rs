@@ -1,4 +1,4 @@
-use bevy::tasks::{futures_lite::future, AsyncComputeTaskPool};
+use bevy::{tasks::{AsyncComputeTaskPool, futures_lite::future}, utils::HashSet};
 use terrain_components::ChunkMesh;
 use terrain_resources::{
     ChunkMeshes, FutureChunkMesh, MeshTask, MeshType, MesherTasks, RenderMaterials,
@@ -117,7 +117,7 @@ pub fn handle_chunk_tasks_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut mesh_query: Query<(Entity, &terrain_components::ChunkMesh)>,
 ) {
-    let mut next_poll_indicies: Vec<usize> = Vec::new();
+    let mut next_poll_set: HashSet<usize> = HashSet::new();
     tasks
         .task_list
         .iter_mut()
@@ -127,7 +127,7 @@ pub fn handle_chunk_tasks_system(
             let task_result =
                 bevy::tasks::block_on(future::poll_once(&mut future_chunk.meshes_task.0));
             if task_result.is_none() {
-                next_poll_indicies.push(index);
+                next_poll_set.insert(index);
                 return;
             }
             let mesh_option = task_result.unwrap();
@@ -161,7 +161,7 @@ pub fn handle_chunk_tasks_system(
 
     let mut index = 0;
     tasks.task_list.retain(|_| {
-        let contains = next_poll_indicies.contains(&index);
+        let contains = next_poll_set.contains(&index);
         index += 1;
         contains
     })
