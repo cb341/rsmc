@@ -31,6 +31,22 @@ pub struct FutureChunkMesh {
 #[derive(Resource, Default)]
 pub struct MesherTasks {
     pub task_list: Vec<FutureChunkMesh>,
+    pub keep_mask: Vec<bool>,
+}
+
+#[derive(Resource, Default)]
+pub struct ChunkEntityMap {
+    map: HashMap<(bool, IVec3), Entity>,
+}
+
+impl ChunkEntityMap {
+    pub fn add(&mut self, cube: bool,chunk_position: IVec3, entity: Entity) {
+        self.map.insert((cube, chunk_position), entity);
+    }
+
+    pub fn remove(&mut self, cube: bool, chunk_position: IVec3) -> Option<Entity> {
+        self.map.remove(&(cube, chunk_position))
+    }
 }
 
 #[derive(Resource)]

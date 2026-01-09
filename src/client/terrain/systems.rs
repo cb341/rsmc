@@ -1,7 +1,7 @@
 use bevy::{
     tasks::{futures_lite::future, AsyncComputeTaskPool},
-    utils::HashSet,
 };
+use bevy::utils::HashSet;
 use terrain_components::ChunkMesh;
 use terrain_resources::{
     ChunkMeshes, FutureChunkMesh, MeshTask, MeshType, MesherTasks, RenderMaterials,
@@ -118,56 +118,72 @@ pub fn handle_chunk_tasks_system(
     materials: Res<RenderMaterials>,
     mut tasks: ResMut<MesherTasks>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut mesh_query: Query<(Entity, &terrain_components::ChunkMesh)>,
+    mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
 ) {
-    let mut next_poll_set: HashSet<usize> = HashSet::new();
-    tasks
-        .task_list
-        .iter_mut()
-        .enumerate()
-        .for_each(|(index, future_chunk)| {
-            let chunk_position = future_chunk.position;
-            let task_result =
-                bevy::tasks::block_on(future::poll_once(&mut future_chunk.meshes_task.0));
-            if task_result.is_none() {
-                next_poll_set.insert(index);
-                return;
-            }
-            let mesh_option = task_result.unwrap();
+    let start = Instant::now();
+    let mut completed = 0;
+    const MAX_COMPLETIONS: usize = 100;
 
-            if mesh_option.cross_mesh.is_some() {
-                commands.spawn(create_chunk_bundle(
-                    meshes.add(mesh_option.cross_mesh.unwrap()),
-                    chunk_position.as_vec3(),
+    let MesherTasks {
+        task_list, keep_mask
+    } = &mut *tasks;
+
+    keep_mask.clear();
+    keep_mask.resize(task_list.len(), false);
+
+    for (index, future_chunk) in task_list.iter_mut().enumerate() {
+        if completed >= MAX_COMPLETIONS {
+            keep_mask[index] = true;
+            continue;
+        }
+
+        if let Some(mesh_option) =
+            bevy::tasks::block_on(future::poll_once(&mut future_chunk.meshes_task.0))
+        {
+            completed += 1;
+            let pos = future_chunk.position;
+            let pos_vec = pos.as_vec3();
+
+            if let Some(entity) = chunk_entities.remove(true, pos) {
+                commands.entity(entity).despawn();
+            }
+            if let Some(entity) = chunk_entities.remove(false, pos) {
+                commands.entity(entity).despawn();
+            }
+
+            if let Some(mesh) = mesh_option.cross_mesh {
+                let entity = commands.spawn(create_chunk_bundle(
+                    meshes.add(mesh),
+                    pos_vec,
                     MeshType::Transparent,
                     materials.transparent_material.clone().unwrap(),
-                ));
+                )).id();
+                chunk_entities.add(false, pos, entity);
             }
 
-            if mesh_option.cube_mesh.is_some() {
-                commands
+            if let Some(mesh) = mesh_option.cube_mesh {
+                let entity = commands
                     .spawn(create_chunk_bundle(
-                        meshes.add(mesh_option.cube_mesh.unwrap()),
-                        chunk_position.as_vec3(),
+                        meshes.add(mesh),
+                        pos_vec,
                         MeshType::Solid,
                         materials.chunk_material.clone().unwrap(),
                     ))
-                    .insert(player_components::Raycastable);
+                    .insert(player_components::Raycastable).id();
+                chunk_entities.add(true, pos, entity);
             }
 
-            for (old_chunk, old_mesh) in mesh_query.iter_mut() {
-                if Chunk::key_eq_pos(old_mesh.key, chunk_position) {
-                    commands.entity(old_chunk).despawn();
-                }
-            }
-        });
+        } else {
+            keep_mask[index] = true;
+        }
+    }
 
-    let mut index = 0;
-    tasks.task_list.retain(|_| {
-        let contains = next_poll_set.contains(&index);
-        index += 1;
-        contains
-    })
+    let mut i = 0;
+    task_list.retain(|_| {
+        let keep = keep_mask[i];
+        i += 1;
+        keep
+    });
 }
 
 fn create_chunk_bundle(
