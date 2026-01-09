@@ -49,7 +49,7 @@ impl Chunk {
     }
 
     pub fn set(&mut self, x: i32, y: i32, z: i32, value: BlockId) {
-        assert!(Self::is_within_padded_bounds(x,y,z));
+        assert!(Self::is_within_padded_bounds(x, y, z));
         self.set_unpadded((x + 1) as usize, (y + 1) as usize, (z + 1) as usize, value);
     }
 
