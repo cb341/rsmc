@@ -26,7 +26,7 @@ impl Chunk {
         x < CHUNK_SIZE && y < CHUNK_SIZE && z < CHUNK_SIZE
     }
 
-    pub fn valid_something(x: i32, y: i32, z: i32) -> bool {
+    pub fn is_within_padded_bounds(x: i32, y: i32, z: i32) -> bool {
         x >= -1
             && y >= -1
             && z >= -1
@@ -40,7 +40,7 @@ impl Chunk {
     }
 
     pub fn get(&self, x: i32, y: i32, z: i32) -> BlockId {
-        assert!(Self::valid_something(x, y, z));
+        assert!(Self::is_within_padded_bounds(x, y, z));
         self.get_unpadded((x + 1) as usize, (y + 1) as usize, (z + 1) as usize)
     }
 
@@ -59,7 +59,7 @@ impl Chunk {
         self.set(x, y, z, value);
 
         if !value.supports_grass()
-            && Self::valid_something(x, y + 1, z)
+            && Self::is_within_padded_bounds(x, y + 1, z)
             && self.get(x, y + 1, z) == BlockId::Tallgrass
         {
             self.set(x, y + 1, z, BlockId::Air);

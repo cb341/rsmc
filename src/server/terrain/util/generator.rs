@@ -106,7 +106,7 @@ impl Generator {
 
         let proposal_valid = proposal.iter().all(|(relative_pos, _block)| {
             let IVec3 { x, y, z } = relative_pos;
-            Chunk::valid_something(
+            Chunk::is_within_padded_bounds(
                 sapling_x as i32 + { *x },
                 sapling_y as i32 + { *y },
                 sapling_z as i32 + { *z },
