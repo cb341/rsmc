@@ -251,12 +251,4 @@ mod tests {
         assert_eq!(chunk_manager.get_block(grass_position).unwrap(), BlockId::Air);
         assert_eq!(chunk_manager.get_block(tallgrass_position).unwrap(), BlockId::Air);
     }
-
-    #[test]
-    fn test_stuff() {
-        assert_eq!((-1 / 20), 0);
-        let i: i32 = -1;
-        assert_eq!((i.div_euclid(20)), -1);
-        assert_eq!((i / 20), 0);
-    }
 }
