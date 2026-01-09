@@ -81,9 +81,9 @@ pub fn handle_chunk_mesh_update_events_system(
     for event in chunk_mesh_update_events.read() {
         info!(
             "Received chunk mesh update event for chunk {:?}",
-            event.position
+            event.chunk_position
         );
-        let chunk_option = chunk_manager.get_chunk(event.position);
+        let chunk_option = chunk_manager.get_chunk(event.chunk_position);
         match chunk_option {
             Some(chunk) => {
                 tasks.task_list.push(FutureChunkMesh {
