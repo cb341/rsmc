@@ -78,9 +78,8 @@ pub fn receive_message_system(
                         );
                         let chunk_position = chunk.position;
                         chunk_manager.insert_chunk(chunk);
-                        chunk_mesh_events.send(terrain_events::ChunkMeshUpdateEvent {
-                            position: chunk_position,
-                        });
+                        chunk_mesh_events
+                            .send(terrain_events::ChunkMeshUpdateEvent { chunk_position });
 
                         if chunk_position.eq(&IVec3::ZERO) {
                             info!("Spawn area loaded.");

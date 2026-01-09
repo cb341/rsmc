@@ -90,15 +90,15 @@ impl Generator {
             },
         );
 
-        let sapling_x: usize = rand::random_range(
+        let sapling_x: i32 = rand::random_range(
             proposal_bounds.min.x.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.x),
-        ) as usize;
-        let sapling_y: usize = rand::random_range(
+        );
+        let sapling_y: i32 = rand::random_range(
             proposal_bounds.min.y.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.y),
-        ) as usize;
-        let sapling_z: usize = rand::random_range(
+        );
+        let sapling_z: i32 = rand::random_range(
             proposal_bounds.min.z.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.z),
-        ) as usize;
+        );
 
         if chunk.get(sapling_x, sapling_y, sapling_z) != BlockId::Grass {
             return;
@@ -106,14 +106,14 @@ impl Generator {
 
         let proposal_valid = proposal.iter().all(|(relative_pos, _block)| {
             let IVec3 { x, y, z } = relative_pos;
-            Chunk::valid_local(
-                (sapling_x as i32 + { *x }) as usize,
-                (sapling_y as i32 + { *y }) as usize,
-                (sapling_z as i32 + { *z }) as usize,
+            Chunk::is_within_padded_bounds(
+                sapling_x as i32 + { *x },
+                sapling_y as i32 + { *y },
+                sapling_z as i32 + { *z },
             ) && chunk.get(
-                (sapling_x as i32 + { *x }) as usize,
-                (sapling_y as i32 + { *y }) as usize,
-                (sapling_z as i32 + { *z }) as usize,
+                sapling_x as i32 + { *x },
+                sapling_y as i32 + { *y },
+                sapling_z as i32 + { *z },
             ) == BlockId::Air
         });
 
@@ -124,9 +124,9 @@ impl Generator {
         proposal.iter().for_each(|(relative_pos, block_id)| {
             let IVec3 { x, y, z } = relative_pos;
             chunk.set(
-                (sapling_x as i32 + { *x }) as usize,
-                (sapling_y as i32 + { *y }) as usize,
-                (sapling_z as i32 + { *z }) as usize,
+                sapling_x as i32 + { *x },
+                sapling_y as i32 + { *y },
+                sapling_z as i32 + { *z },
                 *block_id,
             );
         });

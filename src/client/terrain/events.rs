@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Event)]
 pub struct ChunkMeshUpdateEvent {
-    pub position: IVec3,
+    pub chunk_position: IVec3,
 }
 
 #[derive(Event)]

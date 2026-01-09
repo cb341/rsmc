@@ -28,7 +28,7 @@ fn create_cross_geometry_for_chunk(
     for x in 0..CHUNK_SIZE {
         for y in 0..CHUNK_SIZE {
             for z in 0..CHUNK_SIZE {
-                let block_id = chunk.get(x, y, z);
+                let block_id = chunk.get(x as i32, y as i32, z as i32);
                 let pos = Vec3::new(x as f32, y as f32, z as f32);
                 let mesh_repr = block_properties(block_id).mesh_representation;
 

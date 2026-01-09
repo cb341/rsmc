@@ -8,21 +8,23 @@ pub fn handle_block_update_events(
     mut client: ResMut<RenetClient>,
 ) {
     for event in block_update_events.read() {
-        chunk_manager.update_block(event.position, event.block);
         info!("Block update message: {:?}", event.position);
-
-        chunk_mesh_update_events.send(terrain_events::ChunkMeshUpdateEvent {
-            position: IVec3 {
-                x: event.position.x.div_euclid(CHUNK_SIZE as i32),
-                y: event.position.y.div_euclid(CHUNK_SIZE as i32),
-                z: event.position.z.div_euclid(CHUNK_SIZE as i32),
-            },
-        });
+        chunk_manager
+            .update_block(event.position, event.block)
+            .iter()
+            .for_each(|affected_chunk_position| {
+                chunk_mesh_update_events.send(terrain_events::ChunkMeshUpdateEvent {
+                    chunk_position: *affected_chunk_position,
+                });
+            });
 
         player_collider_events.send(player_events::PlayerColliderUpdateEvent);
 
         if !event.from_network {
-            info!("sending block update event");
+            info!(
+                "sending block update event at {:?} with {:?}",
+                event.position, event.block
+            );
             client.send_message(
                 DefaultChannel::ReliableOrdered,
                 bincode::serialize(&NetworkingMessage::BlockUpdate {
