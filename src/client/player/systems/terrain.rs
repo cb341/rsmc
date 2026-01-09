@@ -16,7 +16,7 @@ pub fn handle_block_update_events(
                 x: event.position.x.div_euclid(CHUNK_SIZE as i32),
                 y: event.position.y.div_euclid(CHUNK_SIZE as i32),
                 z: event.position.z.div_euclid(CHUNK_SIZE as i32),
-            }
+            },
         });
 
         player_collider_events.send(player_events::PlayerColliderUpdateEvent);

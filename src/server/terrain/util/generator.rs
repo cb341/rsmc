@@ -107,13 +107,13 @@ impl Generator {
         let proposal_valid = proposal.iter().all(|(relative_pos, _block)| {
             let IVec3 { x, y, z } = relative_pos;
             Chunk::valid_padded(
-                (sapling_x as i32 + *x as i32) as usize,
-                (sapling_y as i32 + *y as i32) as usize,
-                (sapling_z as i32 + *z as i32  ) as usize
+                (sapling_x as i32 + { *x }) as usize,
+                (sapling_y as i32 + { *y }) as usize,
+                (sapling_z as i32 + { *z }) as usize,
             ) && chunk.get(
-                (sapling_x as i32 + *x as i32) as usize,
-                (    sapling_y as i32 + *y as i32) as usize,
-                (    sapling_z as i32 + *z as i32) as usize,
+                (sapling_x as i32 + { *x }) as usize,
+                (sapling_y as i32 + { *y }) as usize,
+                (sapling_z as i32 + { *z }) as usize,
             ) == BlockId::Air
         });
 
@@ -124,9 +124,9 @@ impl Generator {
         proposal.iter().for_each(|(relative_pos, block_id)| {
             let IVec3 { x, y, z } = relative_pos;
             chunk.set(
-                (sapling_x as i32 + *x as i32) as usize,
-                (sapling_y as i32 + *y as i32) as usize,
-                (sapling_z as i32 + *z as i32) as usize,
+                (sapling_x as i32 + { *x }) as usize,
+                (sapling_y as i32 + { *y }) as usize,
+                (sapling_z as i32 + { *z }) as usize,
                 *block_id,
             );
         });
