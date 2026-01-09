@@ -27,8 +27,12 @@ impl Chunk {
     }
 
     pub fn valid_something(x: i32, y: i32, z: i32) -> bool {
-        x >= -1 && y >= -1 && z >= -1 && x <= CHUNK_SIZE as i32 && y <= CHUNK_SIZE as i32 && z <= CHUNK_SIZE as i32
-
+        x >= -1
+            && y >= -1
+            && z >= -1
+            && x <= CHUNK_SIZE as i32
+            && y <= CHUNK_SIZE as i32
+            && z <= CHUNK_SIZE as i32
     }
 
     pub fn valid_unpadded(x: usize, y: usize, z: usize) -> bool {
@@ -36,6 +40,7 @@ impl Chunk {
     }
 
     pub fn get(&self, x: i32, y: i32, z: i32) -> BlockId {
+        assert!(Self::valid_something(x, y, z));
         self.get_unpadded((x + 1) as usize, (y + 1) as usize, (z + 1) as usize)
     }
 

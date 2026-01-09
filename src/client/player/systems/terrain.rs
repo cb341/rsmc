@@ -21,7 +21,10 @@ pub fn handle_block_update_events(
         player_collider_events.send(player_events::PlayerColliderUpdateEvent);
 
         if !event.from_network {
-            info!("sending block update event at {:?} with {:?}", event.position, event.block);
+            info!(
+                "sending block update event at {:?} with {:?}",
+                event.position, event.block
+            );
             client.send_message(
                 DefaultChannel::ReliableOrdered,
                 bincode::serialize(&NetworkingMessage::BlockUpdate {

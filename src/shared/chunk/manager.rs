@@ -91,18 +91,13 @@ impl ChunkManager {
                         let chunk_origin = *chunk_position * CHUNK_SIZE as i32;
                         let local_position = position - chunk_origin;
 
-                        info!("[update_block] Performing local update at {:?}", local_position);
+                        info!("Performing local update at {:?}", local_position);
 
                         assert!(local_position.x >= -1 && local_position.x <= CHUNK_SIZE as i32);
                         assert!(local_position.y >= -1 && local_position.y <= CHUNK_SIZE as i32);
                         assert!(local_position.z >= -1 && local_position.z <= CHUNK_SIZE as i32);
 
-                        chunk.update(
-                            local_position.x,
-                            local_position.y,
-                            local_position.z,
-                            block,
-                        );
+                        chunk.update(local_position.x, local_position.y, local_position.z, block);
 
                         Some(*chunk_position)
                     }
@@ -124,11 +119,7 @@ impl ChunkManager {
                     chunk.position[2] * CHUNK_SIZE as i32,
                 );
                 let local_position = position - chunk_position;
-                Some(chunk.get(
-                    local_position.x,
-                    local_position.y,
-                    local_position.z,
-                ))
+                Some(chunk.get(local_position.x, local_position.y, local_position.z))
             }
             None => {
                 // println!("No chunk found for block at {:?}", position);
