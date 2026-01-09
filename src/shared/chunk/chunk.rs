@@ -23,7 +23,7 @@ impl Chunk {
     }
 
     pub fn valid_padded(x: usize, y: usize, z: usize) -> bool {
-        (0..CHUNK_SIZE).contains(&x) && (0..CHUNK_SIZE).contains(&y) && (0..CHUNK_SIZE).contains(&z)
+        x < CHUNK_SIZE && y < CHUNK_SIZE && z < CHUNK_SIZE
     }
 
     pub fn valid_unpadded(x: usize, y: usize, z: usize) -> bool {
