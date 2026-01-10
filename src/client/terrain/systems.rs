@@ -144,10 +144,10 @@ pub fn handle_chunk_tasks_system(
             let pos = future_chunk.position;
             let pos_vec = pos.as_vec3();
 
-            if let Some(entity) = chunk_entities.remove(true, pos) {
+            if let Some(entity) = chunk_entities.remove(MeshType::Transparent, pos) {
                 commands.entity(entity).despawn();
             }
-            if let Some(entity) = chunk_entities.remove(false, pos) {
+            if let Some(entity) = chunk_entities.remove(MeshType::Solid, pos) {
                 commands.entity(entity).despawn();
             }
 
@@ -158,7 +158,7 @@ pub fn handle_chunk_tasks_system(
                     MeshType::Transparent,
                     materials.transparent_material.clone().unwrap(),
                 )).id();
-                chunk_entities.add(false, pos, entity);
+                chunk_entities.add(MeshType::Transparent , pos, entity);
             }
 
             if let Some(mesh) = mesh_option.cube_mesh {
@@ -170,7 +170,7 @@ pub fn handle_chunk_tasks_system(
                         materials.chunk_material.clone().unwrap(),
                     ))
                     .insert(player_components::Raycastable).id();
-                chunk_entities.add(true, pos, entity);
+                chunk_entities.add(MeshType::Solid, pos, entity);
             }
 
         } else {
@@ -184,6 +184,10 @@ pub fn handle_chunk_tasks_system(
         i += 1;
         keep
     });
+
+    if task_list.len() > 0 {
+        // println!("[{:?},{:?}]", task_list.len(), start.elapsed().as_nanos());
+    }
 }
 
 fn create_chunk_bundle(

@@ -11,7 +11,7 @@ impl SpawnAreaLoaded {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Eq, Hash, Clone, PartialEq)]
 pub enum MeshType {
     Solid,
     Transparent,
@@ -36,15 +36,15 @@ pub struct MesherTasks {
 
 #[derive(Resource, Default)]
 pub struct ChunkEntityMap {
-    map: HashMap<(bool, IVec3), Entity>,
+    map: HashMap<(MeshType, IVec3), Entity>,
 }
 
 impl ChunkEntityMap {
-    pub fn add(&mut self, cube: bool,chunk_position: IVec3, entity: Entity) {
+    pub fn add(&mut self, cube: MeshType, chunk_position: IVec3, entity: Entity) {
         self.map.insert((cube, chunk_position), entity);
     }
 
-    pub fn remove(&mut self, cube: bool, chunk_position: IVec3) -> Option<Entity> {
+    pub fn remove(&mut self, cube: MeshType, chunk_position: IVec3) -> Option<Entity> {
         self.map.remove(&(cube, chunk_position))
     }
 }
