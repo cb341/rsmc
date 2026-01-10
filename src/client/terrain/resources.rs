@@ -31,7 +31,6 @@ pub struct FutureChunkMesh {
 #[derive(Resource, Default)]
 pub struct MesherTasks {
     pub task_list: Vec<FutureChunkMesh>,
-    pub keep_mask: Vec<bool>,
 }
 
 #[derive(Resource, Default)]

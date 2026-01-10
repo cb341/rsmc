@@ -117,76 +117,59 @@ pub fn handle_chunk_tasks_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
 ) {
-    let start = Instant::now();
     let mut completed = 0;
     const MAX_COMPLETIONS: usize = 100;
+    const KEEP_FOR_NEXT_CYCLE: bool = true;
+    const DISCARD: bool = false;
 
-    let MesherTasks {
-        task_list,
-        keep_mask,
-    } = &mut *tasks;
-
-    keep_mask.clear();
-    keep_mask.resize(task_list.len(), false);
-
-    for (index, future_chunk) in task_list.iter_mut().enumerate() {
+    tasks.task_list.retain_mut(|future_chunk| {
         if completed >= MAX_COMPLETIONS {
-            keep_mask[index] = true;
-            continue;
+            return KEEP_FOR_NEXT_CYCLE;
         }
 
-        if let Some(mesh_option) =
+        let Some(mesh_option) =
             bevy::tasks::block_on(future::poll_once(&mut future_chunk.meshes_task.0))
-        {
-            completed += 1;
-            let pos = future_chunk.position;
-            let pos_vec = pos.as_vec3();
+        else {
+            return KEEP_FOR_NEXT_CYCLE;
+        };
 
-            if let Some(entities) = chunk_entities.remove(pos) {
-                entities.iter().for_each(|entity| {
-                    commands.entity(*entity).despawn();
-                })
-            }
+        completed += 1;
+        let pos = future_chunk.position;
+        let pos_vec = pos.as_vec3();
 
-            if let Some(mesh) = mesh_option.cross_mesh {
-                let entity = commands
-                    .spawn(create_chunk_bundle(
-                        meshes.add(mesh),
-                        pos_vec,
-                        MeshType::Transparent,
-                        materials.transparent_material.clone().unwrap(),
-                    ))
-                    .id();
-                chunk_entities.add(pos, entity);
-            }
-
-            if let Some(mesh) = mesh_option.cube_mesh {
-                let entity = commands
-                    .spawn(create_chunk_bundle(
-                        meshes.add(mesh),
-                        pos_vec,
-                        MeshType::Solid,
-                        materials.chunk_material.clone().unwrap(),
-                    ))
-                    .insert(player_components::Raycastable)
-                    .id();
-                chunk_entities.add(pos, entity);
-            }
-        } else {
-            keep_mask[index] = true;
+        if let Some(entities) = chunk_entities.remove(pos) {
+            entities.iter().for_each(|entity| {
+                commands.entity(*entity).despawn();
+            })
         }
-    }
 
-    let mut i = 0;
-    task_list.retain(|_| {
-        let keep = keep_mask[i];
-        i += 1;
-        keep
+        if let Some(mesh) = mesh_option.cross_mesh {
+            let entity = commands
+                .spawn(create_chunk_bundle(
+                    meshes.add(mesh),
+                    pos_vec,
+                    MeshType::Transparent,
+                    materials.transparent_material.clone().unwrap(),
+                ))
+                .id();
+            chunk_entities.add(pos, entity);
+        }
+
+        if let Some(mesh) = mesh_option.cube_mesh {
+            let entity = commands
+                .spawn(create_chunk_bundle(
+                    meshes.add(mesh),
+                    pos_vec,
+                    MeshType::Solid,
+                    materials.chunk_material.clone().unwrap(),
+                ))
+                .insert(player_components::Raycastable)
+                .id();
+            chunk_entities.add(pos, entity);
+        }
+
+        DISCARD
     });
-
-    if !task_list.is_empty() {
-        // println!("[{:?},{:?}]", task_list.len(), start.elapsed().as_nanos());
-    }
 }
 
 fn create_chunk_bundle(
