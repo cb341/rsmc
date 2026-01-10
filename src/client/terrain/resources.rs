@@ -36,16 +36,19 @@ pub struct MesherTasks {
 
 #[derive(Resource, Default)]
 pub struct ChunkEntityMap {
-    map: HashMap<(MeshType, IVec3), Entity>,
+    map: HashMap<IVec3, Vec<Entity>>,
 }
 
 impl ChunkEntityMap {
-    pub fn add(&mut self, cube: MeshType, chunk_position: IVec3, entity: Entity) {
-        self.map.insert((cube, chunk_position), entity);
+    pub fn add(&mut self, chunk_position: IVec3, entity: Entity) {
+        self.map
+            .entry(chunk_position)
+            .or_insert_with(Vec::new)
+            .push(entity);
     }
 
-    pub fn remove(&mut self, cube: MeshType, chunk_position: IVec3) -> Option<Entity> {
-        self.map.remove(&(cube, chunk_position))
+    pub fn remove(&mut self, chunk_position: IVec3) -> Option<Vec<Entity>> {
+        self.map.remove(&chunk_position)
     }
 }
 

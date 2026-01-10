@@ -144,11 +144,10 @@ pub fn handle_chunk_tasks_system(
             let pos = future_chunk.position;
             let pos_vec = pos.as_vec3();
 
-            if let Some(entity) = chunk_entities.remove(MeshType::Transparent, pos) {
-                commands.entity(entity).despawn();
-            }
-            if let Some(entity) = chunk_entities.remove(MeshType::Solid, pos) {
-                commands.entity(entity).despawn();
+            if let Some(entities) = chunk_entities.remove(pos) {
+                entities.iter().for_each(|entity| {
+                    commands.entity(*entity).despawn();
+                })
             }
 
             if let Some(mesh) = mesh_option.cross_mesh {
@@ -158,7 +157,7 @@ pub fn handle_chunk_tasks_system(
                     MeshType::Transparent,
                     materials.transparent_material.clone().unwrap(),
                 )).id();
-                chunk_entities.add(MeshType::Transparent , pos, entity);
+                chunk_entities.add(pos, entity);
             }
 
             if let Some(mesh) = mesh_option.cube_mesh {
@@ -170,7 +169,7 @@ pub fn handle_chunk_tasks_system(
                         materials.chunk_material.clone().unwrap(),
                     ))
                     .insert(player_components::Raycastable).id();
-                chunk_entities.add(MeshType::Solid, pos, entity);
+                chunk_entities.add(pos, entity);
             }
 
         } else {
