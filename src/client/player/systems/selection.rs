@@ -53,7 +53,7 @@ pub fn raycast_system(
     #[cfg(not(feature = "raycast_debug"))]
     let intersections = raycast.cast_ray(ray, &settings);
 
-    let (mut highlight_transform, _) = selection_query.single_mut();
+    let (mut highlight_transform, _) = selection_query.single_mut()?;
     let hover_position = intersections
         .first()
         .map(|(_, intersection)| (intersection.position() - intersection.normal() * 0.5).floor());

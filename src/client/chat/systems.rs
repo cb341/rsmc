@@ -79,7 +79,7 @@ pub fn process_chat_input_system(
     mut chat_state: ResMut<chat_resources::ChatState>,
     mut chat_clear_writer: EventWriter<chat_events::ChatClearEvent>,
 ) {
-    if let Ok(mut text) = chat_input_query.get_single_mut() {
+    if let Ok(mut text) = chat_input_query.single_mut()? {
         let mut chat_input_value = text.0.clone();
 
         for event in evr_kbd.read() {
@@ -158,7 +158,7 @@ pub fn add_message_to_chat_container_system(
     mut events: EventReader<chat_events::SingleChatSendEvent>,
 ) {
     for event in events.read() {
-        if let Ok((entity, _, mut scroll_position)) = query.get_single_mut() {
+        if let Ok((entity, _, mut scroll_position)) = query.single_mut()? {
             // Offset does not need to be exact, just needs to be large enough to see the new message
             scroll_position.offset_y += 100.0;
 
@@ -203,8 +203,8 @@ pub fn unfocus_chat_system(
     >,
 ) {
     if let (Ok(mut container_classes), Ok(mut input_classes)) = (
-        chat_container_query.get_single_mut(),
-        chat_input_query.get_single_mut(),
+        chat_container_query.single_mut()?,
+        chat_input_query.single_mut()?,
     ) {
         info!("Handling unfocus state");
         container_classes.remove_class("focused");
@@ -232,8 +232,8 @@ pub fn focus_chat_system(
     >,
 ) {
     if let (Ok(mut container_classes), Ok(mut input_classes)) = (
-        chat_container_query.get_single_mut(),
-        chat_input_query.get_single_mut(),
+        chat_container_query.single_mut()?,
+        chat_input_query.single_mut()?,
     ) {
         info!("Handling focus state");
         container_classes.add_class("focused");
