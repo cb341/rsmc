@@ -41,10 +41,7 @@ pub struct ChunkEntityMap {
 
 impl ChunkEntityMap {
     pub fn add(&mut self, chunk_position: IVec3, entity: Entity) {
-        self.map
-            .entry(chunk_position)
-            .or_insert_with(Vec::new)
-            .push(entity);
+        self.map.entry(chunk_position).or_default().push(entity);
     }
 
     pub fn remove(&mut self, chunk_position: IVec3) -> Option<Vec<Entity>> {

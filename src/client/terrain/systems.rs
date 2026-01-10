@@ -1,7 +1,4 @@
-use bevy::{
-    tasks::{futures_lite::future, AsyncComputeTaskPool},
-};
-use bevy::utils::HashSet;
+use bevy::tasks::{futures_lite::future, AsyncComputeTaskPool};
 use terrain_components::ChunkMesh;
 use terrain_resources::{
     ChunkMeshes, FutureChunkMesh, MeshTask, MeshType, MesherTasks, RenderMaterials,
@@ -125,7 +122,8 @@ pub fn handle_chunk_tasks_system(
     const MAX_COMPLETIONS: usize = 100;
 
     let MesherTasks {
-        task_list, keep_mask
+        task_list,
+        keep_mask,
     } = &mut *tasks;
 
     keep_mask.clear();
@@ -151,12 +149,14 @@ pub fn handle_chunk_tasks_system(
             }
 
             if let Some(mesh) = mesh_option.cross_mesh {
-                let entity = commands.spawn(create_chunk_bundle(
-                    meshes.add(mesh),
-                    pos_vec,
-                    MeshType::Transparent,
-                    materials.transparent_material.clone().unwrap(),
-                )).id();
+                let entity = commands
+                    .spawn(create_chunk_bundle(
+                        meshes.add(mesh),
+                        pos_vec,
+                        MeshType::Transparent,
+                        materials.transparent_material.clone().unwrap(),
+                    ))
+                    .id();
                 chunk_entities.add(pos, entity);
             }
 
@@ -168,10 +168,10 @@ pub fn handle_chunk_tasks_system(
                         MeshType::Solid,
                         materials.chunk_material.clone().unwrap(),
                     ))
-                    .insert(player_components::Raycastable).id();
+                    .insert(player_components::Raycastable)
+                    .id();
                 chunk_entities.add(pos, entity);
             }
-
         } else {
             keep_mask[index] = true;
         }
@@ -184,7 +184,7 @@ pub fn handle_chunk_tasks_system(
         keep
     });
 
-    if task_list.len() > 0 {
+    if !task_list.is_empty() {
         // println!("[{:?},{:?}]", task_list.len(), start.elapsed().as_nanos());
     }
 }
