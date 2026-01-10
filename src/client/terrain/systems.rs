@@ -118,7 +118,7 @@ pub fn handle_chunk_tasks_system(
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
 ) {
     let mut completed = 0;
-    const MAX_COMPLETIONS: usize = 100;
+    const MAX_COMPLETIONS: usize = 10; // limit how many meshes we process per cycle
     const KEEP_FOR_NEXT_CYCLE: bool = true;
     const DISCARD: bool = false;
 
