@@ -15,6 +15,7 @@ impl Plugin for TerrainPlugin {
         app.insert_resource(util::TextureManager::new());
         app.insert_resource(resources::RenderMaterials::new());
         app.insert_resource(resources::MesherTasks::default());
+        app.insert_resource(resources::ChunkEntityMap::default());
         app.add_event::<terrain_events::BlockUpdateEvent>();
         app.add_event::<terrain_events::ChunkMeshUpdateEvent>();
         app.add_event::<terrain_events::WorldRegenerateEvent>();

@@ -11,7 +11,7 @@ impl SpawnAreaLoaded {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Eq, Hash, Clone, PartialEq)]
 pub enum MeshType {
     Solid,
     Transparent,
@@ -31,6 +31,21 @@ pub struct FutureChunkMesh {
 #[derive(Resource, Default)]
 pub struct MesherTasks {
     pub task_list: Vec<FutureChunkMesh>,
+}
+
+#[derive(Resource, Default)]
+pub struct ChunkEntityMap {
+    map: HashMap<IVec3, Vec<Entity>>,
+}
+
+impl ChunkEntityMap {
+    pub fn add(&mut self, chunk_position: IVec3, entity: Entity) {
+        self.map.entry(chunk_position).or_default().push(entity);
+    }
+
+    pub fn remove(&mut self, chunk_position: IVec3) -> Option<Vec<Entity>> {
+        self.map.remove(&chunk_position)
+    }
 }
 
 #[derive(Resource)]
