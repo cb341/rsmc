@@ -2,29 +2,26 @@
 name = "rsmc"
 version = "0.1.1"
 edition = "2021"
-rust-version = "1.83.0"
+rust-version = "1.90.0"
 
 [dependencies]
-bevy = "0.15.1"
-bevy_fps_controller = "0.15.0"
-bevy_mod_raycast = { git = "https://github.com/CuddlyBunion341/bevy_mod_raycast.git", branch = "main" }
+bevy = "0.16.1"
+bevy_fps_controller = "16.1.0"
 bevy_rapier3d = "0.28.0"
 cgmath = "0.18.0"
-iyes_perf_ui = { git = "https://github.com/IyesGames/iyes_perf_ui.git", branch = "main" }
+iyes_perf_ui = "0.5.0"
 noise = "0.9.0"
-bevy_renet = { git = "https://github.com/CuddlyBunion341/renet.git" }
+bevy_renet = "2.0.1"
 bincode = "1.3.3"
 rand = {version = "0.9.0", features = ["small_rng"]}
-renet = { git = "https://github.com/CuddlyBunion341/renet.git" }
+renet = "1.1.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde-big-array = "0.5.1"
 chrono = "0.4.38"
 rayon = "1.10.0"
 bevy_flair = "0.1.0"
-bevy-inspector-egui = "0.29"
-renet_visualizer = { git = "https://github.com/CuddlyBunion341/renet.git", features = [
-  "bevy",
-] }
+bevy-inspector-egui = "0.33"
+renet_visualizer = "1.0.0"
 egui_plot = "0.30.0"
 
 [profile.dev.package."*"]
