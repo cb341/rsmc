@@ -9,8 +9,8 @@ pub fn broadcast_player_attributes_system(
         return;
     }
 
-    let (_, transform) = query.single();
-    let (_, _, camera_transform) = camera_query.single();
+    let (_, transform) = single!(query);
+    let (_, _, camera_transform) = single!(camera_query);
 
     let player_state = PlayerState {
         position: transform.translation,

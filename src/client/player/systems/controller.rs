@@ -90,7 +90,7 @@ pub fn setup_controller_on_area_ready_system(
         .insert(player_components::Player)
         .id();
 
-    let mut player = render_player.single_mut()?;
+    let mut player = single_mut!(render_player);
     player.logical_entity = logical_entity;
 
     player_spawned.0 = true;
@@ -119,10 +119,9 @@ pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsContro
 }
 
 pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
-    if let Ok(mut window) = window_query.single_mut()? {
-        window.cursor_options.grab_mode = CursorGrabMode::Locked;
-        window.cursor_options.visible = false;
-    }
+    let mut window = single_mut!(window_query);
+    window.cursor_options.grab_mode = CursorGrabMode::Locked;
+    window.cursor_options.visible = false;
 }
 
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {

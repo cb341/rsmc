@@ -7,7 +7,7 @@ pub fn manage_cursor_system(
     mut controller_query: Query<&mut FpsController>,
     current_state: Res<State<GameState>>,
 ) {
-    let mut window = window_query.single_mut()?;
+    let mut window = single_mut!(window_query);
     if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
         window.cursor_options.grab_mode = CursorGrabMode::Locked;
         window.cursor_options.visible = false;

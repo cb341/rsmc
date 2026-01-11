@@ -52,7 +52,7 @@ fn main() {
         FlairPlugin,
         #[cfg(feature = "wireframe")]
         wireframe_config::wireframe_plugin(),
-        FrameTimeDiagnosticsPlugin,
+        FrameTimeDiagnosticsPlugin::default(),
         EntityCountDiagnosticsPlugin,
         SystemInformationDiagnosticsPlugin,
         PerfUiPlugin,

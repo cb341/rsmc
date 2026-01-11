@@ -11,6 +11,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         debug!("Building PlayerPlugin");
         info!("Building PlayerPlugin");
+        app.add_plugins(MeshPickingPlugin);
         app.add_plugins(FpsControllerPlugin);
         app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
         #[cfg(feature = "physics_debug")]
@@ -28,7 +29,7 @@ impl Plugin for PlayerPlugin {
         );
         app.add_systems(
             Update,
-            (player_systems::setup_controller_on_area_ready_system,)
+            (player_systems::setup_controller_on_area_ready_system)
                 .run_if(terrain_resources::SpawnAreaLoaded::is_loaded)
                 .run_if(player_resources::PlayerSpawned::is_not_spawned),
         );

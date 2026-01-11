@@ -17,7 +17,7 @@ pub fn setup_chat_container(mut commands: Commands, asset_server: Res<AssetServe
             parent.spawn((
                 Node::default(),
                 Name::new("chat_message_container"),
-                ClassList::new(),
+                ClassList::empty(),
                 chat_components::ChatMessageContainer,
                 Text::new(""),
             ));
@@ -25,7 +25,7 @@ pub fn setup_chat_container(mut commands: Commands, asset_server: Res<AssetServe
             parent.spawn((
                 Node::default(),
                 Name::new("chat_message_input"),
-                ClassList::new(),
+                ClassList::empty(),
                 chat_components::ChatMessageInputElement,
                 Text::new(MESSAGE_PROMPT),
             ));
@@ -79,57 +79,55 @@ pub fn process_chat_input_system(
     mut chat_state: ResMut<chat_resources::ChatState>,
     mut chat_clear_writer: EventWriter<chat_events::ChatClearEvent>,
 ) {
-    if let Ok(mut text) = chat_input_query.single_mut()? {
-        let mut chat_input_value = text.0.clone();
+    let mut text = single_mut!(chat_input_query);
+    let mut chat_input_value = text.0.clone();
 
-        for event in evr_kbd.read() {
-            if event.state != ButtonState::Pressed {
-                continue;
-            }
-
-            if chat_state.just_focused {
-                // Hack to prevent 'T' from being added to the chat input upon focus
-                chat_state.just_focused = false;
-                continue;
-            }
-
-            info!("Chat state: {}", chat_input_value);
-
-            let mut message = extract_message(&chat_input_value);
-
-            match &event.logical_key {
-                Key::Enter if !message.trim().is_empty() => {
-                    if message.trim() == "CLEAR" {
-                        chat_clear_writer.send(chat_events::ChatClearEvent);
-                    } else {
-                        send_event_writer.send(ChatMessageSendEvent(message.trim().to_string()));
-                    }
-                    message.clear();
-                }
-                Key::Backspace => {
-                    message.pop();
-                }
-                Key::Space => {
-                    if message.len() < MAX_MESSAGE_LENGTH {
-                        message.push(' ');
-                    }
-                }
-                Key::Character(input) => {
-                    if message.len() < MAX_MESSAGE_LENGTH && input.chars().all(|c| !c.is_control())
-                    {
-                        message.push_str(input);
-                    }
-                }
-                _ => {}
-            }
-
-            chat_input_value = MESSAGE_PROMPT.to_string() + &message;
+    for event in evr_kbd.read() {
+        if event.state != ButtonState::Pressed {
+            continue;
         }
 
-        text.clear();
+        if chat_state.just_focused {
+            // Hack to prevent 'T' from being added to the chat input upon focus
+            chat_state.just_focused = false;
+            continue;
+        }
 
-        text.0 += &chat_input_value;
+        info!("Chat state: {}", chat_input_value);
+
+        let mut message = extract_message(&chat_input_value);
+
+        match &event.logical_key {
+            Key::Enter if !message.trim().is_empty() => {
+                if message.trim() == "CLEAR" {
+                    chat_clear_writer.send(chat_events::ChatClearEvent);
+                } else {
+                    send_event_writer.send(ChatMessageSendEvent(message.trim().to_string()));
+                }
+                message.clear();
+            }
+            Key::Backspace => {
+                message.pop();
+            }
+            Key::Space => {
+                if message.len() < MAX_MESSAGE_LENGTH {
+                    message.push(' ');
+                }
+            }
+            Key::Character(input) => {
+                if message.len() < MAX_MESSAGE_LENGTH && input.chars().all(|c| !c.is_control()) {
+                    message.push_str(input);
+                }
+            }
+            _ => {}
+        }
+
+        chat_input_value = MESSAGE_PROMPT.to_string() + &message;
     }
+
+    text.clear();
+
+    text.0 += &chat_input_value;
 }
 
 fn extract_message(value: &str) -> String {
@@ -158,19 +156,19 @@ pub fn add_message_to_chat_container_system(
     mut events: EventReader<chat_events::SingleChatSendEvent>,
 ) {
     for event in events.read() {
-        if let Ok((entity, _, mut scroll_position)) = query.single_mut()? {
-            // Offset does not need to be exact, just needs to be large enough to see the new message
-            scroll_position.offset_y += 100.0;
+        let (entity, _, mut scroll_position) = single_mut!(query);
 
-            commands.entity(entity).with_children(|parent| {
-                parent.spawn((
-                    Node::default(),
-                    Name::new("chat_entry"),
-                    chat_components::ChatMessageElement,
-                    Text::new(event.0.message.clone()),
-                ));
-            });
-        }
+        // Offset does not need to be exact, just needs to be large enough to see the new message
+        scroll_position.offset_y += 100.0;
+
+        commands.entity(entity).with_children(|parent| {
+            parent.spawn((
+                Node::default(),
+                Name::new("chat_entry"),
+                chat_components::ChatMessageElement,
+                Text::new(event.0.message.clone()),
+            ));
+        });
     }
 }
 
@@ -180,8 +178,8 @@ pub fn handle_chat_clear_events_system(
     query: Query<Entity, With<chat_components::ChatMessageContainer>>,
 ) {
     for _ in chat_clear_events.read() {
-        if let Ok(entity) = query.get_single() {
-            commands.entity(entity).despawn_descendants();
+        if let Ok(entity) = query.single() {
+            commands.entity(entity).despawn_related::<Children>();
         }
     }
 }
@@ -202,17 +200,15 @@ pub fn unfocus_chat_system(
         ),
     >,
 ) {
-    if let (Ok(mut container_classes), Ok(mut input_classes)) = (
-        chat_container_query.single_mut()?,
-        chat_input_query.single_mut()?,
-    ) {
-        info!("Handling unfocus state");
-        container_classes.remove_class("focused");
-        container_classes.add_class("unfocused");
+    let mut container_classes = single_mut!(chat_container_query);
+    let mut input_classes = single_mut!(chat_input_query);
 
-        input_classes.remove_class("focused");
-        input_classes.add_class("unfocused");
-    }
+    info!("Handling unfocus state");
+    container_classes.remove("focused");
+    container_classes.add("unfocused");
+
+    input_classes.remove("focused");
+    input_classes.add("unfocused");
 }
 
 pub fn focus_chat_system(
@@ -231,17 +227,15 @@ pub fn focus_chat_system(
         ),
     >,
 ) {
-    if let (Ok(mut container_classes), Ok(mut input_classes)) = (
-        chat_container_query.single_mut()?,
-        chat_input_query.single_mut()?,
-    ) {
-        info!("Handling focus state");
-        container_classes.add_class("focused");
-        container_classes.remove_class("unfocused");
+    let mut container_classes = single_mut!(chat_container_query);
+    let mut input_classes = single_mut!(chat_input_query);
 
-        input_classes.add_class("focused");
-        input_classes.remove_class("unfocused");
-    }
+    info!("Handling focus state");
+    container_classes.add("focused");
+    container_classes.remove("unfocused");
+
+    input_classes.add("focused");
+    input_classes.remove("unfocused");
 }
 
 #[cfg(test)]

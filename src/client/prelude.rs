@@ -16,11 +16,7 @@ pub use bevy::render::{camera::*, mesh::Mesh};
 pub use bevy::transform::components::Transform;
 pub use bevy::window::{CursorGrabMode, Window, WindowResolution};
 
-pub use bevy_fps_controller::controller::FpsController;
-pub use bevy_fps_controller::controller::FpsControllerPlugin;
 pub use bevy_fps_controller::controller::*;
-
-pub use bevy_mod_raycast::immediate::*;
 
 pub use bevy_rapier3d::geometry::Collider;
 pub use bevy_rapier3d::{dynamics::*, geometry::*};

@@ -140,7 +140,7 @@ mod tests {
             .world_mut()
             .query::<(&Transform, &collider_components::BlockCollider)>();
         let world_mut = app.world_mut();
-        let (collider_transform, _) = collider_query.single(world_mut);
+        let (collider_transform, _) = collider_query.single(world_mut).unwrap();
         assert_eq!(
             Vec3 {
                 x: 6.5,

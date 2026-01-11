@@ -13,7 +13,7 @@ pub fn handle_keyboard_events_system(
             }
 
             if event.state.is_pressed() && event.key_code == bevy::input::keyboard::KeyCode::KeyC {
-                let controller_transform = camera_query.single();
+                let controller_transform = single!(camera_query);
                 println!("Handling event: {:?}", controller_transform.translation);
                 collider_events.send(collider_events::ColliderUpdateEvent {
                     grid_center_position: controller_transform.translation.into(),
