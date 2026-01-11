@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use bevy::render::camera::{ScalingMode};
 
 #[cfg(feature = "skip_terrain")]
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
