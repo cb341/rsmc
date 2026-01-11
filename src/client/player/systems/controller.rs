@@ -1,5 +1,3 @@
-use bevy::window::PrimaryWindow;
-
 use crate::prelude::*;
 
 #[cfg(feature = "skip_terrain")]
@@ -39,14 +37,13 @@ pub fn setup_player_camera(mut commands: Commands) {
 pub fn setup_controller_on_area_ready_system(
     mut commands: Commands,
     mut player_spawned: ResMut<player_resources::PlayerSpawned>,
-    mut render_player: Query<(Entity, &mut RenderPlayer)>,
-    camera_query: Query<Entity, With<player_components::PlayerCamera>>,
+    mut render_player: Query<&mut RenderPlayer>,
 ) {
     info!("Setting up controller");
 
     let logical_entity = commands
         .spawn((
-            Collider::cylinder(1.0, 0.5),
+            Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.5),
             Friction {
                 coefficient: 0.0,
                 combine_rule: CoefficientCombineRule::Min,
@@ -93,10 +90,7 @@ pub fn setup_controller_on_area_ready_system(
         .insert(player_components::Player)
         .id();
 
-    let camera = single!(camera_query);
-    commands.entity(logical_entity).add_child(camera);
-
-    let (_, mut player) = single_mut!(render_player);
+    let mut player = single_mut!(render_player);
     player.logical_entity = logical_entity;
 
     player_spawned.0 = true;
@@ -110,7 +104,7 @@ pub fn handle_controller_movement_system(
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position = transform.translation;
         if last_position.0.floor() != controller_position.floor() {
-            collider_events.write(collider_events::ColliderUpdateEvent {
+            collider_events.send(collider_events::ColliderUpdateEvent {
                 grid_center_position: controller_position.floor().into(),
             });
         }
@@ -118,20 +112,21 @@ pub fn handle_controller_movement_system(
     }
 }
 
-pub fn lock_cursor_system(mut window_query: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = single_mut!(window_query);
-    window.cursor_options.grab_mode = CursorGrabMode::Locked;
-    window.cursor_options.visible = false;
-}
-
 pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
-    for mut controller in &mut controller_query {
+    for mut controller in &mut controller_query.iter_mut() {
         controller.enable_input = true;
     }
 }
 
+pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
+    if let Ok(mut window) = window_query.get_single_mut() {
+        window.cursor_options.grab_mode = CursorGrabMode::Locked;
+        window.cursor_options.visible = false;
+    }
+}
+
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
-    for mut controller in &mut controller_query {
+    for mut controller in &mut controller_query.iter_mut() {
         controller.enable_input = false;
     }
 }
