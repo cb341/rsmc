@@ -5,23 +5,24 @@ use crate::prelude::*;
 pub fn manage_cursor_system(
     btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    mut window_query: Query<&mut Window>,
     mut controller_query: Query<&mut FpsController>,
     current_state: Res<State<GameState>>,
 ) {
-    let mut window = single_mut!(window_query);
-    if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
-        window.cursor_options.grab_mode = CursorGrabMode::Locked;
-        window.cursor_options.visible = false;
-        for mut controller in &mut controller_query {
-            controller.enable_input = true;
+    for mut window in &mut window_query {
+        if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
+            window.cursor_options.grab_mode = CursorGrabMode::Locked;
+            window.cursor_options.visible = false;
+            for mut controller in &mut controller_query {
+                controller.enable_input = true;
+            }
         }
-    }
-    if key.just_pressed(KeyCode::Escape) {
-        window.cursor_options.grab_mode = CursorGrabMode::None;
-        window.cursor_options.visible = true;
-        for mut controller in &mut controller_query {
-            controller.enable_input = false;
+        if key.just_pressed(KeyCode::Escape) {
+            window.cursor_options.grab_mode = CursorGrabMode::None;
+            window.cursor_options.visible = true;
+            for mut controller in &mut controller_query {
+                controller.enable_input = false;
+            }
         }
     }
 }
