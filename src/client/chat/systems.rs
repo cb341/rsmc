@@ -274,7 +274,7 @@ mod tests {
             .get_resource_mut::<Events<SingleChatSendEvent>>()
             .unwrap();
 
-        event_writer.write(SingleChatSendEvent(ChatMessage {
+        event_writer.send(SingleChatSendEvent(ChatMessage {
             message: "Hello World".to_string(),
             client_id: 0,
             message_id: 1,
@@ -328,7 +328,7 @@ mod tests {
             .world_mut()
             .get_resource_mut::<Events<chat_events::ChatClearEvent>>()
             .unwrap();
-        event_writer.write(chat_events::ChatClearEvent);
+        event_writer.send(chat_events::ChatClearEvent);
 
         app.update();
 

@@ -44,11 +44,11 @@ name = "server"
 path = "src/server/main.rs"
 
 [features]
-default = ["chat"]
+default = ["chat", "dynamic_linking"]
 dynamic_linking = ["bevy/dynamic_linking"]
 
 # both
-chat = ["dynamic_linking"]
+chat = []
 
 # server
 renet_visualizer = ["egui_layer"]
