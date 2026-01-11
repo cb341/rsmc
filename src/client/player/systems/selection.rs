@@ -47,34 +47,37 @@ pub fn raycast_system(
     let ray = Ray3d::new(pos, Dir3::new(dir).expect("Ray can be cast"));
 
     let binding = |entity| raycastable_query.contains(entity);
-    let settings = MeshRayCastSettings::default()
-        .with_filter(&binding);
-
+    let settings = MeshRayCastSettings::default().with_filter(&binding);
 
     let hits = raycast.cast_ray(ray, &settings);
 
     if let Some((_, hit)) = hits.first() {
-        #[cfg(feature = "raycast_debug")]
-        {
-            gizmos.line(hit.point + hit.normal, hit.point, Color::srgb(1.0, 0.0, 0.0));
-            gizmos.sphere(hit.point, 0.1, Color::srgb(0.0, 0.0, 1.0));
+        if (pos - hit.point).length() < RAY_DIST {
+            #[cfg(feature = "raycast_debug")]
+            {
+                gizmos.line(
+                    hit.point + hit.normal,
+                    hit.point,
+                    Color::srgb(1.0, 0.0, 0.0),
+                );
+                gizmos.sphere(hit.point, 0.1, Color::srgb(0.0, 0.0, 1.0));
+            }
+
+            const CUBE_SIZE: f32 = 1.0;
+
+            let hover_position = (hit.point - hit.normal * (CUBE_SIZE / 2.0)).floor();
+            block_selection.position = Some(hover_position);
+            block_selection.normal = Some(hit.normal);
+
+            let mut highlight_transform = single_mut!(selection_query);
+            highlight_transform.translation = hover_position + (CUBE_SIZE / 2.0);
+
+            return;
         }
     }
 
     let mut highlight_transform = single_mut!(selection_query);
-    let hover_position = hits
-        .first()
-        .map(|(_, hit)| (hit.point - hit.normal * 0.5).floor());
-
-    block_selection.position = hover_position;
-    block_selection.normal = hits
-        .first()
-        .map(|(_, hit)| hit.normal);
-
-    match hover_position {
-        Some(_) => highlight_transform.translation = hover_position.unwrap() + 0.5,
-        None => highlight_transform.translation = HIGHLIGHT_CUBE_ORIGIN,
-    }
+    highlight_transform.translation = HIGHLIGHT_CUBE_ORIGIN;
 }
 
 #[cfg(test)]
