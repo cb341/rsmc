@@ -43,7 +43,7 @@ pub fn setup_controller_on_area_ready_system(
 
     let logical_entity = commands
         .spawn((
-            Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.5),
+            Collider::cylinder(1.0, 0.5),
             Friction {
                 coefficient: 0.0,
                 combine_rule: CoefficientCombineRule::Min,
@@ -113,9 +113,8 @@ pub fn handle_controller_movement_system(
 }
 
 pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
-    for mut controller in &mut controller_query.iter_mut() {
-        controller.enable_input = true;
-    }
+    let mut controller = single_mut!(controller_query);
+    controller.enable_input = true;
 }
 
 pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
@@ -125,7 +124,6 @@ pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
 }
 
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
-    for mut controller in &mut controller_query.iter_mut() {
-        controller.enable_input = false;
-    }
+    let mut controller = single_mut!(controller_query);
+    controller.enable_input = false;
 }

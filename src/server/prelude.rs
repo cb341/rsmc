@@ -6,8 +6,8 @@ pub use std::time::SystemTime;
 // bevy crates
 pub use bevy::app::{App, Plugin, Startup, Update};
 pub use bevy::ecs::event::*;
-pub use bevy::ecs::system::*;
 pub use bevy::ecs::resource::*;
+pub use bevy::ecs::system::*;
 pub use bevy::log::{debug, error, info, warn};
 pub use bevy::math::*;
 pub use bevy::MinimalPlugins;
