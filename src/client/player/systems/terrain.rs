@@ -13,12 +13,12 @@ pub fn handle_block_update_events(
             .update_block(event.position, event.block)
             .iter()
             .for_each(|affected_chunk_position| {
-                chunk_mesh_update_events.send(terrain_events::ChunkMeshUpdateEvent {
+                chunk_mesh_update_events.write(terrain_events::ChunkMeshUpdateEvent {
                     chunk_position: *affected_chunk_position,
                 });
             });
 
-        player_collider_events.send(player_events::PlayerColliderUpdateEvent);
+        player_collider_events.write(player_events::PlayerColliderUpdateEvent);
 
         if !event.from_network {
             info!(
@@ -49,7 +49,7 @@ pub fn handle_player_collider_events_system(
     for (transform, _) in query.iter_mut() {
         let player_position = transform.translation.floor();
 
-        collider_events.send(collider_events::ColliderUpdateEvent {
+        collider_events.write(collider_events::ColliderUpdateEvent {
             grid_center_position: player_position.into(),
         });
     }

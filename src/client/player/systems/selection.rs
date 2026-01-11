@@ -1,4 +1,7 @@
-use bevy::{color::palettes::tailwind::{PINK_100, RED_500}, picking::pointer::PointerInteraction};
+use bevy::{
+    color::palettes::tailwind::{PINK_100, RED_500},
+    picking::pointer::PointerInteraction,
+};
 
 use crate::prelude::*;
 
@@ -27,7 +30,7 @@ pub fn raycast_system(
     // #[cfg(feature = "raycast_debug")] mut gizmos: Gizmos,
     mut gizmos: Gizmos,
     raycast_origin: Query<&Transform, With<player_components::PlayerCamera>>,
-    mut selection_query: Query<
+    selection_query: Query<
         (&mut Transform, &player_components::HighlightCube),
         (
             Without<player_components::PlayerCamera>,
@@ -35,7 +38,7 @@ pub fn raycast_system(
         ),
     >,
     raycastable_query: Query<&Transform, With<player_components::Raycastable>>,
-    mut block_selection: ResMut<player_resources::BlockSelection>,
+    block_selection: ResMut<player_resources::BlockSelection>,
 ) {
     // https://bevy.org/examples-webgpu/picking/mesh-picking/
     pointers
@@ -43,9 +46,9 @@ pub fn raycast_system(
         .filter_map(|interaction| interaction.get_nearest_hit())
         .filter_map(|(_entity, hit)| hit.position.zip(hit.normal))
         .for_each(|(point, normal)| {
-        gizmos.sphere(point, 0.05, RED_500);
-        gizmos.arrow(point, point + normal.normalize() * 0.5, PINK_100);
-    });
+            gizmos.sphere(point, 0.05, RED_500);
+            gizmos.arrow(point, point + normal.normalize() * 0.5, PINK_100);
+        });
     // FIXME: impl with new api
 
     // let camera_transform = raycast_origin.single();

@@ -100,9 +100,9 @@ pub fn process_chat_input_system(
         match &event.logical_key {
             Key::Enter if !message.trim().is_empty() => {
                 if message.trim() == "CLEAR" {
-                    chat_clear_writer.send(chat_events::ChatClearEvent);
+                    chat_clear_writer.write(chat_events::ChatClearEvent);
                 } else {
-                    send_event_writer.send(ChatMessageSendEvent(message.trim().to_string()));
+                    send_event_writer.write(ChatMessageSendEvent(message.trim().to_string()));
                 }
                 message.clear();
             }
@@ -141,7 +141,7 @@ pub fn handle_chat_message_sync_event(
 ) {
     for event in sync_events.read() {
         event.0.clone().into_iter().for_each(|message| {
-            send_events.send(chat_events::SingleChatSendEvent(message));
+            send_events.write(chat_events::SingleChatSendEvent(message));
         })
     }
 }
@@ -274,7 +274,7 @@ mod tests {
             .get_resource_mut::<Events<SingleChatSendEvent>>()
             .unwrap();
 
-        event_writer.send(SingleChatSendEvent(ChatMessage {
+        event_writer.write(SingleChatSendEvent(ChatMessage {
             message: "Hello World".to_string(),
             client_id: 0,
             message_id: 1,
@@ -328,7 +328,7 @@ mod tests {
             .world_mut()
             .get_resource_mut::<Events<chat_events::ChatClearEvent>>()
             .unwrap();
-        event_writer.send(chat_events::ChatClearEvent);
+        event_writer.write(chat_events::ChatClearEvent);
 
         app.update();
 

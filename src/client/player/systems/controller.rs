@@ -104,7 +104,7 @@ pub fn handle_controller_movement_system(
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position = transform.translation;
         if last_position.0.floor() != controller_position.floor() {
-            collider_events.send(collider_events::ColliderUpdateEvent {
+            collider_events.write(collider_events::ColliderUpdateEvent {
                 grid_center_position: controller_position.floor().into(),
             });
         }
