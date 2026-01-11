@@ -1,5 +1,3 @@
-use bevy::window::PrimaryWindow;
-
 use crate::prelude::*;
 
 pub fn manage_cursor_system(
