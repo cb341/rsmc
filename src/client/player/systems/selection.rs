@@ -39,7 +39,9 @@ pub fn raycast_system(
     raycastable_query: Query<Entity, With<player_components::Raycastable>>,
     mut block_selection: ResMut<player_resources::BlockSelection>,
 ) {
-    let camera_transform = raycast_origin.single().expect("Camera not present for raycast");
+    let camera_transform = raycast_origin
+        .single()
+        .expect("Camera not present for raycast");
 
     let pos = camera_transform.translation;
     let dir = camera_transform.rotation.mul_vec3(Vec3::NEG_Z).normalize();

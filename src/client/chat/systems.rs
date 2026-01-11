@@ -79,7 +79,9 @@ pub fn process_chat_input_system(
     mut chat_state: ResMut<chat_resources::ChatState>,
     mut chat_clear_writer: EventWriter<chat_events::ChatClearEvent>,
 ) {
-    let mut text = chat_input_query.single_mut().expect("chat_input doesn't exist");
+    let mut text = chat_input_query
+        .single_mut()
+        .expect("chat_input doesn't exist");
     let mut chat_input_value = text.0.clone();
 
     for event in evr_kbd.read() {
@@ -102,7 +104,7 @@ pub fn process_chat_input_system(
                 if message.trim() == "CLEAR" {
                     chat_clear_writer.write(chat_events::ChatClearEvent);
                 } else {
-                    send_event_writer.write(ChatMessageSendEventmessage.trim().to_string());
+                    send_event_writer.write(ChatMessageSendEvent(message.trim().to_string()));
                 }
                 message.clear();
             }

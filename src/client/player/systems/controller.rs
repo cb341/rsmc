@@ -90,7 +90,9 @@ pub fn setup_controller_on_area_ready_system(
         .insert(player_components::Player)
         .id();
 
-    let mut player = render_player.single_mut().expect("Failed to query render_player");
+    let mut player = render_player
+        .single_mut()
+        .expect("Failed to query render_player");
     player.logical_entity = logical_entity;
 
     player_spawned.0 = true;
