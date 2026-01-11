@@ -1,3 +1,5 @@
+use bevy::window::PrimaryWindow;
+
 use crate::prelude::*;
 
 #[cfg(feature = "skip_terrain")]
@@ -37,7 +39,8 @@ pub fn setup_player_camera(mut commands: Commands) {
 pub fn setup_controller_on_area_ready_system(
     mut commands: Commands,
     mut player_spawned: ResMut<player_resources::PlayerSpawned>,
-    mut render_player: Query<&mut RenderPlayer>,
+    mut render_player: Query<(Entity, &mut RenderPlayer)>,
+    camera_query: Query<Entity, With<player_components::PlayerCamera>>,
 ) {
     info!("Setting up controller");
 
@@ -90,7 +93,10 @@ pub fn setup_controller_on_area_ready_system(
         .insert(player_components::Player)
         .id();
 
-    let mut player = single_mut!(render_player);
+    let camera = single!(camera_query);
+    commands.entity(logical_entity).add_child(camera);
+
+    let (_, mut player) = single_mut!(render_player);
     player.logical_entity = logical_entity;
 
     player_spawned.0 = true;
@@ -112,18 +118,20 @@ pub fn handle_controller_movement_system(
     }
 }
 
-pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
-    let mut controller = single_mut!(controller_query);
-    controller.enable_input = true;
-}
-
-pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
+pub fn lock_cursor_system(mut window_query: Query<&mut Window, With<PrimaryWindow>>) {
     let mut window = single_mut!(window_query);
     window.cursor_options.grab_mode = CursorGrabMode::Locked;
     window.cursor_options.visible = false;
 }
 
+pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
+    for mut controller in &mut controller_query {
+        controller.enable_input = true;
+    }
+}
+
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
-    let mut controller = single_mut!(controller_query);
-    controller.enable_input = false;
+    for mut controller in &mut controller_query {
+        controller.enable_input = false;
+    }
 }

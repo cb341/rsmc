@@ -4716,6 +4716,7 @@ dependencies = [
  "rustc-hash 2.1.0",
  "simba",
  "thiserror 2.0.11",
+ "vec_map",
 ]
 
 [[package]]

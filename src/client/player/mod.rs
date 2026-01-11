@@ -42,7 +42,7 @@ impl Plugin for PlayerPlugin {
         );
 
         app.add_systems(
-            Update,
+            PreUpdate,
             (
                 player_systems::manage_cursor_system,
                 player_systems::handle_mouse_events_system,
@@ -73,8 +73,8 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             Update,
             (
-                player_systems::activate_fps_controller_system,
                 player_systems::lock_cursor_system,
+                player_systems::activate_fps_controller_system,
             )
                 .run_if(in_state(GameState::Playing)),
         );
