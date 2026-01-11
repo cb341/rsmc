@@ -12,7 +12,7 @@ pub use bevy::input::{keyboard::*, mouse::*, ButtonInput};
 pub use bevy::math::{primitives::Cuboid, EulerRot, Quat, Ray3d, Vec3};
 pub use bevy::pbr::*;
 pub use bevy::prelude::*;
-pub use bevy::render::{camera::*, mesh::Mesh};
+pub use bevy::render::mesh::Mesh;
 pub use bevy::transform::components::Transform;
 pub use bevy::window::{CursorGrabMode, Window, WindowResolution};
 
