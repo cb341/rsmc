@@ -118,12 +118,16 @@ pub fn handle_chunk_tasks_system(
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
 ) {
     let mut completed = 0;
-    const MAX_COMPLETIONS: usize = 20;
+    const MAX_COMPLETIONS: usize = 50;
     const KEEP_FOR_NEXT_CYCLE: bool = true;
     const DISCARD: bool = false;
 
     tasks.task_list.retain_mut(|future_chunk| {
         if completed >= MAX_COMPLETIONS {
+            return KEEP_FOR_NEXT_CYCLE;
+        }
+
+        if !future_chunk.meshes_task.0.is_finished() {
             return KEEP_FOR_NEXT_CYCLE;
         }
 
