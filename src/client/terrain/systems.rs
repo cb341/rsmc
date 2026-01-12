@@ -118,7 +118,7 @@ pub fn handle_chunk_tasks_system(
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
 ) {
     let mut completed = 0;
-    const MAX_COMPLETIONS: usize = 50;
+    const MAX_COMPLETIONS: usize = 20;
     const KEEP_FOR_NEXT_CYCLE: bool = true;
     const DISCARD: bool = false;
 
@@ -134,7 +134,7 @@ pub fn handle_chunk_tasks_system(
         let Some(mesh_option) =
             bevy::tasks::block_on(future::poll_once(&mut future_chunk.meshes_task.0))
         else {
-            return KEEP_FOR_NEXT_CYCLE;
+            return DISCARD;
         };
 
         completed += 1;
