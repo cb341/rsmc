@@ -49,7 +49,7 @@ pub fn generate_world_system(
     mut client: ResMut<RenetClient>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
-    let render_distance = IVec3::new(8, 4, 8);
+    let render_distance = IVec3::new(4, 4, 4);
 
     info!("Sending chunk requests for chunks");
 
