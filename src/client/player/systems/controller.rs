@@ -90,7 +90,9 @@ pub fn setup_controller_on_area_ready_system(
         .insert(player_components::Player)
         .id();
 
-    let mut player = render_player.single_mut();
+    let mut player = render_player
+        .single_mut()
+        .expect("Failed to query render_player");
     player.logical_entity = logical_entity;
 
     player_spawned.0 = true;
@@ -104,7 +106,7 @@ pub fn handle_controller_movement_system(
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position = transform.translation;
         if last_position.0.floor() != controller_position.floor() {
-            collider_events.send(collider_events::ColliderUpdateEvent {
+            collider_events.write(collider_events::ColliderUpdateEvent {
                 grid_center_position: controller_position.floor().into(),
             });
         }
@@ -119,10 +121,9 @@ pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsContro
 }
 
 pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
-    if let Ok(mut window) = window_query.get_single_mut() {
-        window.cursor_options.grab_mode = CursorGrabMode::Locked;
-        window.cursor_options.visible = false;
-    }
+    let mut window = window_query.single_mut().expect("Window doesnt't exist?");
+    window.cursor_options.grab_mode = CursorGrabMode::Locked;
+    window.cursor_options.visible = false;
 }
 
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {

@@ -55,7 +55,7 @@ pub fn update_remote_player_system(
             }
 
             if !player_exists {
-                spawn_events.send(remote_player_events::RemotePlayerSpawnedEvent {
+                spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
                     client_id: *client_id,
                     position: player_state.position,
                 });

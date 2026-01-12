@@ -36,7 +36,7 @@ pub fn receive_message_system(
                 NetworkingMessage::ChatMessageSend(message) => {
                     info!("Received chat message from {}", client_id);
                     chat_message_events
-                        .send(chat_events::PlayerChatMessageSendEvent { client_id, message });
+                        .write(chat_events::PlayerChatMessageSendEvent { client_id, message });
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliabelOrdered)");
@@ -122,12 +122,12 @@ pub fn handle_events_system(
                 );
 
                 #[cfg(feature = "chat")]
-                chat_sync_events.send(chat_events::SyncPlayerChatMessagesEvent {
+                chat_sync_events.write(chat_events::SyncPlayerChatMessagesEvent {
                     client_id: *client_id,
                 });
 
                 #[cfg(feature = "chat")]
-                chat_message_events.send(chat_events::PlayerChatMessageSendEvent {
+                chat_message_events.write(chat_events::PlayerChatMessageSendEvent {
                     client_id: SERVER_MESSAGE_ID,
                     message: format!("Player {} joined the game", *client_id),
                 });
@@ -154,7 +154,7 @@ pub fn handle_events_system(
                 player_states.players.remove(client_id);
 
                 #[cfg(feature = "chat")]
-                chat_message_events.send(chat_events::PlayerChatMessageSendEvent {
+                chat_message_events.write(chat_events::PlayerChatMessageSendEvent {
                     client_id: SERVER_MESSAGE_ID,
                     message: format!("Player {} left the game", client_id),
                 });

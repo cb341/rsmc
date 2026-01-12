@@ -201,10 +201,10 @@ mod visualizer {
     pub fn prepare_visualizer_texture_system(
         mut event_writer: EventWriter<terrain_events::RegenerateHeightMapEvent>,
     ) {
-        event_writer.send(terrain_events::RegenerateHeightMapEvent(TextureType::Height));
-        event_writer.send(terrain_events::RegenerateHeightMapEvent(TextureType::HeightAdjust));
-        event_writer.send(terrain_events::RegenerateHeightMapEvent(TextureType::Density));
-        event_writer.send(terrain_events::RegenerateHeightMapEvent(TextureType::Cave));
+        event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::Height));
+        event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::HeightAdjust));
+        event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::Density));
+        event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::Cave));
     }
 
     macro_rules! add_slider {
@@ -289,11 +289,11 @@ mod visualizer {
                             }
 
                             if changed {
-                                event_writer.send(terrain_events::RegenerateHeightMapEvent(TextureType::Height));
+                                event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::Height));
                             }
 
                             if ui.button("Regenerate world").clicked() {
-                                world_regenerate_event_writer.send(terrain_events::WorldRegenerateEvent);
+                                world_regenerate_event_writer.write(terrain_events::WorldRegenerateEvent);
                             }
 
                             egui_plot::Plot::new("splines")
@@ -360,7 +360,7 @@ mod visualizer {
                                         add_sliders_for_noise_params!(ui, &mut changed, params);
 
                                         if changed {
-                                            event_writer.send(terrain_events::RegenerateHeightMapEvent(texture_type.clone()));
+                                            event_writer.write(terrain_events::RegenerateHeightMapEvent(texture_type.clone()));
                                         };
 
                                         ui.add(egui::widgets::Image::new(egui::load::SizedTexture::new(

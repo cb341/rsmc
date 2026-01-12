@@ -21,7 +21,7 @@ mod wireframe_config {
     use bevy::color::palettes::css::WHITE;
 
     pub fn wireframe_plugin() -> WireframePlugin {
-        WireframePlugin
+        WireframePlugin::default()
     }
 
     pub fn wireframe_config() -> WireframeConfig {
@@ -52,7 +52,7 @@ fn main() {
         FlairPlugin,
         #[cfg(feature = "wireframe")]
         wireframe_config::wireframe_plugin(),
-        FrameTimeDiagnosticsPlugin,
+        FrameTimeDiagnosticsPlugin::default(),
         EntityCountDiagnosticsPlugin,
         SystemInformationDiagnosticsPlugin,
         PerfUiPlugin,

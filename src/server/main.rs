@@ -22,7 +22,7 @@ fn main() {
 
     #[cfg(feature = "egui_layer")]
     {
-        use bevy_inspector_egui::bevy_egui::EguiPlugin;
+        use bevy_egui::EguiPlugin;
         app.add_plugins(DefaultPlugins);
         app.add_plugins(EguiPlugin);
     }

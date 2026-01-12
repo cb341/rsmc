@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-const RAY_DIST: Vec3 = Vec3::new(0.0, 0.0, -20.0);
+const RAY_DIST: f32 = 20.0;
 const HIGHLIGHT_CUBE_ORIGIN: Vec3 = Vec3::new(0.0, 2.0, 0.0);
 
 pub fn setup_highlight_cube_system(
@@ -13,7 +13,11 @@ pub fn setup_highlight_cube_system(
     commands
         .spawn((
             Mesh3d(meshes.add(mesh)),
-            MeshMaterial3d(materials.add(Color::srgba(1.0, 1.0, 1.0, 0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: Color::srgba(1.0, 1.0, 1.0, 0.5),
+                alpha_mode: AlphaMode::Blend,
+                ..default()
+            })),
             Transform::from_xyz(0.0, 0.0, -7.0),
         ))
         .insert(player_components::HighlightCube);
@@ -21,54 +25,61 @@ pub fn setup_highlight_cube_system(
 
 #[allow(clippy::type_complexity)]
 pub fn raycast_system(
-    mut raycast: Raycast,
+    mut raycast: MeshRayCast,
     #[cfg(feature = "raycast_debug")] mut gizmos: Gizmos,
     raycast_origin: Query<&Transform, With<player_components::PlayerCamera>>,
     mut selection_query: Query<
-        (&mut Transform, &player_components::HighlightCube),
+        &mut Transform,
         (
+            With<player_components::HighlightCube>,
             Without<player_components::PlayerCamera>,
             Without<player_components::Raycastable>,
         ),
     >,
-    raycastable_query: Query<&Transform, With<player_components::Raycastable>>,
+    raycastable_query: Query<Entity, With<player_components::Raycastable>>,
     mut block_selection: ResMut<player_resources::BlockSelection>,
 ) {
-    let camera_transform = raycast_origin.single();
-    let filter = |entity| raycastable_query.get(entity).is_ok();
+    let camera_transform = raycast_origin
+        .single()
+        .expect("Camera not present for raycast");
 
     let pos = camera_transform.translation;
-    let dir = camera_transform.rotation.mul_vec3(Vec3::Z).normalize();
-    let dir = dir * RAY_DIST.z;
+    let dir = camera_transform.rotation.mul_vec3(Vec3::NEG_Z).normalize();
 
     let ray = Ray3d::new(pos, Dir3::new(dir).expect("Ray can be cast"));
-    let settings = RaycastSettings {
-        filter: &filter,
-        ..default()
-    };
 
-    #[cfg(feature = "raycast_debug")]
-    let intersections = raycast.debug_cast_ray(ray, &settings, &mut gizmos);
+    let binding = |entity| raycastable_query.contains(entity);
+    let settings = MeshRayCastSettings::default().with_filter(&binding);
 
-    #[cfg(not(feature = "raycast_debug"))]
-    let intersections = raycast.cast_ray(ray, &settings);
+    let hits = raycast.cast_ray(ray, &settings);
 
-    let (mut highlight_transform, _) = selection_query.single_mut();
-    let hover_position = intersections
-        .first()
-        .map(|(_, intersection)| (intersection.position() - intersection.normal() * 0.5).floor());
+    if let Some((_, hit)) = hits.first() {
+        if (pos - hit.point).length() < RAY_DIST {
+            #[cfg(feature = "raycast_debug")]
+            {
+                gizmos.line(
+                    hit.point + hit.normal,
+                    hit.point,
+                    Color::srgb(1.0, 0.0, 0.0),
+                );
+                gizmos.sphere(hit.point, 0.1, Color::srgb(0.0, 0.0, 1.0));
+            }
 
-    block_selection.position = hover_position;
-    block_selection.normal = intersections
-        .first()
-        .map(|(_, intersection)| intersection.normal());
+            const CUBE_SIZE: f32 = 1.0;
 
-    if hover_position.is_none() {
-        highlight_transform.translation = HIGHLIGHT_CUBE_ORIGIN;
-        return;
+            let hover_position = (hit.point - hit.normal * (CUBE_SIZE / 2.0)).floor();
+            block_selection.position = Some(hover_position);
+            block_selection.normal = Some(hit.normal);
+
+            let mut highlight_transform = single_mut!(selection_query);
+            highlight_transform.translation = hover_position + (CUBE_SIZE / 2.0);
+
+            return;
+        }
     }
 
-    highlight_transform.translation = hover_position.unwrap() + 0.5;
+    let mut highlight_transform = single_mut!(selection_query);
+    highlight_transform.translation = HIGHLIGHT_CUBE_ORIGIN;
 }
 
 #[cfg(test)]
