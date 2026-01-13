@@ -6,7 +6,7 @@ use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]
 pub struct ChunkRequestQueue {
-    pub requests: HashMap<ClientId, VecDeque<IVec3>>,
+    requests: HashMap<ClientId, VecDeque<IVec3>>,
 }
 
 impl ChunkRequestQueue {
@@ -29,8 +29,8 @@ impl ChunkRequestQueue {
         self.requests.remove(&client_id);
     }
 
-    pub fn keys(&self) -> Keys<ClientId, VecDeque<IVec3>> {
-        self.requests.keys()
+    pub fn retain<F>(&mut self, f: F) where F: FnMut(&ClientId, &mut VecDeque<IVec3>) -> bool {
+        self.requests.retain(f)
     }
 }
 

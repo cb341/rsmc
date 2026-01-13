@@ -28,45 +28,40 @@ pub fn process_user_chunk_requests(
 ) {
     const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 5;
 
-    let mut keys: Vec<ClientId> = requests.keys().copied().collect();
-
-    keys.iter_mut().for_each(|client_id| {
-        if let Some(positions) = requests.get_mut(*client_id) {
-            let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
-
-            if positions.is_empty() {
-                return;
-            }
-
-            let positions: Vec<IVec3> = positions.drain(0..take_count).collect();
-
-            let chunks = positions
-                .into_par_iter()
-                .map(|position| {
-                    let chunk = chunk_manager.get_chunk(position);
-
-                    match chunk {
-                        Some(chunk) => *chunk,
-                        None => {
-                            let mut chunk = Chunk::new(position);
-                            generator.generate_chunk(&mut chunk);
-                            chunk
-                        }
-                    }
-                })
-                .collect();
-
-            let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
-
-            server.send_message(
-                *client_id,
-                DefaultChannel::ReliableUnordered,
-                message.unwrap(),
-            );
+    requests.retain(|client_id, positions| {
+        if positions.is_empty() {
+            return false;
         }
-    });
 
-    requests.requests.retain(|_, v| !v.is_empty())
+        let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
+        let positions_to_process: Vec<IVec3> = positions.drain(0..take_count).collect();
+
+        let chunks = positions_to_process
+            .into_par_iter()
+            .map(|position| {
+                let chunk = chunk_manager.get_chunk(position);
+
+                match chunk {
+                    Some(chunk) => *chunk,
+                    None => {
+                        let mut chunk = Chunk::new(position);
+                        generator.generate_chunk(&mut chunk);
+                        chunk
+                    }
+                }
+            })
+            .collect();
+
+        let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
+
+        server.send_message(
+            *client_id,
+            DefaultChannel::ReliableUnordered,
+            message.unwrap(),
+        );
+
+        !positions.is_empty()
+    });
 }
 
 #[cfg(feature = "generator_visualizer")]
