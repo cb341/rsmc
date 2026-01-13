@@ -1,4 +1,4 @@
-use std::cmp::{max, min};
+use std::cmp::min;
 
 use crate::{prelude::*, terrain::resources::ChunkRequestQueue};
 
@@ -28,12 +28,12 @@ pub fn process_user_chunk_requests(
 ) {
     const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 5;
 
-    let mut keys: Vec<ClientId> = requests.keys().map(|v| v.clone()).collect();
+    let mut keys: Vec<ClientId> = requests.keys().copied().collect();
 
-    keys.iter_mut().for_each(
-        |client_id| match requests.get_mut(*client_id) {
+    keys.iter_mut()
+        .for_each(|client_id| match requests.get_mut(*client_id) {
             Some(positions) => {
-                let take_count  = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len() - 1);
+                let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len() - 1);
 
                 if positions.is_empty() || take_count == 0 {
                     requests.remove(*client_id);
@@ -69,8 +69,7 @@ pub fn process_user_chunk_requests(
             None => {
                 requests.remove(*client_id);
             }
-        },
-    );
+        });
 }
 
 #[cfg(feature = "generator_visualizer")]

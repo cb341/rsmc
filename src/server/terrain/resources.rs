@@ -1,4 +1,4 @@
-use std::collections::{VecDeque, hash_map::Keys}; // FIXME: remove dependency to stdlib
+use std::collections::{hash_map::Keys, VecDeque}; // FIXME: remove dependency to stdlib
 
 use crate::prelude::*;
 
@@ -6,12 +6,19 @@ use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]
 pub struct ChunkRequestQueue {
-    pub requests: HashMap<ClientId, VecDeque<IVec3>>
+    pub requests: HashMap<ClientId, VecDeque<IVec3>>,
 }
 
 impl ChunkRequestQueue {
-    pub fn append_positions_to_client(&mut self, client_id: ClientId, chunk_positions: &mut VecDeque<IVec3>) {
-        self.requests.entry(client_id).or_default().append(chunk_positions);
+    pub fn append_positions_to_client(
+        &mut self,
+        client_id: ClientId,
+        chunk_positions: &mut VecDeque<IVec3>,
+    ) {
+        self.requests
+            .entry(client_id)
+            .or_default()
+            .append(chunk_positions);
     }
 
     pub fn get_mut(&mut self, client_id: ClientId) -> Option<&mut VecDeque<IVec3>> {

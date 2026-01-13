@@ -57,8 +57,10 @@ pub fn generate_world_system(
     let chunks = chunk_manager.instantiate_new_chunks(origin, render_distance);
 
     let mut positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
-    positions.sort_by(|a,b | {
-        (a - origin).length_squared().cmp(&(b - origin).length_squared())
+    positions.sort_by(|a, b| {
+        (a - origin)
+            .length_squared()
+            .cmp(&(b - origin).length_squared())
     });
 
     let batched_positions = positions.chunks(16);
