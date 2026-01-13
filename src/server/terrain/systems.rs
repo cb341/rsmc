@@ -24,25 +24,25 @@ pub fn process_user_chunk_requests(
     mut server: ResMut<RenetServer>,
     generator: Res<terrain_resources::Generator>,
 ) {
-    const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 67;
+    const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 5;
 
     let keys: Vec<ClientId> = requests.pairs().map(|v| v.clone()).collect();
 
     keys.iter().for_each(
         |client_id| match requests.get_positions_for_client(*client_id) {
             Some(positions) => {
-                let to_process = positions.iter().take(MAX_REQUESTS_PER_CYCLE_PER_PLAYER);
+                let to_process: Vec<IVec3> = positions.iter().take(MAX_REQUESTS_PER_CYCLE_PER_PLAYER).map(|v|v.clone()).collect();
                 let remaining: Vec<IVec3> = positions.iter().skip(MAX_REQUESTS_PER_CYCLE_PER_PLAYER).map(|v|v.clone()).collect();
 
                 let chunks: Vec<Chunk> = to_process
-                    .into_iter()
+                    .into_par_iter()
                     .map(|position| {
-                        let chunk = chunk_manager.get_chunk(*position);
+                        let chunk = chunk_manager.get_chunk(position);
 
                         match chunk {
                             Some(chunk) => *chunk,
                             None => {
-                                let mut chunk = Chunk::new(*position);
+                                let mut chunk = Chunk::new(position);
                                 generator.generate_chunk(&mut chunk);
                                 chunk
                             }
