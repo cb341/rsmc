@@ -6,6 +6,8 @@ pub mod terrain;
 
 #[cfg(feature = "egui_layer")]
 use bevy::DefaultPlugins;
+#[cfg(feature = "egui_layer")]
+pub mod gui;
 
 #[cfg(not(feature = "egui_layer"))]
 use bevy::log::LogPlugin;
@@ -24,7 +26,8 @@ fn main() {
     {
         use bevy_egui::EguiPlugin;
         app.add_plugins(DefaultPlugins);
-        app.add_plugins(EguiPlugin);
+        app.add_plugins(EguiPlugin::default());
+        app.add_systems(Startup, gui::setup_camera_system);
     }
 
     app.add_plugins(player::PlayerPlugin);

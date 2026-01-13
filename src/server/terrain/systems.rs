@@ -118,6 +118,7 @@ mod visualizer {
 
         let color_image: ColorImage = ColorImage {
             size: [width, height],
+            source_size: bevy_inspector_egui::egui::Vec2::new(width as f32, height as f32),
             pixels: color_data,
         };
 
@@ -188,7 +189,7 @@ mod visualizer {
                 .get_mut(&texture_type)
                 .expect("Noise texture not loaded, please initialize the resource properly.");
 
-            entry.texture = Some(contexts.ctx_mut().load_texture(
+            entry.texture = Some(contexts.ctx_mut().expect("Context does not exist").load_texture(
                 "terrain-texture",
                 image_data,
                 TextureOptions::default(),
@@ -267,7 +268,7 @@ mod visualizer {
     ) {
         let noise_textures = &noise_texture_list.noise_textures;
 
-        egui::Window::new("Terrain Generator").show(contexts.ctx_mut(), |ui| {
+        egui::Window::new("Terrain Generator").show(contexts.ctx_mut().expect("Context doesn't exist"), |ui| {
 
             ui.horizontal(|ui| {
 
@@ -299,7 +300,7 @@ mod visualizer {
                             egui_plot::Plot::new("splines")
                                 .show(ui, |plot_ui| {
                                     let plot_points: Vec<PlotPoint> = generator.params.height.splines.iter().map(|spline| PlotPoint {x: spline.x as f64, y: spline.y as f64}).collect();
-                                    let line_chart = Line::new(PlotPoints::Owned(plot_points));
+                                    let line_chart = Line::new("Splines", PlotPoints::Owned(plot_points));
                                     plot_ui.line(line_chart);
                                 });
                         })

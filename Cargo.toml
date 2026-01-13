@@ -4,14 +4,18 @@ version = "0.1.1"
 edition = "2021"
 rust-version = "1.90.0"
 
+
+
 [dependencies]
+egui = "0.33.3"
 bevy = "0.17.3"
 bevy_asset = "0.17.3"
+bevy_camera = "0.17.3"
 bevy_mesh = "0.17.3"
 bevy_fps_controller = {version = "17.1.0", features = ["rapier"]}
 bevy_rapier3d = {version ="0.32"}
 bevy_flair = "0.6.0"
-bevy_egui = "0.38.1"
+bevy_egui = { version = "0.38.1", features = ["immutable_ctx"]}
 bevy_diagnostic = "0.17.3"
 bevy-inspector-egui = {version = "0.35", features = ["bevy_render"]}
 bevy_renet = "3.0.0"
@@ -27,6 +31,14 @@ serde = { version = "1.0.203", features = ["derive"] }
 serde-big-array = "0.5.1"
 chrono = "0.4.38"
 rayon = "1.10.0"
+
+[patch.crates-io]
+# Remove patch once egui requirement is more flexible.
+# https://github.com/lucaspoffo/renet/blob/master/renet_visualizer/Cargo.toml#L17C1-L17C14
+# Patching a single renet subcrate leads to build errors because of cross dependences.
+renet_visualizer = {git = "https://github.com/cb341/renet.git" }
+bevy_renet = {git = "https://github.com/cb341/renet.git" }
+renet = {git = "https://github.com/cb341/renet.git" }
 
 [profile.dev.package."*"]
 opt-level = 3

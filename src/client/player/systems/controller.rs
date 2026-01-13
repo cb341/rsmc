@@ -1,5 +1,3 @@
-use bevy::window::CursorOptions;
-
 use crate::prelude::*;
 
 #[cfg(feature = "skip_terrain")]
@@ -26,8 +24,8 @@ pub fn setup_player_camera(mut commands: Commands) {
             near: 0.0001,
             far: 1000.0,
             viewport_origin: Vec2::new(0.5, 0.5),
-            scaling_mode: ScalingMode::WindowSize,
             area: Rect::new(-1.0, -1.0, 1.0, 1.0),
+            ..OrthographicProjection::default_3d()
         }),
         RenderPlayer {
             logical_entity: Entity::from_raw_u32(1).unwrap(),

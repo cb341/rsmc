@@ -197,11 +197,22 @@ pub mod server_visualizer {
     }
 
     pub fn update_visulizer_system(
-        mut egui_contexts: EguiContexts,
+        mut contexts: EguiContexts,
         mut visualizer: ResMut<RenetServerVisualizer<200>>,
         server: Res<RenetServer>,
     ) {
         visualizer.update(&server);
-        visualizer.show_window(egui_contexts.ctx_mut());
+
+        let ctx = contexts
+            .ctx_mut()
+            .expect("egui is probably not loaded properly");
+
+        egui::Window::new("Window").show(ctx, |ui| {
+            ui.label("Windows can be moved by dragging them.");
+            ui.label("They are automatically sized based on contents.");
+            ui.label("You can turn on resizing and scrolling if you like.");
+            ui.label("You would normally chose either panels OR windows.");
+            visualizer.show_window(ctx);
+        });
     }
 }
