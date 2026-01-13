@@ -63,7 +63,7 @@ pub fn generate_world_system(
             .cmp(&(b - origin).length_squared())
     });
 
-    let batched_positions = positions.chunks(16);
+    let batched_positions = positions.chunks(32);
     assert!(batched_positions.len() > 0, "Batched positions is empty");
 
     batched_positions.enumerate().for_each(|(index, batch)| {
