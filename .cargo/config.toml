@@ -1,0 +1,4 @@
+[alias]
+rc = 'run --bin client'
+rs = 'run --bin server'
+t = 'test'
