@@ -6,6 +6,8 @@ rust-version = "1.90.0"
 
 [dependencies]
 bevy = "0.17.3"
+bevy_asset = "0.17.3"
+bevy_mesh = "0.17.3"
 bevy_fps_controller = {version = "17.1.0", features = ["rapier"]}
 bevy_rapier3d = {version ="0.32"}
 bevy_flair = "0.6.0"

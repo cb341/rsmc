@@ -33,7 +33,7 @@ pub use serde::*;
 
 pub use self::terrain_util::Block;
 pub use bevy::render::mesh::{Indices, PrimitiveTopology};
-pub use bevy::render::render_asset::RenderAssetUsages;
+pub use bevy_asset::prelude;
 pub use noise::NoiseFn;
 pub use noise::Perlin;
 pub use terrain_util::CubeFace;

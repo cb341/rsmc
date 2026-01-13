@@ -5115,10 +5115,12 @@ version = "0.1.1"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
+ "bevy_asset",
  "bevy_diagnostic",
  "bevy_egui",
  "bevy_flair",
  "bevy_fps_controller",
+ "bevy_mesh",
  "bevy_rapier3d",
  "bevy_renet",
  "bincode",
