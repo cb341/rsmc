@@ -1,6 +1,6 @@
 use std::cmp::min;
 
-use crate::{prelude::*, terrain::resources::ChunkRequestQueue};
+use crate::prelude::*;
 
 pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
@@ -21,7 +21,7 @@ pub fn setup_world_system(
 }
 
 pub fn process_user_chunk_requests(
-    mut requests: ResMut<ChunkRequestQueue>,
+    mut requests: ResMut<terrain_resources::ChunkRequestQueue>,
     chunk_manager: Res<ChunkManager>,
     mut server: ResMut<RenetServer>,
     generator: Res<terrain_resources::Generator>,

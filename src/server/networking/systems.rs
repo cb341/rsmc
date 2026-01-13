@@ -78,7 +78,7 @@ pub fn handle_events_system(
     mut server_events: MessageReader<ServerEvent>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
-    mut request_queue: ResMut<ChunkRequestQueue>,
+    mut request_queue: ResMut<terrain_resources::ChunkRequestQueue>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
