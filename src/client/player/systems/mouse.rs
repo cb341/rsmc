@@ -7,7 +7,7 @@ pub fn manage_cursor_system(
     key: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut FpsController>,
     current_state: Res<State<GameState>>,
-    mut cursor_options: Single<&mut CursorOptions>
+    mut cursor_options: Single<&mut CursorOptions>,
 ) {
     if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
         cursor_options.grab_mode = CursorGrabMode::Locked;
