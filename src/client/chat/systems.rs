@@ -34,7 +34,7 @@ pub fn setup_chat_container(mut commands: Commands, asset_server: Res<AssetServe
 
 pub fn send_messages_system(
     mut client: ResMut<RenetClient>,
-    mut event_reader: EventReader<ChatMessageSendEvent>,
+    mut event_reader: MessageReader<ChatMessageSendEvent>,
 ) {
     for event in event_reader.read() {
         let message = event.0.clone();
@@ -73,11 +73,11 @@ pub fn chat_state_transition_system(
 }
 
 pub fn process_chat_input_system(
-    mut evr_kbd: EventReader<KeyboardInput>,
+    mut evr_kbd: MessageReader<KeyboardInput>,
     mut chat_input_query: Query<&mut Text, With<chat_components::ChatMessageInputElement>>,
-    mut send_event_writer: EventWriter<ChatMessageSendEvent>,
+    mut send_event_writer: MessageWriter<ChatMessageSendEvent>,
     mut chat_state: ResMut<chat_resources::ChatState>,
-    mut chat_clear_writer: EventWriter<chat_events::ChatClearEvent>,
+    mut chat_clear_writer: MessageWriter<chat_events::ChatClearEvent>,
 ) {
     let mut text = chat_input_query
         .single_mut()
@@ -138,8 +138,8 @@ fn extract_message(value: &str) -> String {
 }
 
 pub fn handle_chat_message_sync_event(
-    mut sync_events: EventReader<chat_events::ChatSyncEvent>,
-    mut send_events: EventWriter<chat_events::SingleChatSendEvent>,
+    mut sync_events: MessageReader<chat_events::ChatSyncEvent>,
+    mut send_events: MessageWriter<chat_events::SingleChatSendEvent>,
 ) {
     for event in sync_events.read() {
         event.0.clone().into_iter().for_each(|message| {
@@ -155,7 +155,7 @@ pub fn add_message_to_chat_container_system(
         &chat_components::ChatMessageContainer,
         &mut ScrollPosition,
     )>,
-    mut events: EventReader<chat_events::SingleChatSendEvent>,
+    mut events: MessageReader<chat_events::SingleChatSendEvent>,
 ) {
     for event in events.read() {
         let (entity, _, mut scroll_position) = single_mut!(query);
@@ -175,7 +175,7 @@ pub fn add_message_to_chat_container_system(
 }
 
 pub fn handle_chat_clear_events_system(
-    mut chat_clear_events: EventReader<chat_events::ChatClearEvent>,
+    mut chat_clear_events: MessageReader<chat_events::ChatClearEvent>,
     mut commands: Commands,
     query: Query<Entity, With<chat_components::ChatMessageContainer>>,
 ) {

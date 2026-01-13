@@ -26,7 +26,7 @@ pub fn manage_cursor_system(
 }
 
 pub fn handle_mouse_events_system(
-    mut block_update_events: EventWriter<terrain_events::BlockUpdateEvent>,
+    mut block_update_events: MessageWriter<terrain_events::BlockUpdateEvent>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     block_selection: Res<player_resources::BlockSelection>,
 ) {

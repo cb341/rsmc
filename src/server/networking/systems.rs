@@ -5,7 +5,7 @@ pub fn receive_message_system(
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
     chunk_manager: ResMut<ChunkManager>,
-    #[cfg(feature = "chat")] mut chat_message_events: EventWriter<
+    #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
     generator: Res<terrain_resources::Generator>,
@@ -99,13 +99,13 @@ pub fn receive_message_system(
 
 pub fn handle_events_system(
     mut server: ResMut<RenetServer>,
-    mut server_events: EventReader<ServerEvent>,
+    mut server_events: MessageReader<ServerEvent>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
-    #[cfg(feature = "chat")] mut chat_message_events: EventWriter<
+    #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
-    #[cfg(feature = "chat")] mut chat_sync_events: EventWriter<
+    #[cfg(feature = "chat")] mut chat_sync_events: MessageWriter<
         chat_events::SyncPlayerChatMessagesEvent,
     >,
 ) {
@@ -178,7 +178,7 @@ pub mod server_visualizer {
     use renet_visualizer::RenetServerVisualizer;
 
     pub fn handle_events_for_visualizer_system(
-        mut server_events: EventReader<ServerEvent>,
+        mut server_events: MessageReader<ServerEvent>,
         mut visualizer: ResMut<RenetServerVisualizer<200>>,
     ) {
         for event in server_events.read() {

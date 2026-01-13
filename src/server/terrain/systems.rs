@@ -26,7 +26,7 @@ mod visualizer {
     use bevy::{
         log::{info, warn},
         math::{Vec2, Vec3},
-        prelude::{EventReader, EventWriter, ResMut},
+        prelude::{MessageReader, MessageWriter, ResMut},
     };
     use bevy_inspector_egui::{
         bevy_egui::EguiContexts,
@@ -125,7 +125,7 @@ mod visualizer {
     }
 
     pub fn handle_regenerate_event_system(
-        mut events: EventReader<terrain_events::WorldRegenerateEvent>,
+        mut events: MessageReader<terrain_events::WorldRegenerateEvent>,
         mut chunk_manager: ResMut<ChunkManager>,
         generator: ResMut<terrain_resources::Generator>,
         mut server: ResMut<RenetServer>,
@@ -162,7 +162,7 @@ mod visualizer {
     }
 
     pub fn regenerate_heightmap_system(
-        mut events: EventReader<terrain_events::RegenerateHeightMapEvent>,
+        mut events: MessageReader<terrain_events::RegenerateHeightMapEvent>,
         generator: ResMut<terrain_resources::Generator>,
         mut noise_texture_list: ResMut<terrain_resources::NoiseTextureList>,
         mut contexts: EguiContexts,
@@ -199,7 +199,7 @@ mod visualizer {
 
     #[rustfmt::skip]
     pub fn prepare_visualizer_texture_system(
-        mut event_writer: EventWriter<terrain_events::RegenerateHeightMapEvent>,
+        mut event_writer: MessageWriter<terrain_events::RegenerateHeightMapEvent>,
     ) {
         event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::Height));
         event_writer.write(terrain_events::RegenerateHeightMapEvent(TextureType::HeightAdjust));
@@ -262,8 +262,8 @@ mod visualizer {
         mut contexts: EguiContexts,
         noise_texture_list: ResMut<terrain_resources::NoiseTextureList>,
         mut generator: ResMut<terrain_resources::Generator>,
-        mut event_writer: EventWriter<terrain_events::RegenerateHeightMapEvent>,
-        mut world_regenerate_event_writer: EventWriter<terrain_events::WorldRegenerateEvent>,
+        mut event_writer: MessageWriter<terrain_events::RegenerateHeightMapEvent>,
+        mut world_regenerate_event_writer: MessageWriter<terrain_events::WorldRegenerateEvent>,
     ) {
         let noise_textures = &noise_texture_list.noise_textures;
 

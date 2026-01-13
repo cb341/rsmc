@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 pub fn spawn_remote_player_system(
     mut commands: Commands,
-    mut spawn_events: EventReader<remote_player_events::RemotePlayerSpawnedEvent>,
+    mut spawn_events: MessageReader<remote_player_events::RemotePlayerSpawnedEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -24,7 +24,7 @@ pub fn spawn_remote_player_system(
 
 pub fn despawn_remote_player_system(
     mut commands: Commands,
-    mut despawn_events: EventReader<remote_player_events::RemotePlayerDespawnedEvent>,
+    mut despawn_events: MessageReader<remote_player_events::RemotePlayerDespawnedEvent>,
     query: Query<(Entity, &remote_player_components::RemotePlayer)>,
 ) {
     for event in despawn_events.read() {
@@ -37,8 +37,8 @@ pub fn despawn_remote_player_system(
 }
 
 pub fn update_remote_player_system(
-    mut sync_events: EventReader<remote_player_events::RemotePlayerSyncEvent>,
-    mut spawn_events: EventWriter<remote_player_events::RemotePlayerSpawnedEvent>,
+    mut sync_events: MessageReader<remote_player_events::RemotePlayerSyncEvent>,
+    mut spawn_events: MessageWriter<remote_player_events::RemotePlayerSpawnedEvent>,
     mut query: Query<(&remote_player_components::RemotePlayer, &mut Transform)>,
 ) {
     let latest_event = sync_events.read().last();

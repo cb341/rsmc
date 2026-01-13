@@ -101,7 +101,7 @@ pub fn setup_controller_on_area_ready_system(
 pub fn handle_controller_movement_system(
     query: Query<(Entity, &FpsControllerInput, &Transform)>,
     mut last_position: ResMut<player_resources::LastPlayerPosition>,
-    mut collider_events: EventWriter<collider_events::ColliderUpdateEvent>,
+    mut collider_events: MessageWriter<collider_events::ColliderUpdateEvent>,
 ) {
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position = transform.translation;

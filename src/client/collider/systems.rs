@@ -39,7 +39,7 @@ pub fn setup_coliders_system(mut commands: Commands) {
 }
 
 pub fn handle_collider_update_events_system(
-    mut collider_grid_events: EventReader<collider_events::ColliderUpdateEvent>,
+    mut collider_grid_events: MessageReader<collider_events::ColliderUpdateEvent>,
     mut query: Query<(&mut Transform, &collider_components::BlockCollider)>,
     mut chunk_manager: ResMut<ChunkManager>,
 ) {
@@ -102,7 +102,7 @@ mod tests {
     fn test_handle_collider_update_events_system() {
         let mut app = App::new();
 
-        app.add_event::<collider_events::ColliderUpdateEvent>();
+        app.add_message::<collider_events::ColliderUpdateEvent>();
         app.add_systems(Update, handle_collider_update_events_system);
         app.insert_resource(ChunkManager::new());
 

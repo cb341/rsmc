@@ -74,7 +74,7 @@ pub fn generate_world_system(
 
 pub fn handle_chunk_mesh_update_events_system(
     chunk_manager: ResMut<ChunkManager>,
-    mut chunk_mesh_update_events: EventReader<terrain_events::ChunkMeshUpdateEvent>,
+    mut chunk_mesh_update_events: MessageReader<terrain_events::ChunkMeshUpdateEvent>,
     texture_manager: ResMut<terrain_util::TextureManager>,
     mut tasks: ResMut<MesherTasks>,
 ) {
@@ -243,7 +243,7 @@ fn obtain_texture_handle(asset_server: &Res<AssetServer>) -> Handle<Image> {
 
 pub fn handle_terrain_regeneration_events_system(
     mut client: ResMut<RenetClient>,
-    mut world_regenerate_events: EventReader<terrain_events::WorldRegenerateEvent>,
+    mut world_regenerate_events: MessageReader<terrain_events::WorldRegenerateEvent>,
     chunk_manager: ResMut<ChunkManager>,
 ) {
     for _ in world_regenerate_events.read() {

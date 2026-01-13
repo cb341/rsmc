@@ -8,10 +8,10 @@ pub struct RemotePlayerPlugin;
 
 impl Plugin for RemotePlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<events::RemotePlayerSpawnedEvent>();
+        app.add_message::<events::RemotePlayerSpawnedEvent>();
         app.init_gizmo_group::<remote_player_components::RemotePlayerGizmos>();
-        app.add_event::<events::RemotePlayerDespawnedEvent>();
-        app.add_event::<events::RemotePlayerSyncEvent>();
+        app.add_message::<events::RemotePlayerDespawnedEvent>();
+        app.add_message::<events::RemotePlayerSyncEvent>();
         app.add_systems(
             Update,
             (

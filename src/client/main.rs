@@ -35,7 +35,7 @@ mod wireframe_config {
 fn main() {
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            resolution: WindowResolution::new(1920.0, 1080.0).with_scale_factor_override(2.0),
+            resolution: WindowResolution::new(1920, 1080).with_scale_factor_override(2.0),
             present_mode: bevy::window::PresentMode::Immediate,
             ..default()
         }),
