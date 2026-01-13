@@ -1,10 +1,11 @@
-use crate::prelude::*;
+use crate::{prelude::*, terrain::resources::ChunkRequestQueue};
 
 pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
-    chunk_manager: ResMut<ChunkManager>,
+    chunk_manager: Res<ChunkManager>,
+    mut request_queue: ResMut<ChunkRequestQueue>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
@@ -58,36 +59,13 @@ pub fn receive_message_system(
                     );
                     player_states.players.insert(client_id, player);
                 }
-                NetworkingMessage::ChunkBatchRequest(positions) => {
+                NetworkingMessage::ChunkBatchRequest(mut positions) => {
                     info!(
                         "Received chunk batch request at {:?} from client {}",
                         positions, client_id
                     );
 
-                    let chunks: Vec<Chunk> = positions
-                        .into_par_iter()
-                        .map(|position| {
-                            let chunk = chunk_manager.get_chunk(position);
-
-                            match chunk {
-                                Some(chunk) => *chunk,
-                                None => {
-                                    let mut chunk = Chunk::new(position);
-                                    generator.generate_chunk(&mut chunk);
-                                    chunk
-                                }
-                            }
-                        })
-                        .collect();
-
-                    let message =
-                        bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
-
-                    server.send_message(
-                        client_id,
-                        DefaultChannel::ReliableUnordered,
-                        message.unwrap(),
-                    );
+                    request_queue.append_positions_to_client(client_id, &mut positions);
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableUnordered)");

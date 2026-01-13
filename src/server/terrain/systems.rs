@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, terrain::resources::ChunkRequestQueue};
 
 pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
@@ -16,6 +16,59 @@ pub fn setup_world_system(
     });
 
     chunk_manager.insert_chunks(chunks);
+}
+
+pub fn process_user_chunk_requests(
+    mut requests: ResMut<ChunkRequestQueue>,
+    chunk_manager: Res<ChunkManager>,
+    mut server: ResMut<RenetServer>,
+    generator: Res<terrain_resources::Generator>,
+) {
+    const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 67;
+
+    let keys: Vec<ClientId> = requests.pairs().map(|v| v.clone()).collect();
+
+    keys.iter().for_each(
+        |client_id| match requests.get_positions_for_client(*client_id) {
+            Some(positions) => {
+                let to_process = positions.iter().take(MAX_REQUESTS_PER_CYCLE_PER_PLAYER);
+                let remaining: Vec<IVec3> = positions.iter().skip(MAX_REQUESTS_PER_CYCLE_PER_PLAYER).map(|v|v.clone()).collect();
+
+                let chunks: Vec<Chunk> = to_process
+                    .into_iter()
+                    .map(|position| {
+                        let chunk = chunk_manager.get_chunk(*position);
+
+                        match chunk {
+                            Some(chunk) => *chunk,
+                            None => {
+                                let mut chunk = Chunk::new(*position);
+                                generator.generate_chunk(&mut chunk);
+                                chunk
+                            }
+                        }
+                    })
+                    .collect();
+
+                let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
+
+                server.send_message(
+                    *client_id,
+                    DefaultChannel::ReliableUnordered,
+                    message.unwrap(),
+                );
+
+                if remaining.is_empty() {
+                    requests.nuke(*client_id);
+                } else {
+                    requests.replace_positions_for_client(*client_id, remaining);
+                }
+            }
+            None => {
+                requests.nuke(*client_id);
+            }
+        },
+    );
 }
 
 #[cfg(feature = "generator_visualizer")]
