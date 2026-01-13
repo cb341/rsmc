@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Keys, VecDeque}; // FIXME: remove dependency to stdlib
+use std::collections::{hash_map::Keys, VecDeque};
 
 use crate::prelude::*;
 

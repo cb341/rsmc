@@ -33,6 +33,7 @@ pub fn process_user_chunk_requests(
     keys.iter_mut()
         .for_each(|client_id| match requests.get_mut(*client_id) {
             Some(positions) => {
+                trace!("Client {} has {} chunks queued", client_id, positions.len());
                 let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
 
                 if positions.is_empty() || take_count == 0 {
@@ -72,6 +73,7 @@ pub fn process_user_chunk_requests(
         });
 }
 
+use bevy::log::trace;
 #[cfg(feature = "generator_visualizer")]
 pub use visualizer::*;
 
