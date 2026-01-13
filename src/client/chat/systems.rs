@@ -161,7 +161,7 @@ pub fn add_message_to_chat_container_system(
         let (entity, _, mut scroll_position) = single_mut!(query);
 
         // Offset does not need to be exact, just needs to be large enough to see the new message
-        scroll_position.offset_y += 100.0;
+        scroll_position.0 += 100.0;
 
         commands.entity(entity).with_children(|parent| {
             parent.spawn((
