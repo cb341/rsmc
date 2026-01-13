@@ -1,3 +1,6 @@
+[env]
+BEVY_ASSET_ROOT = "."
+
 [alias]
 rc = 'run --bin client'
 rs = 'run --bin server'
