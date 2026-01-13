@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use crate::{prelude::*, terrain::resources::ChunkRequestQueue};
 
 pub fn setup_world_system(
@@ -26,15 +28,21 @@ pub fn process_user_chunk_requests(
 ) {
     const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 5;
 
-    let keys: Vec<ClientId> = requests.pairs().map(|v| v.clone()).collect();
+    let mut keys: Vec<ClientId> = requests.keys().map(|v| v.clone()).collect();
 
-    keys.iter().for_each(
-        |client_id| match requests.get_positions_for_client(*client_id) {
+    keys.iter_mut().for_each(
+        |client_id| match requests.get_mut(*client_id) {
             Some(positions) => {
-                let to_process: Vec<IVec3> = positions.iter().take(MAX_REQUESTS_PER_CYCLE_PER_PLAYER).map(|v|v.clone()).collect();
-                let remaining: Vec<IVec3> = positions.iter().skip(MAX_REQUESTS_PER_CYCLE_PER_PLAYER).map(|v|v.clone()).collect();
+                let take_count  = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len() - 1);
 
-                let chunks: Vec<Chunk> = to_process
+                if positions.is_empty() || take_count == 0 {
+                    requests.remove(*client_id);
+                    return;
+                }
+
+                let positions: Vec<IVec3> = positions.drain(0..take_count).collect();
+
+                let chunks = positions
                     .into_par_iter()
                     .map(|position| {
                         let chunk = chunk_manager.get_chunk(position);
@@ -57,15 +65,9 @@ pub fn process_user_chunk_requests(
                     DefaultChannel::ReliableUnordered,
                     message.unwrap(),
                 );
-
-                if remaining.is_empty() {
-                    requests.nuke(*client_id);
-                } else {
-                    requests.replace_positions_for_client(*client_id, remaining);
-                }
             }
             None => {
-                requests.nuke(*client_id);
+                requests.remove(*client_id);
             }
         },
     );

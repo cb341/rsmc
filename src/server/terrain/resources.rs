@@ -1,4 +1,4 @@
-use std::collections::hash_map::Keys; // FIXME: remove dependency to stdlib
+use std::collections::{VecDeque, hash_map::Keys}; // FIXME: remove dependency to stdlib
 
 use crate::prelude::*;
 
@@ -6,27 +6,23 @@ use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]
 pub struct ChunkRequestQueue {
-    pub requests: HashMap<ClientId, Vec<IVec3>>
+    pub requests: HashMap<ClientId, VecDeque<IVec3>>
 }
 
 impl ChunkRequestQueue {
-    pub fn append_positions_to_client(&mut self, client_id: ClientId, chunk_positions: &mut Vec<IVec3>) {
-        self.requests.entry(client_id).or_default().append(chunk_positions);
+    pub fn append_positions_to_client(&mut self, client_id: ClientId, chunk_positions: &mut VecDeque<IVec3>) {
+        self.requests.entry(client_id).or_default().append(chunk_positions.into());
     }
 
-    pub fn get_positions_for_client(&self, client_id: ClientId) -> Option<&Vec<IVec3>> {
-        self.requests.get(&client_id)
+    pub fn get_mut(&mut self, client_id: ClientId) -> Option<&mut VecDeque<IVec3>> {
+        self.requests.get_mut(&client_id)
     }
 
-    pub fn replace_positions_for_client(&mut self, client_id: ClientId, chunk_positions: Vec<IVec3>) {
-        self.requests.insert(client_id, chunk_positions);
-    }
-
-    pub fn nuke(&mut self, client_id: ClientId) {
+    pub fn remove(&mut self, client_id: ClientId) {
         self.requests.remove(&client_id);
     }
 
-    pub fn pairs(&self) -> Keys<ClientId, Vec<IVec3>> {
+    pub fn keys(&self) -> Keys<ClientId, VecDeque<IVec3>> {
         self.requests.keys()
     }
 }

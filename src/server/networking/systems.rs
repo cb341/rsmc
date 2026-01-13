@@ -65,7 +65,7 @@ pub fn receive_message_system(
                         positions, client_id
                     );
 
-                    request_queue.append_positions_to_client(client_id, &mut positions);
+                    request_queue.append_positions_to_client(client_id, &mut positions.into());
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableUnordered)");
