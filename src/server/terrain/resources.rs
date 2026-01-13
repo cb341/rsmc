@@ -11,7 +11,7 @@ pub struct ChunkRequestQueue {
 
 impl ChunkRequestQueue {
     pub fn append_positions_to_client(&mut self, client_id: ClientId, chunk_positions: &mut VecDeque<IVec3>) {
-        self.requests.entry(client_id).or_default().append(chunk_positions.into());
+        self.requests.entry(client_id).or_default().append(chunk_positions);
     }
 
     pub fn get_mut(&mut self, client_id: ClientId) -> Option<&mut VecDeque<IVec3>> {
