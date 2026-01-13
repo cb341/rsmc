@@ -3,14 +3,14 @@ use crate::prelude::*;
 #[allow(clippy::too_many_arguments)]
 pub fn receive_message_system(
     mut client: ResMut<RenetClient>,
-    mut player_spawn_events: ResMut<Events<remote_player_events::RemotePlayerSpawnedEvent>>,
-    mut player_despawn_events: ResMut<Events<remote_player_events::RemotePlayerDespawnedEvent>>,
-    mut player_sync_events: ResMut<Events<remote_player_events::RemotePlayerSyncEvent>>,
-    mut block_update_events: ResMut<Events<terrain_events::BlockUpdateEvent>>,
+    mut player_spawn_events: ResMut<Messages<remote_player_events::RemotePlayerSpawnedEvent>>,
+    mut player_despawn_events: ResMut<Messages<remote_player_events::RemotePlayerDespawnedEvent>>,
+    mut player_sync_events: ResMut<Messages<remote_player_events::RemotePlayerSyncEvent>>,
+    mut block_update_events: ResMut<Messages<terrain_events::BlockUpdateEvent>>,
     mut chunk_manager: ResMut<ChunkManager>,
-    mut chunk_mesh_events: ResMut<Events<terrain_events::ChunkMeshUpdateEvent>>,
-    mut world_regenerate_events: ResMut<Events<terrain_events::WorldRegenerateEvent>>,
-    #[cfg(feature = "chat")] mut chat_events: ResMut<Events<chat_events::ChatSyncEvent>>,
+    mut chunk_mesh_events: ResMut<Messages<terrain_events::ChunkMeshUpdateEvent>>,
+    mut world_regenerate_events: ResMut<Messages<terrain_events::WorldRegenerateEvent>>,
+    #[cfg(feature = "chat")] mut chat_events: ResMut<Messages<chat_events::ChatSyncEvent>>,
     #[cfg(feature = "chat")] mut single_chat_events: ResMut<
         Events<chat_events::SingleChatSendEvent>,
     >,

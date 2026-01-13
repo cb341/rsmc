@@ -167,6 +167,9 @@ pub fn handle_events_system(
     }
 }
 
+use bevy::ecs::message::MessageReader;
+#[cfg(feature = "chat")]
+use bevy::ecs::message::MessageWriter;
 #[cfg(feature = "renet_visualizer")]
 pub use server_visualizer::*;
 
