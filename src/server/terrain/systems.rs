@@ -30,50 +30,45 @@ pub fn process_user_chunk_requests(
 
     let mut keys: Vec<ClientId> = requests.keys().copied().collect();
 
-    keys.iter_mut()
-        .for_each(|client_id| match requests.get_mut(*client_id) {
-            Some(positions) => {
-                trace!("Client {} has {} chunks queued", client_id, positions.len());
-                let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
+    keys.iter_mut().for_each(|client_id| {
+        if let Some(positions) = requests.get_mut(*client_id) {
+            let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
 
-                if positions.is_empty() || take_count == 0 {
-                    requests.remove(*client_id);
-                    return;
-                }
+            if positions.is_empty() {
+                return;
+            }
 
-                let positions: Vec<IVec3> = positions.drain(0..take_count).collect();
+            let positions: Vec<IVec3> = positions.drain(0..take_count).collect();
 
-                let chunks = positions
-                    .into_par_iter()
-                    .map(|position| {
-                        let chunk = chunk_manager.get_chunk(position);
+            let chunks = positions
+                .into_par_iter()
+                .map(|position| {
+                    let chunk = chunk_manager.get_chunk(position);
 
-                        match chunk {
-                            Some(chunk) => *chunk,
-                            None => {
-                                let mut chunk = Chunk::new(position);
-                                generator.generate_chunk(&mut chunk);
-                                chunk
-                            }
+                    match chunk {
+                        Some(chunk) => *chunk,
+                        None => {
+                            let mut chunk = Chunk::new(position);
+                            generator.generate_chunk(&mut chunk);
+                            chunk
                         }
-                    })
-                    .collect();
+                    }
+                })
+                .collect();
 
-                let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
+            let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
 
-                server.send_message(
-                    *client_id,
-                    DefaultChannel::ReliableUnordered,
-                    message.unwrap(),
-                );
-            }
-            None => {
-                requests.remove(*client_id);
-            }
-        });
+            server.send_message(
+                *client_id,
+                DefaultChannel::ReliableUnordered,
+                message.unwrap(),
+            );
+        }
+    });
+
+    requests.requests.retain(|_, v| !v.is_empty())
 }
 
-use bevy::log::trace;
 #[cfg(feature = "generator_visualizer")]
 pub use visualizer::*;
 
