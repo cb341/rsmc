@@ -33,7 +33,7 @@ chrono = "0.4.38"
 rayon = "1.10.0"
 
 [patch.crates-io]
-# Remove patch once egui requirement is more flexible.
+# TODO: Remove patch once egui requirement is more flexible.
 # https://github.com/lucaspoffo/renet/blob/master/renet_visualizer/Cargo.toml#L17C1-L17C14
 # Patching a single renet subcrate leads to build errors because of cross dependences.
 renet_visualizer = {git = "https://github.com/cb341/renet.git" }

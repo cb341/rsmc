@@ -28,7 +28,7 @@ pub fn setup_player_camera(mut commands: Commands) {
             ..OrthographicProjection::default_3d()
         }),
         RenderPlayer {
-            logical_entity: Entity::from_raw_u32(1).unwrap(),
+            logical_entity: Entity::from_raw_u32(0).unwrap(),
         },
         player_components::PlayerCamera,
     ));
