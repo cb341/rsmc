@@ -79,7 +79,7 @@ pub fn receive_message_system(
                         let chunk_position = chunk.position;
                         chunk_manager.insert_chunk(chunk);
                         chunk_mesh_events
-                            .send(terrain_events::ChunkMeshUpdateEvent { chunk_position });
+                            .write(terrain_events::ChunkMeshUpdateEvent { chunk_position });
 
                         if chunk_position.eq(&IVec3::ZERO) {
                             info!("Spawn area loaded.");
@@ -89,7 +89,7 @@ pub fn receive_message_system(
                 }
                 NetworkingMessage::PlayerSync(event) => {
                     player_sync_events
-                        .send(remote_player_events::RemotePlayerSyncEvent { players: event });
+                        .write(remote_player_events::RemotePlayerSyncEvent { players: event });
                 }
                 NetworkingMessage::ServerAsksClientNicelyToRerequestChunkBatch() => {
                     info!("Client asked for chunk batch.");
