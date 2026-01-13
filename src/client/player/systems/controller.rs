@@ -120,10 +120,9 @@ pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsContro
     }
 }
 
-pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
-    let mut window = window_query.single_mut().expect("Window doesnt't exist?");
-    window.cursor_options.grab_mode = CursorGrabMode::Locked;
-    window.cursor_options.visible = false;
+pub fn lock_cursor_system(cursor_options: Single<&mut CursorOptions>) {
+    cursor_options.grab_mode = CursorGrabMode::Locked;
+    cursor_options.visible = false;
 }
 
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {
