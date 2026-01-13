@@ -55,7 +55,6 @@ fn main() {
         FrameTimeDiagnosticsPlugin::default(),
         EntityCountDiagnosticsPlugin::default(),
         SystemInformationDiagnosticsPlugin,
-        PerfUiPlugin,
         gui::GuiPlugin,
         networking::NetworkingPlugin,
         terrain::TerrainPlugin,

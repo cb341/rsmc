@@ -2,11 +2,6 @@ use crate::prelude::*;
 
 pub fn setup_scene(mut commands: Commands) {
     commands.spawn((
-        PerfUiRoot::default(),
-        PerfUiWidgetBar::new(PerfUiEntryFPS::default()),
-    ));
-
-    commands.spawn((
         DirectionalLight {
             illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
