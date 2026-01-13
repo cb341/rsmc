@@ -20,19 +20,19 @@ pub fn receive_message_system(
         match bincode::deserialize(&message) {
             Ok(message) => match message {
                 NetworkingMessage::PlayerJoin(event) => {
-                    player_spawn_events.send(remote_player_events::RemotePlayerSpawnedEvent {
+                    player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
                         client_id: event,
                         position: Vec3::ZERO,
                     });
                 }
                 NetworkingMessage::PlayerLeave(event) => {
-                    player_despawn_events.send(remote_player_events::RemotePlayerDespawnedEvent {
+                    player_despawn_events.write(remote_player_events::RemotePlayerDespawnedEvent {
                         client_id: event,
                     });
                 }
                 NetworkingMessage::BlockUpdate { position, block } => {
                     debug!("Client received block update message: {:?}", position);
-                    block_update_events.send(terrain_events::BlockUpdateEvent {
+                    block_update_events.write(terrain_events::BlockUpdateEvent {
                         position,
                         block,
                         from_network: true,
@@ -41,12 +41,12 @@ pub fn receive_message_system(
                 #[cfg(feature = "chat")]
                 NetworkingMessage::ChatMessageSync(messages) => {
                     info!("Client received {} chat messages", messages.len());
-                    chat_events.send(chat_events::ChatSyncEvent(messages));
+                    chat_events.write(chat_events::ChatSyncEvent(messages));
                 }
                 #[cfg(feature = "chat")]
                 NetworkingMessage::SingleChatMessageSync(message) => {
                     info!("Client received chat message {}", message.message);
-                    single_chat_events.send(chat_events::SingleChatSendEvent(message));
+                    single_chat_events.write(chat_events::SingleChatSendEvent(message));
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableOrdered)");
@@ -93,7 +93,7 @@ pub fn receive_message_system(
                 }
                 NetworkingMessage::ServerAsksClientNicelyToRerequestChunkBatch() => {
                     info!("Client asked for chunk batch.");
-                    world_regenerate_events.send(terrain_events::WorldRegenerateEvent);
+                    world_regenerate_events.write(terrain_events::WorldRegenerateEvent);
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableUnordered)");
