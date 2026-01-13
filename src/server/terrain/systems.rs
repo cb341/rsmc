@@ -33,7 +33,7 @@ pub fn process_user_chunk_requests(
     keys.iter_mut()
         .for_each(|client_id| match requests.get_mut(*client_id) {
             Some(positions) => {
-                let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len() - 1);
+                let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
 
                 if positions.is_empty() || take_count == 0 {
                     requests.remove(*client_id);
