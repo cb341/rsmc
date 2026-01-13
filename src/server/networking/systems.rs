@@ -4,12 +4,10 @@ pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
-    chunk_manager: Res<ChunkManager>,
     mut request_queue: ResMut<ChunkRequestQueue>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
-    generator: Res<terrain_resources::Generator>,
 ) {
     for client_id in server.clients_id() {
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
@@ -59,7 +57,7 @@ pub fn receive_message_system(
                     );
                     player_states.players.insert(client_id, player);
                 }
-                NetworkingMessage::ChunkBatchRequest(mut positions) => {
+                NetworkingMessage::ChunkBatchRequest(positions) => {
                     info!(
                         "Received chunk batch request at {:?} from client {}",
                         positions, client_id
@@ -80,6 +78,7 @@ pub fn handle_events_system(
     mut server_events: MessageReader<ServerEvent>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
+    mut request_queue: ResMut<ChunkRequestQueue>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
@@ -130,6 +129,8 @@ pub fn handle_events_system(
             ServerEvent::ClientDisconnected { client_id, reason } => {
                 println!("Client {client_id} disconnected: {reason}");
                 player_states.players.remove(client_id);
+
+                request_queue.remove(*client_id);
 
                 #[cfg(feature = "chat")]
                 chat_message_events.write(chat_events::PlayerChatMessageSendEvent {
