@@ -53,9 +53,13 @@ pub fn generate_world_system(
 
     info!("Sending chunk requests for chunks");
 
-    let chunks = chunk_manager.instantiate_new_chunks(IVec3::ZERO, render_distance);
+    let origin = IVec3::ZERO;
+    let chunks = chunk_manager.instantiate_new_chunks(origin, render_distance);
 
-    let positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
+    let mut positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
+    positions.sort_by(|a,b | {
+        (a - origin).length_squared().cmp(&(b - origin).length_squared())
+    });
 
     let batched_positions = positions.chunks(16);
     assert!(batched_positions.len() > 0, "Batched positions is empty");
