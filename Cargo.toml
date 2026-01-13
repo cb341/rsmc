@@ -13,7 +13,7 @@ bevy_egui = "0.38.1"
 bevy_diagnostic = "0.17.3"
 bevy-inspector-egui = {version = "0.35", features = ["bevy_render"]}
 bevy_renet = "3.0.0"
-renet_visualizer = "1.1.0"
+renet_visualizer = {version="1.1.0", features=["bevy"]}
 egui_plot = "0.34.0"
 iyes_perf_ui = "0.5.0"
 
