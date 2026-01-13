@@ -4,7 +4,7 @@ use crate::prelude::*;
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
 #[cfg(all(not(feature = "skip_terrain"), not(feature = "lock_player")))]
-const SPAWN_POINT: Vec3 = Vec3::new(0.0, 43.0, 0.0);
+const SPAWN_POINT: Vec3 = Vec3::new(0.0, 43.0, 0.0); // TODO: determine terrain height at 0,0
 
 #[cfg(all(not(feature = "skip_terrain"), feature = "lock_player"))]
 const SPAWN_POINT: Vec3 = Vec3::new(128.0, 96.0, -128.0);
