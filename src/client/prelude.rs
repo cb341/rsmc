@@ -26,7 +26,6 @@ pub use bevy_rapier3d::{plugin::*, render::RapierDebugRenderPlugin};
 pub use renet::{ClientId, ConnectionConfig, DefaultChannel, RenetClient};
 
 // other crates
-pub use iyes_perf_ui::prelude::*;
 pub use rayon::iter::IntoParallelIterator;
 pub use rayon::iter::IntoParallelRefMutIterator;
 pub use rayon::iter::ParallelIterator;

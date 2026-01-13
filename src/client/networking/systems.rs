@@ -12,7 +12,7 @@ pub fn receive_message_system(
     mut world_regenerate_events: ResMut<Messages<terrain_events::WorldRegenerateEvent>>,
     #[cfg(feature = "chat")] mut chat_events: ResMut<Messages<chat_events::ChatSyncEvent>>,
     #[cfg(feature = "chat")] mut single_chat_events: ResMut<
-        Events<chat_events::SingleChatSendEvent>,
+        Messages<chat_events::SingleChatSendEvent>,
     >,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
 ) {
