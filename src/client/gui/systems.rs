@@ -1,3 +1,4 @@
+use bevy::window::CursorOptions;
 use bevy_flair::style::components::NodeStyleSheet;
 
 use crate::prelude::*;
@@ -35,7 +36,7 @@ pub fn handle_debug_state_transition_system(
     }
 }
 
-pub fn handle_enter_debug_state_system(cursor_options: Single<&mut CursorOptions>) {
+pub fn handle_enter_debug_state_system(mut cursor_options: Single<&mut CursorOptions>) {
     cursor_options.grab_mode = CursorGrabMode::None;
     cursor_options.visible = true;
 }

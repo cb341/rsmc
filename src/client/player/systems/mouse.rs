@@ -1,12 +1,13 @@
+use bevy::window::CursorOptions;
+
 use crate::prelude::*;
 
 pub fn manage_cursor_system(
     btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
-    mut window_query: Query<&mut Window>,
     mut controller_query: Query<&mut FpsController>,
     current_state: Res<State<GameState>>,
-    cursor_options: Single<&mut CursorOptions>
+    mut cursor_options: Single<&mut CursorOptions>
 ) {
     if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
         cursor_options.grab_mode = CursorGrabMode::Locked;
