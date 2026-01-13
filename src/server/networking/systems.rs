@@ -1,10 +1,10 @@
-use crate::{prelude::*, terrain::resources::ChunkRequestQueue};
+use crate::prelude::*;
 
 pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
-    mut request_queue: ResMut<ChunkRequestQueue>,
+    mut request_queue: ResMut<terrain_resources::ChunkRequestQueue>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
