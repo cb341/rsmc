@@ -1,3 +1,5 @@
+use bevy::window::CursorOptions;
+
 use crate::prelude::*;
 
 #[cfg(feature = "skip_terrain")]
@@ -120,7 +122,7 @@ pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsContro
     }
 }
 
-pub fn lock_cursor_system(cursor_options: Single<&mut CursorOptions>) {
+pub fn lock_cursor_system(mut cursor_options: Single<&mut CursorOptions>) {
     cursor_options.grab_mode = CursorGrabMode::Locked;
     cursor_options.visible = false;
 }
