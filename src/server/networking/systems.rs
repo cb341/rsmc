@@ -5,7 +5,7 @@ pub fn receive_message_system(
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
     chunk_manager: ResMut<ChunkManager>,
-    #[cfg(feature = "chat")] mut chat_message_events: EventWriter<
+    #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
     generator: Res<terrain_resources::Generator>,
@@ -99,13 +99,13 @@ pub fn receive_message_system(
 
 pub fn handle_events_system(
     mut server: ResMut<RenetServer>,
-    mut server_events: EventReader<ServerEvent>,
+    mut server_events: MessageReader<ServerEvent>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
-    #[cfg(feature = "chat")] mut chat_message_events: EventWriter<
+    #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
-    #[cfg(feature = "chat")] mut chat_sync_events: EventWriter<
+    #[cfg(feature = "chat")] mut chat_sync_events: MessageWriter<
         chat_events::SyncPlayerChatMessagesEvent,
     >,
 ) {
@@ -167,6 +167,9 @@ pub fn handle_events_system(
     }
 }
 
+use bevy::ecs::message::MessageReader;
+#[cfg(feature = "chat")]
+use bevy::ecs::message::MessageWriter;
 #[cfg(feature = "renet_visualizer")]
 pub use server_visualizer::*;
 
@@ -178,7 +181,7 @@ pub mod server_visualizer {
     use renet_visualizer::RenetServerVisualizer;
 
     pub fn handle_events_for_visualizer_system(
-        mut server_events: EventReader<ServerEvent>,
+        mut server_events: MessageReader<ServerEvent>,
         mut visualizer: ResMut<RenetServerVisualizer<200>>,
     ) {
         for event in server_events.read() {
@@ -194,11 +197,22 @@ pub mod server_visualizer {
     }
 
     pub fn update_visulizer_system(
-        mut egui_contexts: EguiContexts,
+        mut contexts: EguiContexts,
         mut visualizer: ResMut<RenetServerVisualizer<200>>,
         server: Res<RenetServer>,
     ) {
         visualizer.update(&server);
-        visualizer.show_window(egui_contexts.ctx_mut());
+
+        let ctx = contexts
+            .ctx_mut()
+            .expect("egui is probably not loaded properly");
+
+        egui::Window::new("Window").show(ctx, |ui| {
+            ui.label("Windows can be moved by dragging them.");
+            ui.label("They are automatically sized based on contents.");
+            ui.label("You can turn on resizing and scrolling if you like.");
+            ui.label("You would normally chose either panels OR windows.");
+            visualizer.show_window(ctx);
+        });
     }
 }

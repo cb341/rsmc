@@ -1,32 +1,32 @@
+use bevy::window::CursorOptions;
+
 use crate::prelude::*;
 
 pub fn manage_cursor_system(
     btn: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
-    mut window_query: Query<&mut Window>,
     mut controller_query: Query<&mut FpsController>,
     current_state: Res<State<GameState>>,
+    mut cursor_options: Single<&mut CursorOptions>,
 ) {
-    for mut window in &mut window_query {
-        if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
-            window.cursor_options.grab_mode = CursorGrabMode::Locked;
-            window.cursor_options.visible = false;
-            for mut controller in &mut controller_query {
-                controller.enable_input = true;
-            }
+    if btn.just_pressed(MouseButton::Left) && *current_state.get() != GameState::Debugging {
+        cursor_options.grab_mode = CursorGrabMode::Locked;
+        cursor_options.visible = false;
+        for mut controller in &mut controller_query {
+            controller.enable_input = true;
         }
-        if key.just_pressed(KeyCode::Escape) {
-            window.cursor_options.grab_mode = CursorGrabMode::None;
-            window.cursor_options.visible = true;
-            for mut controller in &mut controller_query {
-                controller.enable_input = false;
-            }
+    }
+    if key.just_pressed(KeyCode::Escape) {
+        cursor_options.grab_mode = CursorGrabMode::None;
+        cursor_options.visible = true;
+        for mut controller in &mut controller_query {
+            controller.enable_input = false;
         }
     }
 }
 
 pub fn handle_mouse_events_system(
-    mut block_update_events: EventWriter<terrain_events::BlockUpdateEvent>,
+    mut block_update_events: MessageWriter<terrain_events::BlockUpdateEvent>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     block_selection: Res<player_resources::BlockSelection>,
 ) {

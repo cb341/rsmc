@@ -158,7 +158,6 @@ pub use visualizer::*;
 #[cfg(feature = "generator_visualizer")]
 mod visualizer {
     use super::*;
-    use bevy::utils::HashMap;
     use bevy_inspector_egui::egui::TextureHandle;
 
     #[derive(PartialEq, Hash, Eq, Clone, Debug)]

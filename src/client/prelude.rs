@@ -6,15 +6,13 @@ pub use std::{net::*, time::*};
 // bevy crates
 pub use bevy::asset::Assets;
 pub use bevy::diagnostic::*;
-pub use bevy::ecs::{event::*, query::*, system::*};
 pub use bevy::gizmos::gizmos::*;
 pub use bevy::input::{keyboard::*, mouse::*, ButtonInput};
 pub use bevy::math::{primitives::Cuboid, EulerRot, Quat, Ray3d, Vec3};
 pub use bevy::pbr::*;
 pub use bevy::prelude::*;
-pub use bevy::render::mesh::Mesh;
 pub use bevy::transform::components::Transform;
-pub use bevy::window::{CursorGrabMode, Window, WindowResolution};
+pub use bevy::window::*;
 
 pub use bevy_fps_controller::controller::*;
 
@@ -26,15 +24,13 @@ pub use bevy_rapier3d::{plugin::*, render::RapierDebugRenderPlugin};
 pub use renet::{ClientId, ConnectionConfig, DefaultChannel, RenetClient};
 
 // other crates
-pub use iyes_perf_ui::prelude::*;
 pub use rayon::iter::IntoParallelIterator;
 pub use rayon::iter::IntoParallelRefMutIterator;
 pub use rayon::iter::ParallelIterator;
 pub use serde::*;
 
 pub use self::terrain_util::Block;
-pub use bevy::render::mesh::{Indices, PrimitiveTopology};
-pub use bevy::render::render_asset::RenderAssetUsages;
+pub use bevy_asset::prelude;
 pub use noise::NoiseFn;
 pub use noise::Perlin;
 pub use terrain_util::CubeFace;

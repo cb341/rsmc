@@ -88,7 +88,7 @@ impl Plugin for $(snake_to_pascal_case $PLUGIN_NAME)Plugin {
   fn build(&self, app: &mut App) {
     info!("Building $(snake_to_pascal_case $PLUGIN_NAME)Plugin");
 
-    app.add_event::<events::ExampleEvent>();
+    app.add_message::<events::ExampleEvent>();
     app.add_systems(Update, systems::example_system);
     app.insert_resource(resources::ExampleResource::default());
   }
@@ -132,7 +132,7 @@ pub fn example_system(
   mut _commands: Commands,
   time: Res<Time>,
   mut _example_resource: ResMut<$(pascal_to_snake_case $PLUGIN_NAME)_resources::ExampleResource>,
-  mut example_writer: EventWriter<$(pascal_to_snake_case $PLUGIN_NAME)_events::ExampleEvent>,
+  mut example_writer: MessageWriter<$(pascal_to_snake_case $PLUGIN_NAME)_events::ExampleEvent>,
   query: Query<(Entity, &$(pascal_to_snake_case $PLUGIN_NAME)_components::ExampleComponent)>,
 ) {
   for (entity, component) in query.iter() {

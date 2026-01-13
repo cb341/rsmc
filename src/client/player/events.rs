@@ -1,4 +1,4 @@
 use crate::prelude::*;
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct PlayerColliderUpdateEvent;

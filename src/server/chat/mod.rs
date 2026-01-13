@@ -17,7 +17,7 @@ impl Plugin for ChatPlugin {
                 chat_systems::sync_single_player_chat_messages_system,
             ),
         );
-        app.add_event::<chat_events::PlayerChatMessageSendEvent>();
-        app.add_event::<chat_events::SyncPlayerChatMessagesEvent>();
+        app.add_message::<chat_events::PlayerChatMessageSendEvent>();
+        app.add_message::<chat_events::SyncPlayerChatMessagesEvent>();
     }
 }

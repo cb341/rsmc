@@ -36,9 +36,9 @@ impl Plugin for ChatPlugin {
         app.insert_resource(resources::ChatHistory::default());
         app.insert_resource(resources::ChatState::default());
 
-        app.add_event::<events::ChatSyncEvent>();
-        app.add_event::<events::ChatMessageSendEvent>();
-        app.add_event::<events::SingleChatSendEvent>();
-        app.add_event::<events::ChatClearEvent>();
+        app.add_message::<events::ChatSyncEvent>();
+        app.add_message::<events::ChatMessageSendEvent>();
+        app.add_message::<events::SingleChatSendEvent>();
+        app.add_message::<events::ChatClearEvent>();
     }
 }

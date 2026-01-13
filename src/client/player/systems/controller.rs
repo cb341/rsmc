@@ -24,11 +24,11 @@ pub fn setup_player_camera(mut commands: Commands) {
             near: 0.0001,
             far: 1000.0,
             viewport_origin: Vec2::new(0.5, 0.5),
-            scaling_mode: ScalingMode::WindowSize,
             area: Rect::new(-1.0, -1.0, 1.0, 1.0),
+            ..OrthographicProjection::default_3d()
         }),
         RenderPlayer {
-            logical_entity: Entity::from_raw(0),
+            logical_entity: Entity::from_raw_u32(0).unwrap(),
         },
         player_components::PlayerCamera,
     ));
@@ -101,7 +101,7 @@ pub fn setup_controller_on_area_ready_system(
 pub fn handle_controller_movement_system(
     query: Query<(Entity, &FpsControllerInput, &Transform)>,
     mut last_position: ResMut<player_resources::LastPlayerPosition>,
-    mut collider_events: EventWriter<collider_events::ColliderUpdateEvent>,
+    mut collider_events: MessageWriter<collider_events::ColliderUpdateEvent>,
 ) {
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position = transform.translation;
@@ -120,10 +120,9 @@ pub fn activate_fps_controller_system(mut controller_query: Query<&mut FpsContro
     }
 }
 
-pub fn lock_cursor_system(mut window_query: Query<&mut Window>) {
-    let mut window = window_query.single_mut().expect("Window doesnt't exist?");
-    window.cursor_options.grab_mode = CursorGrabMode::Locked;
-    window.cursor_options.visible = false;
+pub fn lock_cursor_system(mut cursor_options: Single<&mut CursorOptions>) {
+    cursor_options.grab_mode = CursorGrabMode::Locked;
+    cursor_options.visible = false;
 }
 
 pub fn deactivate_fps_controller_system(mut controller_query: Query<&mut FpsController>) {

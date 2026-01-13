@@ -3,16 +3,16 @@ use crate::prelude::*;
 #[allow(clippy::too_many_arguments)]
 pub fn receive_message_system(
     mut client: ResMut<RenetClient>,
-    mut player_spawn_events: ResMut<Events<remote_player_events::RemotePlayerSpawnedEvent>>,
-    mut player_despawn_events: ResMut<Events<remote_player_events::RemotePlayerDespawnedEvent>>,
-    mut player_sync_events: ResMut<Events<remote_player_events::RemotePlayerSyncEvent>>,
-    mut block_update_events: ResMut<Events<terrain_events::BlockUpdateEvent>>,
+    mut player_spawn_events: ResMut<Messages<remote_player_events::RemotePlayerSpawnedEvent>>,
+    mut player_despawn_events: ResMut<Messages<remote_player_events::RemotePlayerDespawnedEvent>>,
+    mut player_sync_events: ResMut<Messages<remote_player_events::RemotePlayerSyncEvent>>,
+    mut block_update_events: ResMut<Messages<terrain_events::BlockUpdateEvent>>,
     mut chunk_manager: ResMut<ChunkManager>,
-    mut chunk_mesh_events: ResMut<Events<terrain_events::ChunkMeshUpdateEvent>>,
-    mut world_regenerate_events: ResMut<Events<terrain_events::WorldRegenerateEvent>>,
-    #[cfg(feature = "chat")] mut chat_events: ResMut<Events<chat_events::ChatSyncEvent>>,
+    mut chunk_mesh_events: ResMut<Messages<terrain_events::ChunkMeshUpdateEvent>>,
+    mut world_regenerate_events: ResMut<Messages<terrain_events::WorldRegenerateEvent>>,
+    #[cfg(feature = "chat")] mut chat_events: ResMut<Messages<chat_events::ChatSyncEvent>>,
     #[cfg(feature = "chat")] mut single_chat_events: ResMut<
-        Events<chat_events::SingleChatSendEvent>,
+        Messages<chat_events::SingleChatSendEvent>,
     >,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
 ) {
@@ -20,19 +20,19 @@ pub fn receive_message_system(
         match bincode::deserialize(&message) {
             Ok(message) => match message {
                 NetworkingMessage::PlayerJoin(event) => {
-                    player_spawn_events.send(remote_player_events::RemotePlayerSpawnedEvent {
+                    player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
                         client_id: event,
                         position: Vec3::ZERO,
                     });
                 }
                 NetworkingMessage::PlayerLeave(event) => {
-                    player_despawn_events.send(remote_player_events::RemotePlayerDespawnedEvent {
+                    player_despawn_events.write(remote_player_events::RemotePlayerDespawnedEvent {
                         client_id: event,
                     });
                 }
                 NetworkingMessage::BlockUpdate { position, block } => {
                     debug!("Client received block update message: {:?}", position);
-                    block_update_events.send(terrain_events::BlockUpdateEvent {
+                    block_update_events.write(terrain_events::BlockUpdateEvent {
                         position,
                         block,
                         from_network: true,
@@ -41,12 +41,12 @@ pub fn receive_message_system(
                 #[cfg(feature = "chat")]
                 NetworkingMessage::ChatMessageSync(messages) => {
                     info!("Client received {} chat messages", messages.len());
-                    chat_events.send(chat_events::ChatSyncEvent(messages));
+                    chat_events.write(chat_events::ChatSyncEvent(messages));
                 }
                 #[cfg(feature = "chat")]
                 NetworkingMessage::SingleChatMessageSync(message) => {
                     info!("Client received chat message {}", message.message);
-                    single_chat_events.send(chat_events::SingleChatSendEvent(message));
+                    single_chat_events.write(chat_events::SingleChatSendEvent(message));
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableOrdered)");
@@ -79,7 +79,7 @@ pub fn receive_message_system(
                         let chunk_position = chunk.position;
                         chunk_manager.insert_chunk(chunk);
                         chunk_mesh_events
-                            .send(terrain_events::ChunkMeshUpdateEvent { chunk_position });
+                            .write(terrain_events::ChunkMeshUpdateEvent { chunk_position });
 
                         if chunk_position.eq(&IVec3::ZERO) {
                             info!("Spawn area loaded.");
@@ -89,11 +89,11 @@ pub fn receive_message_system(
                 }
                 NetworkingMessage::PlayerSync(event) => {
                     player_sync_events
-                        .send(remote_player_events::RemotePlayerSyncEvent { players: event });
+                        .write(remote_player_events::RemotePlayerSyncEvent { players: event });
                 }
                 NetworkingMessage::ServerAsksClientNicelyToRerequestChunkBatch() => {
                     info!("Client asked for chunk batch.");
-                    world_regenerate_events.send(terrain_events::WorldRegenerateEvent);
+                    world_regenerate_events.write(terrain_events::WorldRegenerateEvent);
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableUnordered)");

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct BlockUpdateEvent {
     pub position: IVec3,
     pub block: BlockId,
@@ -13,9 +13,9 @@ mod visualizer {
     use super::*;
     use terrain_resources::TextureType;
 
-    #[derive(Event)]
+    #[derive(Message)]
     pub struct RegenerateHeightMapEvent(pub TextureType);
 
-    #[derive(Event)]
+    #[derive(Message)]
     pub struct WorldRegenerateEvent;
 }

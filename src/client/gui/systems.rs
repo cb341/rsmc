@@ -1,3 +1,4 @@
+use bevy::window::CursorOptions;
 use bevy_flair::style::components::NodeStyleSheet;
 
 use crate::prelude::*;
@@ -10,15 +11,11 @@ pub fn setup_gui_system(mut commands: Commands, asset_server: Res<AssetServer>) 
             ..default()
         },
     ));
-    commands
-        .spawn((
-            Node::default(),
-            Name::new("menu_title_wrapper"),
-            NodeStyleSheet::new(asset_server.load("gui.css")),
-        ))
-        .with_children(|parent| {
-            parent.spawn((Text::new("RSMC - Pre Alpha"), Name::new("menu_title")));
-        });
+    commands.spawn((
+        Node::default(),
+        Name::new("menu_title_wrapper"),
+        NodeStyleSheet::new(asset_server.load("gui.css")),
+    ));
 }
 
 pub fn handle_debug_state_transition_system(
@@ -35,8 +32,7 @@ pub fn handle_debug_state_transition_system(
     }
 }
 
-pub fn handle_enter_debug_state_system(mut window_query: Query<&mut Window>) {
-    let mut window = single_mut!(window_query);
-    window.cursor_options.grab_mode = CursorGrabMode::None;
-    window.cursor_options.visible = true;
+pub fn handle_enter_debug_state_system(mut cursor_options: Single<&mut CursorOptions>) {
+    cursor_options.grab_mode = CursorGrabMode::None;
+    cursor_options.visible = true;
 }

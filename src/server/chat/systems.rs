@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 pub fn sync_single_player_chat_messages_system(
     mut server: ResMut<RenetServer>,
-    mut player_send_messages: EventReader<chat_events::PlayerChatMessageSendEvent>,
+    mut player_send_messages: MessageReader<chat_events::PlayerChatMessageSendEvent>,
     mut chat_messages: ResMut<chat_resources::ChatHistory>,
 ) {
     for event in player_send_messages.read() {
@@ -35,7 +35,7 @@ pub fn sync_single_player_chat_messages_system(
 
 pub fn sync_player_chat_messages_event(
     mut server: ResMut<RenetServer>,
-    mut events: EventReader<chat_events::SyncPlayerChatMessagesEvent>,
+    mut events: MessageReader<chat_events::SyncPlayerChatMessagesEvent>,
     chat_messages: ResMut<chat_resources::ChatHistory>,
 ) {
     for event in events.read() {

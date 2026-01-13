@@ -14,15 +14,17 @@ impl Plugin for NetworkingPlugin {
 
         #[cfg(feature = "renet_visualizer")]
         {
+            use bevy_egui::EguiPrimaryContextPass;
             use renet_visualizer::RenetServerVisualizer;
 
             app.insert_resource(RenetServerVisualizer::<200>::default());
             app.add_systems(
                 Update,
-                (
-                    networking_systems::update_visulizer_system,
-                    networking_systems::handle_events_for_visualizer_system,
-                ),
+                (networking_systems::handle_events_for_visualizer_system,),
+            );
+            app.add_systems(
+                EguiPrimaryContextPass,
+                (networking_systems::update_visulizer_system,),
             );
         }
 
