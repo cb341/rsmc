@@ -1,3 +1,6 @@
+use bevy_asset::RenderAssetUsages;
+use bevy_mesh::{Indices, PrimitiveTopology};
+
 use crate::prelude::*;
 
 pub fn create_cube_mesh_from_data(geometry_data: GeometryData) -> Option<Mesh> {
