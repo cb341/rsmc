@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct PlayerChatMessageSendEvent {
     pub client_id: ClientId,
     pub message: String,
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct SyncPlayerChatMessagesEvent {
     pub client_id: ClientId,
 }
