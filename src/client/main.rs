@@ -53,7 +53,7 @@ fn main() {
         #[cfg(feature = "wireframe")]
         wireframe_config::wireframe_plugin(),
         FrameTimeDiagnosticsPlugin::default(),
-        EntityCountDiagnosticsPlugin,
+        EntityCountDiagnosticsPlugin::default(),
         SystemInformationDiagnosticsPlugin,
         PerfUiPlugin,
         gui::GuiPlugin,
