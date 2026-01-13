@@ -130,7 +130,7 @@ mod tests {
         resource.insert_chunks(chunks);
         resource.update_block(IVec3 { x: 6, y: 7, z: 8 }, block);
 
-        app.world_mut().send_event(ColliderUpdateEvent {
+        app.world_mut().write_message(ColliderUpdateEvent {
             grid_center_position: [5.0, 5.0, 5.0],
         });
 

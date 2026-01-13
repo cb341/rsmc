@@ -244,7 +244,6 @@ pub fn focus_chat_system(
 mod tests {
     use super::*;
     use crate::ChatMessage;
-    use bevy::ecs::event::Events;
     use chat_events::{ChatClearEvent, SingleChatSendEvent};
 
     fn get_chat_messages(app: &mut App) -> Vec<String> {
@@ -264,7 +263,7 @@ mod tests {
 
         app.add_plugins(MinimalPlugins)
             .add_systems(Update, add_message_to_chat_container_system)
-            .insert_resource(Events::<SingleChatSendEvent>::default());
+            .insert_resource(Messages::<SingleChatSendEvent>::default());
 
         app.world_mut().spawn((
             ScrollPosition::default(),
@@ -273,10 +272,10 @@ mod tests {
 
         let mut event_writer = app
             .world_mut()
-            .get_resource_mut::<Events<SingleChatSendEvent>>()
+            .get_resource_mut::<Messages<SingleChatSendEvent>>()
             .unwrap();
 
-        event_writer.send(SingleChatSendEvent(ChatMessage {
+        event_writer.write(SingleChatSendEvent(ChatMessage {
             message: "Hello World".to_string(),
             client_id: 0,
             message_id: 1,
@@ -303,7 +302,7 @@ mod tests {
 
         app.add_plugins(MinimalPlugins)
             .add_systems(Update, handle_chat_clear_events_system)
-            .insert_resource(Events::<ChatClearEvent>::default());
+            .insert_resource(Messages::<ChatClearEvent>::default());
 
         app.world_mut()
             .spawn(chat_components::ChatMessageContainer)
@@ -328,9 +327,9 @@ mod tests {
 
         let mut event_writer = app
             .world_mut()
-            .get_resource_mut::<Events<chat_events::ChatClearEvent>>()
+            .get_resource_mut::<Messages<chat_events::ChatClearEvent>>()
             .unwrap();
-        event_writer.send(chat_events::ChatClearEvent);
+        event_writer.write(chat_events::ChatClearEvent);
 
         app.update();
 
