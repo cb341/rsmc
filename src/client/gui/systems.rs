@@ -16,10 +16,7 @@ pub fn setup_gui_system(mut commands: Commands, asset_server: Res<AssetServer>) 
             Node::default(),
             Name::new("menu_title_wrapper"),
             NodeStyleSheet::new(asset_server.load("gui.css")),
-        ))
-        .with_children(|parent| {
-            parent.spawn((Text::new("RSMC - Pre Alpha"), Name::new("menu_title")));
-        });
+        ));
 }
 
 pub fn handle_debug_state_transition_system(
