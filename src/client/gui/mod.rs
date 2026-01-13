@@ -2,12 +2,8 @@ pub mod components;
 pub mod events;
 pub mod systems;
 
-use bevy::{
-    prelude::*,
-    text::FontSmoothing,
-};
+use bevy::{prelude::*, text::FontSmoothing};
 use bevy_dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin, FrameTimeGraphConfig};
-
 
 #[cfg(feature = "debug_ui")]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;

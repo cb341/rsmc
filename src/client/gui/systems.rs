@@ -11,12 +11,11 @@ pub fn setup_gui_system(mut commands: Commands, asset_server: Res<AssetServer>) 
             ..default()
         },
     ));
-    commands
-        .spawn((
-            Node::default(),
-            Name::new("menu_title_wrapper"),
-            NodeStyleSheet::new(asset_server.load("gui.css")),
-        ));
+    commands.spawn((
+        Node::default(),
+        Name::new("menu_title_wrapper"),
+        NodeStyleSheet::new(asset_server.load("gui.css")),
+    ));
 }
 
 pub fn handle_debug_state_transition_system(
