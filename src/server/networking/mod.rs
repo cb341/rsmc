@@ -20,15 +20,11 @@ impl Plugin for NetworkingPlugin {
             app.insert_resource(RenetServerVisualizer::<200>::default());
             app.add_systems(
                 Update,
-                (
-                    networking_systems::handle_events_for_visualizer_system,
-                ),
+                (networking_systems::handle_events_for_visualizer_system,),
             );
             app.add_systems(
                 EguiPrimaryContextPass,
-                (
-                    networking_systems::update_visulizer_system,
-                ),
+                (networking_systems::update_visulizer_system,),
             );
         }
 

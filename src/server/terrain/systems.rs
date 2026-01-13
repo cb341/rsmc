@@ -189,11 +189,12 @@ mod visualizer {
                 .get_mut(&texture_type)
                 .expect("Noise texture not loaded, please initialize the resource properly.");
 
-            entry.texture = Some(contexts.ctx_mut().expect("Context does not exist").load_texture(
-                "terrain-texture",
-                image_data,
-                TextureOptions::default(),
-            ));
+            entry.texture = Some(
+                contexts
+                    .ctx_mut()
+                    .expect("Context does not exist")
+                    .load_texture("terrain-texture", image_data, TextureOptions::default()),
+            );
             entry.size = Vec2::new(width as f32, height as f32);
         }
     }
