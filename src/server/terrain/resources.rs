@@ -10,11 +10,7 @@ pub struct ClientChunkRequests {
 }
 
 impl ClientChunkRequests {
-    pub fn enqueue_bulk(
-        &mut self,
-        client_id: ClientId,
-        chunk_positions: &mut VecDeque<IVec3>,
-    ) {
+    pub fn enqueue_bulk(&mut self, client_id: ClientId, chunk_positions: &mut VecDeque<IVec3>) {
         self.queues
             .entry(client_id)
             .or_default()
