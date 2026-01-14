@@ -21,7 +21,7 @@ pub fn setup_world_system(
 }
 
 pub fn process_user_chunk_requests(
-    mut requests: ResMut<terrain_resources::ChunkRequestQueue>,
+    mut requests: ResMut<terrain_resources::ClientChunkRequests>,
     chunk_manager: Res<ChunkManager>,
     mut server: ResMut<RenetServer>,
     generator: Res<terrain_resources::Generator>,

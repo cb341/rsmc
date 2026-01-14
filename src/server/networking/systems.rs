@@ -4,7 +4,7 @@ pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
-    mut request_queue: ResMut<terrain_resources::ChunkRequestQueue>,
+    mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
@@ -63,7 +63,7 @@ pub fn receive_message_system(
                         positions, client_id
                     );
 
-                    request_queue.append_positions_to_client(client_id, &mut positions.into());
+                    request_queue.enqueue_bulk(client_id, &mut positions.into());
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableUnordered)");
@@ -78,7 +78,7 @@ pub fn handle_events_system(
     mut server_events: MessageReader<ServerEvent>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
-    mut request_queue: ResMut<terrain_resources::ChunkRequestQueue>,
+    mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
