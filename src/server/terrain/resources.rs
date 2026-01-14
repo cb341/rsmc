@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Keys, VecDeque};
+use std::collections::VecDeque;
 
 use crate::prelude::*;
 
@@ -29,7 +29,10 @@ impl ChunkRequestQueue {
         self.requests.remove(&client_id);
     }
 
-    pub fn retain<F>(&mut self, f: F) where F: FnMut(&ClientId, &mut VecDeque<IVec3>) -> bool {
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&ClientId, &mut VecDeque<IVec3>) -> bool,
+    {
         self.requests.retain(f)
     }
 }
