@@ -20,7 +20,7 @@ pub fn setup_world_system(
     chunk_manager.insert_chunks(chunks);
 }
 
-pub fn process_user_chunk_requests(
+pub fn process_user_chunk_requests_system(
     mut requests: ResMut<terrain_resources::ClientChunkRequests>,
     chunk_manager: Res<ChunkManager>,
     mut server: ResMut<RenetServer>,
