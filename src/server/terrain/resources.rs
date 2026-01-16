@@ -38,7 +38,7 @@ pub struct AutoSave {
 
 impl Default for AutoSave {
     fn default() -> Self {
-        let interval = 1_000_0;
+        let interval = 10_000;
         Self {
             cycles_until_next_save: interval,
             interval,
