@@ -13,7 +13,9 @@ impl Plugin for TerrainPlugin {
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.insert_resource(resources::PastBlockUpdates::new());
         app.add_systems(Startup, terrain_systems::setup_world_system);
+        app.add_systems(Update, terrain_systems::process_user_chunk_requests_system);
         app.insert_resource(resources::Generator::default());
+        app.insert_resource(resources::ClientChunkRequests::default());
 
         #[cfg(feature = "generator_visualizer")]
         {

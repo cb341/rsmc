@@ -4,4 +4,5 @@ BEVY_ASSET_ROOT = "."
 [alias]
 rc = 'run --bin client'
 rs = 'run --bin server'
-t = 'test'
+tc = 'run --bin client --features bevy/trace_tracy'
+ts = 'run --bin server --features bevy/trace_tracy'

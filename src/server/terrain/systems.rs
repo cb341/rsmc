@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use crate::prelude::*;
 
 pub fn setup_world_system(
@@ -16,6 +18,50 @@ pub fn setup_world_system(
     });
 
     chunk_manager.insert_chunks(chunks);
+}
+
+pub fn process_user_chunk_requests_system(
+    mut requests: ResMut<terrain_resources::ClientChunkRequests>,
+    chunk_manager: Res<ChunkManager>,
+    mut server: ResMut<RenetServer>,
+    generator: Res<terrain_resources::Generator>,
+) {
+    const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 5;
+
+    requests.retain(|client_id, positions| {
+        if positions.is_empty() {
+            return false;
+        }
+
+        let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
+        let positions_to_process: Vec<IVec3> = positions.drain(0..take_count).collect();
+
+        let chunks = positions_to_process
+            .into_par_iter()
+            .map(|position| {
+                let chunk = chunk_manager.get_chunk(position);
+
+                match chunk {
+                    Some(chunk) => *chunk,
+                    None => {
+                        let mut chunk = Chunk::new(position);
+                        generator.generate_chunk(&mut chunk);
+                        chunk
+                    }
+                }
+            })
+            .collect();
+
+        let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
+
+        server.send_message(
+            *client_id,
+            DefaultChannel::ReliableUnordered,
+            message.unwrap(),
+        );
+
+        !positions.is_empty()
+    });
 }
 
 #[cfg(feature = "generator_visualizer")]

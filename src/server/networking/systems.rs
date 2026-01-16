@@ -4,11 +4,10 @@ pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
-    chunk_manager: ResMut<ChunkManager>,
+    mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
-    generator: Res<terrain_resources::Generator>,
 ) {
     for client_id in server.clients_id() {
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
@@ -64,30 +63,7 @@ pub fn receive_message_system(
                         positions, client_id
                     );
 
-                    let chunks: Vec<Chunk> = positions
-                        .into_par_iter()
-                        .map(|position| {
-                            let chunk = chunk_manager.get_chunk(position);
-
-                            match chunk {
-                                Some(chunk) => *chunk,
-                                None => {
-                                    let mut chunk = Chunk::new(position);
-                                    generator.generate_chunk(&mut chunk);
-                                    chunk
-                                }
-                            }
-                        })
-                        .collect();
-
-                    let message =
-                        bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
-
-                    server.send_message(
-                        client_id,
-                        DefaultChannel::ReliableUnordered,
-                        message.unwrap(),
-                    );
+                    request_queue.enqueue_bulk(client_id, &mut positions.into());
                 }
                 _ => {
                     warn!("Received unknown message type. (ReliableUnordered)");
@@ -102,6 +78,7 @@ pub fn handle_events_system(
     mut server_events: MessageReader<ServerEvent>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
+    mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
@@ -152,6 +129,8 @@ pub fn handle_events_system(
             ServerEvent::ClientDisconnected { client_id, reason } => {
                 println!("Client {client_id} disconnected: {reason}");
                 player_states.players.remove(client_id);
+
+                request_queue.remove(client_id);
 
                 #[cfg(feature = "chat")]
                 chat_message_events.write(chat_events::PlayerChatMessageSendEvent {

@@ -1,6 +1,33 @@
+use std::collections::VecDeque;
+
 use crate::prelude::*;
 
 use terrain_events::BlockUpdateEvent;
+
+#[derive(Resource, Default)]
+pub struct ClientChunkRequests {
+    queues: HashMap<ClientId, VecDeque<IVec3>>,
+}
+
+impl ClientChunkRequests {
+    pub fn enqueue_bulk(&mut self, client_id: ClientId, chunk_positions: &mut VecDeque<IVec3>) {
+        self.queues
+            .entry(client_id)
+            .or_default()
+            .append(chunk_positions);
+    }
+
+    pub fn remove(&mut self, client_id: &ClientId) {
+        self.queues.remove(client_id);
+    }
+
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&ClientId, &mut VecDeque<IVec3>) -> bool,
+    {
+        self.queues.retain(f)
+    }
+}
 
 #[derive(Resource)]
 pub struct PastBlockUpdates {
