@@ -73,8 +73,8 @@ impl ChunkManager {
         self.chunks.insert(position, chunk);
     }
 
-    pub fn get_chunk(&self, position: IVec3) -> Option<&Chunk> {
-        self.chunks.get(&position)
+    pub fn get_chunk(&self, position: &IVec3) -> Option<&Chunk> {
+        self.chunks.get(position)
     }
 
     pub fn get_chunk_mut(&mut self, position: &IVec3) -> Option<&mut Chunk> {

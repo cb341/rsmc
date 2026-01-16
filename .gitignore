@@ -3,3 +3,5 @@
 # vim stuff
 tree-sitter-rust
 *-E
+
+backups/

@@ -30,22 +30,42 @@ impl ClientChunkRequests {
 }
 
 #[derive(Resource)]
-pub struct PastBlockUpdates {
-    pub updates: Vec<BlockUpdateEvent>,
+pub struct AutoSave {
+    pub cycles_until_next_save: usize,
+    pub interval: usize,
+    pub generation: usize,
 }
 
-impl Default for PastBlockUpdates {
+impl Default for AutoSave {
     fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl PastBlockUpdates {
-    pub fn new() -> Self {
+        let interval = 1_000_0;
         Self {
-            updates: Vec::new(),
+            cycles_until_next_save: interval,
+            interval,
+            generation: 0,
         }
     }
+}
+
+impl AutoSave {
+    pub fn reset(&mut self) {
+        self.cycles_until_next_save = self.interval;
+        self.generation += 1;
+    }
+
+    pub fn is_ready(&mut self) -> bool {
+        self.cycles_until_next_save == 0
+    }
+
+    pub fn step(&mut self) {
+        assert!(self.cycles_until_next_save >= 1);
+        self.cycles_until_next_save -= 1;
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct PastBlockUpdates {
+    pub updates: Vec<BlockUpdateEvent>,
 }
 
 #[derive(Resource)]
