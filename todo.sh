@@ -5,3 +5,8 @@
 # TODO: extract methods
 # TODO: add tests
 # TODO: serialize players states
+
+
+# Othertime
+# create binary for single player client that can start server binary with args
+# single player binary -> select worlds
