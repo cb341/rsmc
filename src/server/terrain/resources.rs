@@ -17,8 +17,8 @@ impl ClientChunkRequests {
             .append(chunk_positions);
     }
 
-    pub fn remove(&mut self, client_id: ClientId) {
-        self.queues.remove(&client_id);
+    pub fn remove(&mut self, client_id: &ClientId) {
+        self.queues.remove(client_id);
     }
 
     pub fn retain<F>(&mut self, f: F)

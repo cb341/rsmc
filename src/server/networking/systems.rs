@@ -130,7 +130,7 @@ pub fn handle_events_system(
                 println!("Client {client_id} disconnected: {reason}");
                 player_states.players.remove(client_id);
 
-                request_queue.remove(*client_id);
+                request_queue.remove(client_id);
 
                 #[cfg(feature = "chat")]
                 chat_message_events.write(chat_events::PlayerChatMessageSendEvent {
