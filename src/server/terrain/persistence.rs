@@ -1,0 +1,63 @@
+use std::{fmt::Display, fs::File, io::Write, path::Path};
+use serde::Serialize;
+
+use crate::{prelude::*, terrain::resources::Generator};
+
+const WORLDS_DIR: &str = "backups/";
+const SAVE_VERSION: &str = "0.1";
+
+#[derive(Serialize)]
+struct WorldSave {
+    name: String,
+    version: String,
+    generator: Generator,
+    chunks: Vec<Chunk>,
+}
+
+impl Display for WorldSave {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}[{}]", self.name, self.version)
+    }
+}
+
+impl WorldSave {
+    fn name(generation: usize) -> String {
+        format!("world_backup_{}.rsw", generation.to_string())
+    }
+}
+
+fn save_world_to_file(world_save: WorldSave) -> Result<(), Box<dyn std::error::Error>> {
+    std::fs::create_dir_all(WORLDS_DIR)?;
+
+    let file_path_str: &str = &(String::from(WORLDS_DIR) + &world_save.name);
+
+    let path = Path::new(file_path_str);
+    let mut file = File::create(path)?;
+    let serialized = bincode::serialize(&world_save)?;
+    file.write_all(&serialized)?;
+    // let serialized = serde_json::to_string(&world_save)?;
+    // file.write_all(&serialized.into_bytes())?;
+
+    Ok(())
+}
+
+pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, generator: &Generator) {
+    let chunks = chunk_manager
+        .all_chunks()
+        .into_iter()
+        .map(|v| v.clone())
+        .collect();
+    let generator = generator.clone();
+
+    let world_save = WorldSave {
+        name: WorldSave::name(generation),
+        version: String::from(SAVE_VERSION),
+        generator,
+        chunks,
+    };
+
+    match save_world_to_file(world_save) {
+        Ok(_) => info!("Saved World!"),
+        Err(err) => error!("Error occured saving world: {}", err)
+    };
+}

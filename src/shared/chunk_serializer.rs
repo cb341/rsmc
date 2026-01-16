@@ -20,8 +20,8 @@ impl Serialize for Chunk {
                 block_byte
             })
             .collect();
-        let serialized_data = serialize_buffer(data_as_u8);
         let mut state = serializer.serialize_struct("Chunk", 2)?;
+        let serialized_data = serialize_buffer(data_as_u8);
         state.serialize_field("data", &serialized_data)?;
         state.serialize_field("position", &self.position)?;
         state.end()

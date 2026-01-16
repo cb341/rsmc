@@ -32,7 +32,9 @@ fn main() {
 
     app.add_plugins(player::PlayerPlugin);
     app.add_plugins(networking::NetworkingPlugin);
-    app.add_plugins(terrain::TerrainPlugin);
+    app.add_plugins(terrain::TerrainPlugin {
+        strategy: terrain::TerrainStrategy::SeededRandom(0)
+    });
 
     #[cfg(feature = "chat")]
     app.add_plugins(chat::ChatPlugin);

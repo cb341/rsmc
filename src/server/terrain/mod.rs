@@ -5,7 +5,16 @@ pub mod resources;
 pub mod systems;
 pub mod util;
 
-pub struct TerrainPlugin;
+mod persistence;
+
+pub enum TerrainStrategy {
+    SeededRandom(usize),
+    LoadExisting
+}
+
+pub struct TerrainPlugin {
+    pub strategy: TerrainStrategy
+}
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {

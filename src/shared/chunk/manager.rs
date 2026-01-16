@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Iter};
 
 use bevy::{log::info, math::IVec3, prelude::Resource};
 
@@ -176,6 +176,10 @@ impl ChunkManager {
             .keys()
             .map(|key| IVec3::new(key[0], key[1], key[2]))
             .collect()
+    }
+
+    pub fn all_chunks(&self) -> Vec<&Chunk> {
+        self.chunks.values().collect()
     }
 }
 

@@ -1,6 +1,5 @@
-use std::{cmp::min, fs::File, io::Write, path::Path};
-
-use crate::prelude::*;
+use std::cmp::min;
+use crate::{prelude::*, terrain::{persistence::*, resources::Generator}};
 
 pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
@@ -66,49 +65,15 @@ pub fn process_user_chunk_requests_system(
 
 pub fn periodic_autosave_system(
     chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
     mut autosave_timer: ResMut<terrain_resources::AutoSave>,
 ) {
     if autosave_timer.is_ready() {
         autosave_timer.reset();
         info!("Saving world...");
-        save_world(autosave_timer.generation, &chunk_manager);
+        save_world_to_disk(autosave_timer.generation, &chunk_manager, &generator);
     } else {
         autosave_timer.step();
-    }
-}
-
-fn save_world(generation: usize, chunk_manager: &ChunkManager) {
-    let chunks: Vec<&Chunk> = chunk_manager
-        .get_all_chunk_positions()
-        .iter()
-        .map(|position| chunk_manager.get_chunk(position).unwrap())
-        .collect::<Vec<&Chunk>>();
-
-    let serialized = bincode::serialize(&chunks).unwrap();
-
-    let dir = "backups/";
-    let prefix = "world_backup_";
-    let suffix: &str = &generation.to_string();
-    let extension = ".bin";
-
-    match std::fs::create_dir_all(dir) {
-        Ok(_) => {}
-        Err(_) => panic!("WHA"),
-    }
-
-    let file_path_str: &str = &(String::from(dir) + prefix + suffix + extension);
-
-    let path = Path::new(file_path_str);
-    let display = path.display();
-
-    let mut file = match File::create(path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why),
-        Ok(file) => file,
-    };
-
-    match file.write_all(&serialized) {
-        Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("successfully wrote to {}", display),
     }
 }
 
