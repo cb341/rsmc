@@ -8,8 +8,8 @@ pub mod util;
 mod persistence;
 
 pub enum TerrainStrategy {
-    SeededRandom(usize),
-    LoadExisting
+    SeededRandom(u32),
+    LoadFromFile(String)
 }
 
 pub struct TerrainPlugin {
@@ -18,14 +18,34 @@ pub struct TerrainPlugin {
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(ChunkManager::new());
+
+        match self.strategy {
+            TerrainStrategy::SeededRandom(seed) => {
+                info!("Generating new world with seed [{}]", seed);
+                app.insert_resource(ChunkManager::new());
+                app.insert_resource(resources::Generator::with_seed(seed));
+                app.add_systems(Startup, terrain_systems::setup_world_system);
+            }
+            TerrainStrategy::LoadFromFile(file_path) => {
+                info!("Loading world save from file [{}]", file_path);
+                let world_save = persistence::read_world_save_from_disk(file_path);
+                match world_save {
+                    Ok(world_save) => {
+                        let mut manager = ChunkManager::new();
+                        manager.insert_chunks(world_save.chunks.clone());
+                        app.insert_resource(manager);
+                        app.insert_resource(world_save.generator);
+                    }
+                    Err(err) => panic!("World could not be loaded! Err: {}", err)
+                }
+            },
+        }
+
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.insert_resource(resources::PastBlockUpdates::default());
         app.insert_resource(resources::AutoSave::default());
-        app.add_systems(Startup, terrain_systems::setup_world_system);
         app.add_systems(Update, terrain_systems::process_user_chunk_requests_system);
         app.add_systems(Update, terrain_systems::periodic_autosave_system);
-        app.insert_resource(resources::Generator::default());
         app.insert_resource(resources::ClientChunkRequests::default());
 
         #[cfg(feature = "generator_visualizer")]

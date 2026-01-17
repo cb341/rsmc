@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::prelude::*;
 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]
@@ -69,46 +69,47 @@ pub struct PastBlockUpdates {
     pub updates: Vec<BlockUpdateEvent>,
 }
 
-#[derive(Resource, Clone, Serialize)]
+#[derive(Resource, Clone, Serialize, Deserialize)]
 pub struct Generator {
     pub seed: u32,
     pub params: TerrainGeneratorParams,
 
     #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
     pub perlin: Perlin,
 }
 
-#[derive(Clone,Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HeightParams {
     pub noise: NoiseFunctionParams,
     pub splines: Vec<Vec2>,
 }
 
-#[derive(Clone,Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DensityParams {
     pub noise: NoiseFunctionParams,
     pub squash_factor: f64,
     pub height_offset: f64,
 }
 
-#[derive(Clone,Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CaveParams {
     pub noise: NoiseFunctionParams,
     pub base_value: f64,
     pub threshold: f64,
 }
 
-#[derive(Clone,Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HeightAdjustParams {
     pub noise: NoiseFunctionParams,
 }
 
-#[derive(Clone,Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GrassParams {
     pub frequency: u32,
 }
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct NoiseFunctionParams {
     pub octaves: u32,
     pub height: f64,
@@ -118,7 +119,7 @@ pub struct NoiseFunctionParams {
     pub persistence: f64,
 }
 
-#[derive(Clone,Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TreeParams {
     pub spawn_attempts_per_chunk: u32,
     pub min_stump_height: u32,
@@ -133,7 +134,13 @@ impl Default for Generator {
     }
 }
 
-#[derive(Clone,Serialize)]
+impl Generator {
+    pub fn with_seed(seed: u32) -> Self {
+        Self::new(seed)
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TerrainGeneratorParams {
     pub height: HeightParams,
     pub height_adjust: HeightAdjustParams,

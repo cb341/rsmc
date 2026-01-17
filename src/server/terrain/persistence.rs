@@ -1,28 +1,33 @@
-use std::{fmt::Display, fs::File, io::Write, path::Path};
 use serde::Serialize;
+use std::{
+    fmt::Display,
+    fs::File,
+    io::{Read, Write},
+    path::Path,
+};
 
 use crate::{prelude::*, terrain::resources::Generator};
 
 const WORLDS_DIR: &str = "backups/";
 const SAVE_VERSION: &str = "0.1";
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct WorldSave {
-    name: String,
-    version: String,
-    generator: Generator,
-    chunks: Vec<Chunk>,
+    pub name: String,
+    pub version: String,
+    pub generator: Generator,
+    pub chunks: Vec<Chunk>,
 }
 
 impl Display for WorldSave {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}[{}]", self.name, self.version)
+        write!(f, "{}[{}]", self.name, self.version)
     }
 }
 
 impl WorldSave {
     fn name(generation: usize) -> String {
-        format!("world_backup_{}.rsw", generation.to_string())
+        format!("world_backup_{}.rsmcw", generation.to_string())
     }
 }
 
@@ -58,6 +63,17 @@ pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, gener
 
     match save_world_to_file(world_save) {
         Ok(_) => info!("Saved World!"),
-        Err(err) => error!("Error occured saving world: {}", err)
+        Err(err) => error!("Error occured saving world: {}", err),
     };
+}
+
+pub fn read_world_save_from_disk(path: String) -> Result<WorldSave, Box<dyn std::error::Error>> {
+    // TODO: test
+    let mut file = File::open(Path::new(&path))?;
+    let bytes = file.bytes();
+    let bytes: Bytes = bytes.into();
+
+    let world_save: WorldSave = bincode::deserialize(&bytes)?;
+
+    Ok(world_save)
 }

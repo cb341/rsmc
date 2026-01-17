@@ -32,8 +32,16 @@ fn main() {
 
     app.add_plugins(player::PlayerPlugin);
     app.add_plugins(networking::NetworkingPlugin);
+
+    let file_path: Option<String> = None;
+
+    let terrain_strategy = match file_path {
+        Some(file_path) => terrain::TerrainStrategy::LoadFromFile(String::from(file_path)),
+        None => terrain::TerrainStrategy::SeededRandom(0)
+    };
+
     app.add_plugins(terrain::TerrainPlugin {
-        strategy: terrain::TerrainStrategy::SeededRandom(0)
+        strategy: terrain_strategy
     });
 
     #[cfg(feature = "chat")]
