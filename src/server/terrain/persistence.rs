@@ -2,8 +2,7 @@ use serde::Serialize;
 use std::{
     fmt::Display,
     fs::File,
-    io::Write,
-    path::Path,
+    io::Write, path::Path,
 };
 
 use crate::{prelude::*, terrain::resources::Generator};
@@ -31,7 +30,7 @@ impl WorldSave {
     }
 }
 
-fn save_world_to_file(world_save: WorldSave) -> Result<(), Box<dyn std::error::Error>> {
+fn save_world_to_file(world_save: WorldSave) -> Result<String, Box<dyn std::error::Error>> {
     std::fs::create_dir_all(WORLDS_DIR)?;
 
     let file_path_str: &str = &(String::from(WORLDS_DIR) + &world_save.name);
@@ -40,11 +39,9 @@ fn save_world_to_file(world_save: WorldSave) -> Result<(), Box<dyn std::error::E
     let mut file = File::create(path)?;
     let serialized = bincode::serialize(&world_save)?;
     file.write_all(&serialized)?;
-    file.flush();
-    // let serialized = serde_json::to_string(&world_save)?;
-    // file.write_all(&serialized.into_bytes())?;
+    file.flush()?;
 
-    Ok(())
+    Ok(String::from(file_path_str))
 }
 
 pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, generator: &Generator) {
@@ -59,13 +56,12 @@ pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, gener
     };
 
     match save_world_to_file(world_save) {
-        Ok(_) => info!("Saved World!"),
+        Ok(path) => println!("Saved world backup to: '{}'", path),
         Err(err) => error!("Error occured saving world: {}", err),
-    };
+    }
 }
 
 pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, Box<dyn std::error::Error>> {
-    // TODO: test
     use std::io::Read;
     let mut file = File::open(Path::new(path)).expect("File can be loaded");
 

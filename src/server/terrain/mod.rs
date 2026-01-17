@@ -20,13 +20,13 @@ impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         match &self.strategy {
             TerrainStrategy::SeededRandom(seed) => {
-                info!("Generating new world with seed [{}]", seed);
+                println!("Generating new world with seed [{}]", seed);
                 app.insert_resource(ChunkManager::new());
                 app.insert_resource(resources::Generator::with_seed(*seed));
                 app.add_systems(Startup, terrain_systems::setup_world_system);
             }
             TerrainStrategy::LoadFromFile(file_path) => {
-                info!("Loading world save from file [{}]", file_path);
+                println!("Loading world save from file '{}'", file_path);
                 let world_save = persistence::read_world_save_from_disk(file_path);
                 match world_save {
                     Ok(world_save) => {
