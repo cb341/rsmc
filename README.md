@@ -24,8 +24,8 @@ A stupid little Minecraft clone written in Rust, powered by the Bevy engine.
 Just run the cargo command to install the dependencies and start the game:
 
 ```bash
-cargo run --bin server
-cargo run --bin client
+cargo rs # run server
+cargo rc # run client
 
 ```
 
@@ -34,20 +34,14 @@ cargo run --bin client
 Release Builds (for better performance):
 
 ```bash
-cargo run --bin server --release
-cargo run --bin client --release
+cargo run rs --release
+cargo run rc --release
 ```
 
-Dynamic Linking (to reduce compile times):
-```bash
-cargo run --bin server --features dynamic_linking
-cargo run --bin client --features dynamic_linking
-```
+Hot reload client
 
-Automatic Reloading (with [cargo watch](https://docs.rs/crate/cargo-watch)):
 ```bash
-cargo watch -x 'run --bin server'
-cargo watch -x 'run --bin client'
+bin/dev
 ```
 
 ### Installation on NixOS
@@ -56,10 +50,10 @@ Nix shell can be used to run the code using the given [Nix Shell Config File](./
 Strongly inspired by the [Bevy NixOS installation guide](https://github.com/bevyengine/bevy/blob/latest/docs/linux_dependencies.md)
 
 ```bash
-nix-shell --run "cargo run --bin server"
-nix-shell --run "cargo run --bin client"
+nix-shell --run "cargo rs"
+nix-shell --run "cargo rc"
 ```
 
 ## Notes
 
-Checkout the [Wiki](https://github.com/CuddlyBunion341/rsmc/wiki) for additional project information.
+Checkout the [Wiki](https://github.com/cb341/rsmc/wiki) for additional project information.
