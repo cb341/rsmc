@@ -2,7 +2,7 @@ use serde::Serialize;
 use std::{
     fmt::Display,
     fs::File,
-    io::{Read, Write},
+    io::Write,
     path::Path,
 };
 
@@ -12,7 +12,7 @@ const WORLDS_DIR: &str = "backups/";
 const SAVE_VERSION: &str = "0.1";
 
 #[derive(Serialize, Deserialize)]
-struct WorldSave {
+pub struct WorldSave {
     pub name: String,
     pub version: String,
     pub generator: Generator,
@@ -27,7 +27,7 @@ impl Display for WorldSave {
 
 impl WorldSave {
     fn name(generation: usize) -> String {
-        format!("world_backup_{}.rsmcw", generation.to_string())
+        format!("world_backup_{}.rsmcw", generation)
     }
 }
 
@@ -40,6 +40,7 @@ fn save_world_to_file(world_save: WorldSave) -> Result<(), Box<dyn std::error::E
     let mut file = File::create(path)?;
     let serialized = bincode::serialize(&world_save)?;
     file.write_all(&serialized)?;
+    file.flush();
     // let serialized = serde_json::to_string(&world_save)?;
     // file.write_all(&serialized.into_bytes())?;
 
@@ -47,11 +48,7 @@ fn save_world_to_file(world_save: WorldSave) -> Result<(), Box<dyn std::error::E
 }
 
 pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, generator: &Generator) {
-    let chunks = chunk_manager
-        .all_chunks()
-        .into_iter()
-        .map(|v| v.clone())
-        .collect();
+    let chunks = chunk_manager.all_chunks().into_iter().copied().collect();
     let generator = generator.clone();
 
     let world_save = WorldSave {
@@ -67,13 +64,14 @@ pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, gener
     };
 }
 
-pub fn read_world_save_from_disk(path: String) -> Result<WorldSave, Box<dyn std::error::Error>> {
+pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, Box<dyn std::error::Error>> {
     // TODO: test
-    let mut file = File::open(Path::new(&path))?;
-    let bytes = file.bytes();
-    let bytes: Bytes = bytes.into();
+    use std::io::Read;
+    let mut file = File::open(Path::new(path)).expect("File can be loaded");
 
-    let world_save: WorldSave = bincode::deserialize(&bytes)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+    let world_save: WorldSave = bincode::deserialize(&buffer)?;
 
     Ok(world_save)
 }

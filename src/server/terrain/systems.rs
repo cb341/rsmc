@@ -1,5 +1,8 @@
+use crate::{
+    prelude::*,
+    terrain::{persistence::*, resources::Generator},
+};
 use std::cmp::min;
-use crate::{prelude::*, terrain::{persistence::*, resources::Generator}};
 
 pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
@@ -70,7 +73,7 @@ pub fn periodic_autosave_system(
 ) {
     if autosave_timer.is_ready() {
         autosave_timer.reset();
-        info!("Saving world...");
+        info!("Performing automatic world save");
         save_world_to_disk(autosave_timer.generation, &chunk_manager, &generator);
     } else {
         autosave_timer.step();

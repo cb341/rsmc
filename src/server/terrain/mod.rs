@@ -9,21 +9,20 @@ mod persistence;
 
 pub enum TerrainStrategy {
     SeededRandom(u32),
-    LoadFromFile(String)
+    LoadFromFile(String),
 }
 
 pub struct TerrainPlugin {
-    pub strategy: TerrainStrategy
+    pub strategy: TerrainStrategy,
 }
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
-
-        match self.strategy {
+        match &self.strategy {
             TerrainStrategy::SeededRandom(seed) => {
                 info!("Generating new world with seed [{}]", seed);
                 app.insert_resource(ChunkManager::new());
-                app.insert_resource(resources::Generator::with_seed(seed));
+                app.insert_resource(resources::Generator::with_seed(*seed));
                 app.add_systems(Startup, terrain_systems::setup_world_system);
             }
             TerrainStrategy::LoadFromFile(file_path) => {
@@ -36,9 +35,9 @@ impl Plugin for TerrainPlugin {
                         app.insert_resource(manager);
                         app.insert_resource(world_save.generator);
                     }
-                    Err(err) => panic!("World could not be loaded! Err: {}", err)
+                    Err(err) => panic!("World could not be loaded! Err: {}", err),
                 }
-            },
+            }
         }
 
         app.add_message::<terrain_events::BlockUpdateEvent>();

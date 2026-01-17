@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::prelude::*;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]

@@ -33,15 +33,16 @@ fn main() {
     app.add_plugins(player::PlayerPlugin);
     app.add_plugins(networking::NetworkingPlugin);
 
-    let file_path: Option<String> = None;
+    let file_path: Option<String> = None; // TODO: fetch from CLI
+    let file_path = Some(String::from("backups/world_backup_8.rsmcw"));
 
     let terrain_strategy = match file_path {
-        Some(file_path) => terrain::TerrainStrategy::LoadFromFile(String::from(file_path)),
-        None => terrain::TerrainStrategy::SeededRandom(0)
+        Some(file_path) => terrain::TerrainStrategy::LoadFromFile(file_path),
+        None => terrain::TerrainStrategy::SeededRandom(0),
     };
 
     app.add_plugins(terrain::TerrainPlugin {
-        strategy: terrain_strategy
+        strategy: terrain_strategy,
     });
 
     #[cfg(feature = "chat")]
