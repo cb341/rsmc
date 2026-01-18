@@ -9,7 +9,7 @@ mod persistence;
 
 pub enum TerrainStrategy {
     SeededRandom(u32),
-    LoadFromSave(WorldSave),
+    LoadFromSave(Box<WorldSave>),
 }
 
 pub struct TerrainPlugin {
@@ -23,9 +23,15 @@ impl TerrainPlugin {
             Ok(world_save) => world_save,
             Err(err) => {
                 match err.kind() {
-                    std::io::ErrorKind::NotFound => eprintln!("Error: Save File not found '{}'", file_path),
-                    std::io::ErrorKind::PermissionDenied => eprintln!("Error: Permission denied. Check file permissions."),
-                    std::io::ErrorKind::StorageFull => eprintln!("Error: Not enough disk space to save."),
+                    std::io::ErrorKind::NotFound => {
+                        eprintln!("Error: Save File not found '{}'", file_path)
+                    }
+                    std::io::ErrorKind::PermissionDenied => {
+                        eprintln!("Error: Permission denied. Check file permissions.")
+                    }
+                    std::io::ErrorKind::StorageFull => {
+                        eprintln!("Error: Not enough disk space to save.")
+                    }
                     _ => eprintln!("Unknown Error saving file: {}", err),
                 }
                 return Err(err);
@@ -33,13 +39,13 @@ impl TerrainPlugin {
         };
 
         Ok(Self {
-            strategy: TerrainStrategy::LoadFromSave(world_save)
+            strategy: TerrainStrategy::LoadFromSave(Box::new(world_save)),
         })
     }
 
     pub fn from_seed(seed: u32) -> TerrainPlugin {
         Self {
-            strategy: TerrainStrategy::SeededRandom(seed)
+            strategy: TerrainStrategy::SeededRandom(seed),
         }
     }
 }

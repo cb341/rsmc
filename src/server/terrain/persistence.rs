@@ -62,8 +62,10 @@ pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, std::io::Er
     let mut file = File::open(Path::new(path))?;
 
     let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).expect("File data is supposed to be readable");
-    let world_save: WorldSave = bincode::deserialize(&buffer).expect("World Save is expected to be deserializable");
+    file.read_to_end(&mut buffer)
+        .expect("File data is supposed to be readable");
+    let world_save: WorldSave =
+        bincode::deserialize(&buffer).expect("World Save is expected to be deserializable");
 
     Ok(world_save)
 }

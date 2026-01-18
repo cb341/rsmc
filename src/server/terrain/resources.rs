@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use crate::prelude::*;
 
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use terrain_events::BlockUpdateEvent;
 
@@ -32,7 +33,7 @@ impl ClientChunkRequests {
 
 #[derive(Resource)]
 pub struct AutoSave {
-    pub cycles_until_next_save: usize,
+    pub last_autosave_timestamp: DateTime<Utc>,
     pub interval: usize,
     pub generation: usize,
 }
@@ -41,26 +42,33 @@ impl Default for AutoSave {
     fn default() -> Self {
         let interval = 10_000;
         Self {
-            cycles_until_next_save: interval,
+            last_autosave_timestamp: Utc::now(),
             interval,
             generation: 0,
         }
     }
 }
 
+const AUTO_SAVE_INTERVAL: chrono::TimeDelta = Duration::seconds(30);
+
 impl AutoSave {
     pub fn reset(&mut self) {
-        self.cycles_until_next_save = self.interval;
+        self.last_autosave_timestamp = Utc::now();
         self.generation += 1;
     }
 
     pub fn is_ready(&mut self) -> bool {
-        self.cycles_until_next_save == 0
-    }
+        let enough_time_passed = self
+            .last_autosave_timestamp
+            .checked_add_signed(AUTO_SAVE_INTERVAL);
 
-    pub fn step(&mut self) {
-        assert!(self.cycles_until_next_save >= 1);
-        self.cycles_until_next_save -= 1;
+        match enough_time_passed {
+            Some(d) => d < Utc::now(),
+            None => {
+                eprintln!("Date predicate overflowed!");
+                false
+            }
+        }
     }
 }
 

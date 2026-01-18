@@ -4,7 +4,6 @@ pub mod player;
 pub mod prelude;
 pub mod terrain;
 
-use std::env;
 use clap::Parser;
 
 #[cfg(feature = "egui_layer")]

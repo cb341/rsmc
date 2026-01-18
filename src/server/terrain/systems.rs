@@ -75,8 +75,6 @@ pub fn periodic_autosave_system(
         autosave_timer.reset();
         println!("Performing automatic world save...");
         save_world_to_disk(autosave_timer.generation, &chunk_manager, &generator);
-    } else {
-        autosave_timer.step();
     }
 }
 
