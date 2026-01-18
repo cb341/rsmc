@@ -32,7 +32,7 @@ impl TerrainPlugin {
                     std::io::ErrorKind::StorageFull => {
                         eprintln!("Error: Not enough disk space to save.")
                     }
-                    _ => eprintln!("Unknown Error saving file: {}", err),
+                    _ => eprintln!("Unknown Error loading file: {}", err),
                 }
                 return Err(err);
             }
