@@ -11,6 +11,7 @@ A stupid little Minecraft clone written in Rust, powered by the Bevy engine.
 * World update synchronization between game clients
 * World physics using rapier
 * World updates using primitive ray casting
+* World persistence with `.rsmcw` files
 * Modular architecture using ECS
 
 ## Installation
@@ -26,7 +27,12 @@ Just run the cargo command to install the dependencies and start the game:
 ```bash
 cargo rs # run server
 cargo rc # run client
+```
 
+Loading world
+
+```bash
+car rs -- -w my_world.rsmcw
 ```
 
 ### More optimal setup
