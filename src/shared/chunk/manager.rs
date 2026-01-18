@@ -22,6 +22,15 @@ impl ChunkManager {
         }
     }
 
+    pub fn with_chunks(chunks: Vec<Chunk>) -> Self {
+        let chunks: HashMap<IVec3, Chunk> = chunks
+            .into_iter()
+            .map(|chunk| (chunk.position, chunk))
+            .collect();
+
+        Self { chunks }
+    }
+
     pub fn instantiate_chunks(position: IVec3, render_distance: IVec3) -> Vec<Chunk> {
         let render_distance_x = render_distance.x;
         let render_distance_y = render_distance.y;
@@ -73,8 +82,8 @@ impl ChunkManager {
         self.chunks.insert(position, chunk);
     }
 
-    pub fn get_chunk(&self, position: IVec3) -> Option<&Chunk> {
-        self.chunks.get(&position)
+    pub fn get_chunk(&self, position: &IVec3) -> Option<&Chunk> {
+        self.chunks.get(position)
     }
 
     pub fn get_chunk_mut(&mut self, position: &IVec3) -> Option<&mut Chunk> {
@@ -176,6 +185,10 @@ impl ChunkManager {
             .keys()
             .map(|key| IVec3::new(key[0], key[1], key[2]))
             .collect()
+    }
+
+    pub fn all_chunks(&self) -> Vec<&Chunk> {
+        self.chunks.values().collect()
     }
 }
 

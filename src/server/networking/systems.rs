@@ -4,6 +4,7 @@ pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
+    mut chunk_manager: ResMut<ChunkManager>,
     mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
@@ -20,6 +21,7 @@ pub fn receive_message_system(
                         "Received block update from client {} {} {:?}",
                         client_id, position, block
                     );
+                    chunk_manager.update_block(position, block);
                     past_block_updates
                         .updates
                         .push(terrain_events::BlockUpdateEvent { position, block });

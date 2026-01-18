@@ -1,6 +1,8 @@
+use crate::{
+    prelude::*,
+    terrain::{persistence::*, resources::Generator},
+};
 use std::cmp::min;
-
-use crate::prelude::*;
 
 pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
@@ -39,7 +41,7 @@ pub fn process_user_chunk_requests_system(
         let chunks = positions_to_process
             .into_par_iter()
             .map(|position| {
-                let chunk = chunk_manager.get_chunk(position);
+                let chunk = chunk_manager.get_chunk(&position);
 
                 match chunk {
                     Some(chunk) => *chunk,
@@ -62,6 +64,19 @@ pub fn process_user_chunk_requests_system(
 
         !positions.is_empty()
     });
+}
+
+pub fn periodic_autosave_system(
+    chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
+    mut autosave_timer: ResMut<terrain_resources::AutoSave>,
+) {
+    if autosave_timer.is_ready() {
+        println!("Performing automatic world save...");
+        if save_world_to_disk(autosave_timer.generation, &chunk_manager, &generator).is_ok() {
+            autosave_timer.reset();
+        }
+    }
 }
 
 #[cfg(feature = "generator_visualizer")]

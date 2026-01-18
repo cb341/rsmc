@@ -2,6 +2,8 @@ use std::collections::VecDeque;
 
 use crate::prelude::*;
 
+use chrono::{DateTime, Duration, Utc};
+use serde::{Deserialize, Serialize};
 use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]
@@ -30,57 +32,92 @@ impl ClientChunkRequests {
 }
 
 #[derive(Resource)]
-pub struct PastBlockUpdates {
-    pub updates: Vec<BlockUpdateEvent>,
+pub struct AutoSave {
+    pub last_autosave_timestamp: DateTime<Utc>,
+    pub interval: usize,
+    pub generation: usize,
 }
 
-impl Default for PastBlockUpdates {
+impl Default for AutoSave {
     fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl PastBlockUpdates {
-    pub fn new() -> Self {
+        let interval = 10_000;
         Self {
-            updates: Vec::new(),
+            last_autosave_timestamp: Utc::now(),
+            interval,
+            generation: 0,
         }
     }
 }
 
-#[derive(Resource)]
-pub struct Generator {
-    pub seed: u32,
-    pub perlin: Perlin,
-    pub params: TerrainGeneratorParams,
+const AUTO_SAVE_INTERVAL: chrono::TimeDelta = Duration::seconds(30);
+
+impl AutoSave {
+    pub fn reset(&mut self) {
+        self.last_autosave_timestamp = Utc::now();
+        self.generation += 1;
+    }
+
+    pub fn is_ready(&mut self) -> bool {
+        let enough_time_passed = self
+            .last_autosave_timestamp
+            .checked_add_signed(AUTO_SAVE_INTERVAL);
+
+        match enough_time_passed {
+            Some(d) => d < Utc::now(),
+            None => {
+                eprintln!("Date predicate overflowed!");
+                false
+            }
+        }
+    }
 }
 
+#[derive(Resource, Default)]
+pub struct PastBlockUpdates {
+    pub updates: Vec<BlockUpdateEvent>,
+}
+
+#[derive(Resource, Clone, Serialize, Deserialize)]
+pub struct Generator {
+    pub seed: u32,
+    pub params: TerrainGeneratorParams,
+
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
+    pub perlin: Perlin,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HeightParams {
     pub noise: NoiseFunctionParams,
     pub splines: Vec<Vec2>,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DensityParams {
     pub noise: NoiseFunctionParams,
     pub squash_factor: f64,
     pub height_offset: f64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CaveParams {
     pub noise: NoiseFunctionParams,
     pub base_value: f64,
     pub threshold: f64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HeightAdjustParams {
     pub noise: NoiseFunctionParams,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GrassParams {
     pub frequency: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct NoiseFunctionParams {
     pub octaves: u32,
     pub height: f64,
@@ -90,6 +127,7 @@ pub struct NoiseFunctionParams {
     pub persistence: f64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TreeParams {
     pub spawn_attempts_per_chunk: u32,
     pub min_stump_height: u32,
@@ -104,6 +142,13 @@ impl Default for Generator {
     }
 }
 
+impl Generator {
+    pub fn with_seed(seed: u32) -> Self {
+        Self::new(seed)
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TerrainGeneratorParams {
     pub height: HeightParams,
     pub height_adjust: HeightAdjustParams,
