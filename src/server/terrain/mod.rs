@@ -19,21 +19,18 @@ pub struct TerrainPlugin {
 impl TerrainPlugin {
     pub fn from_path(file_path: &String) -> std::result::Result<Self, std::io::Error> {
         println!("Loading world save from file '{}'", file_path);
-        let world_save = match persistence::read_world_save_from_disk(file_path) {
-            Ok(world_save) => world_save,
-            Err(err) => {
-                match err.kind() {
-                    std::io::ErrorKind::NotFound => {
-                        eprintln!("Error: Save File not found '{}'", file_path)
-                    }
-                    std::io::ErrorKind::PermissionDenied => {
-                        eprintln!("Error: Permission denied. Check file permissions '{}'.", file_path)
-                    }
-                    _ => eprintln!("Unknown Error loading file: {}", err),
+        let world_save = persistence::read_world_save_from_disk(file_path).map_err(|err| {
+            match err.kind() {
+                std::io::ErrorKind::NotFound => {
+                    eprintln!("Error: Save File not found '{}'", file_path)
                 }
-                return Err(err);
+                std::io::ErrorKind::PermissionDenied => {
+                    eprintln!("Error: Permission denied. Check file permissions '{}'.", file_path)
+                }
+                _ => eprintln!("Unknown Error loading file: {}", err),
             }
-        };
+            err
+        })?;
 
         Ok(Self {
             strategy: TerrainStrategy::LoadFromSave(Box::new(world_save)),
