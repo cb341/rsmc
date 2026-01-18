@@ -25,7 +25,10 @@ impl TerrainPlugin {
                     eprintln!("Error: Save File not found '{}'", file_path)
                 }
                 std::io::ErrorKind::PermissionDenied => {
-                    eprintln!("Error: Permission denied. Check file permissions '{}'.", file_path)
+                    eprintln!(
+                        "Error: Permission denied. Check file permissions '{}'.",
+                        file_path
+                    )
                 }
                 _ => eprintln!("Unknown Error loading file: {}", err),
             }
