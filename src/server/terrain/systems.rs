@@ -72,9 +72,9 @@ pub fn periodic_autosave_system(
     mut autosave_timer: ResMut<terrain_resources::AutoSave>,
 ) {
     if autosave_timer.is_ready() {
-        autosave_timer.reset();
         println!("Performing automatic world save...");
         save_world_to_disk(autosave_timer.generation, &chunk_manager, &generator);
+        autosave_timer.reset();
     }
 }
 
