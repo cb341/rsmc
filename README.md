@@ -33,7 +33,7 @@ cargo rc # run client
 Loading world
 
 ```bash
-car rs -- -w my_world.rsmcw
+cargo rs -- -w my_world.rsmcw
 ```
 
 ### More optimal setup
@@ -41,8 +41,8 @@ car rs -- -w my_world.rsmcw
 Release Builds (for better performance):
 
 ```bash
-cargo run rs --release
-cargo run rc --release
+cargo rs --release
+cargo rc --release
 ```
 
 Hot reload client

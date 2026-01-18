@@ -1,10 +1,11 @@
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::{fmt::Display, fs::File, io::Write, path::Path};
 
 use crate::{prelude::*, terrain::resources::Generator};
 
 const WORLDS_DIR: &str = "backups/";
-const SAVE_VERSION: &str = "0.1";
+const SAVE_VERSION: &str = "0.1.0";
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct WorldSave {
@@ -22,7 +23,7 @@ impl Display for WorldSave {
 
 impl WorldSave {
     fn name(generation: usize) -> String {
-        format!("world_backup_{}.rsmcw", generation)
+        format!("my_world_{}.rsmcw", Utc::now().format("%Y%m%d%H%M%S%3f"))
     }
 }
 
