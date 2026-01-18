@@ -5353,7 +5353,6 @@ dependencies = [
  "serde",
  "serde-big-array",
  "serde_derive",
- "serde_json",
 ]
 
 [[package]]
