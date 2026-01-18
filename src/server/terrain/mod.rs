@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, terrain::persistence::WorldSave};
 
 pub mod events;
 pub mod resources;
@@ -9,11 +9,39 @@ mod persistence;
 
 pub enum TerrainStrategy {
     SeededRandom(u32),
-    LoadFromFile(String),
+    LoadFromSave(WorldSave),
 }
 
 pub struct TerrainPlugin {
-    pub strategy: TerrainStrategy,
+    strategy: TerrainStrategy,
+}
+
+impl TerrainPlugin {
+    pub fn from_path(file_path: &String) -> std::result::Result<Self, std::io::Error> {
+        println!("Loading world save from file '{}'", file_path);
+        let world_save = match persistence::read_world_save_from_disk(file_path) {
+            Ok(world_save) => world_save,
+            Err(err) => {
+                match err.kind() {
+                    std::io::ErrorKind::NotFound => eprintln!("Error: Save File not found '{}'", file_path),
+                    std::io::ErrorKind::PermissionDenied => eprintln!("Error: Permission denied. Check file permissions."),
+                    std::io::ErrorKind::StorageFull => eprintln!("Error: Not enough disk space to save."),
+                    _ => eprintln!("Unknown Error saving file: {}", err),
+                }
+                return Err(err);
+            }
+        };
+
+        Ok(Self {
+            strategy: TerrainStrategy::LoadFromSave(world_save)
+        })
+    }
+
+    pub fn from_seed(seed: u32) -> TerrainPlugin {
+        Self {
+            strategy: TerrainStrategy::SeededRandom(seed)
+        }
+    }
 }
 
 impl Plugin for TerrainPlugin {
@@ -25,18 +53,11 @@ impl Plugin for TerrainPlugin {
                 app.insert_resource(resources::Generator::with_seed(*seed));
                 app.add_systems(Startup, terrain_systems::setup_world_system);
             }
-            TerrainStrategy::LoadFromFile(file_path) => {
-                println!("Loading world save from file '{}'", file_path);
-                let world_save = persistence::read_world_save_from_disk(file_path);
-                match world_save {
-                    Ok(world_save) => {
-                        let mut manager = ChunkManager::new();
-                        manager.insert_chunks(world_save.chunks.clone());
-                        app.insert_resource(manager);
-                        app.insert_resource(world_save.generator);
-                    }
-                    Err(err) => panic!("World could not be loaded! Err: {}", err),
-                }
+            TerrainStrategy::LoadFromSave(world_save) => {
+                let mut manager = ChunkManager::new();
+                manager.insert_chunks(world_save.chunks.clone());
+                app.insert_resource(manager);
+                app.insert_resource(world_save.generator.clone());
             }
         }
 

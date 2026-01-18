@@ -1,9 +1,5 @@
 use serde::Serialize;
-use std::{
-    fmt::Display,
-    fs::File,
-    io::Write, path::Path,
-};
+use std::{fmt::Display, fs::File, io::Write, path::Path};
 
 use crate::{prelude::*, terrain::resources::Generator};
 
@@ -61,13 +57,13 @@ pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, gener
     }
 }
 
-pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, Box<dyn std::error::Error>> {
+pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, std::io::Error> {
     use std::io::Read;
-    let mut file = File::open(Path::new(path)).expect("File can be loaded");
+    let mut file = File::open(Path::new(path))?;
 
     let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer)?;
-    let world_save: WorldSave = bincode::deserialize(&buffer)?;
+    file.read_to_end(&mut buffer).expect("File data is supposed to be readable");
+    let world_save: WorldSave = bincode::deserialize(&buffer).expect("World Save is supposed to be deserializable");
 
     Ok(world_save)
 }
