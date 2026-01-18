@@ -57,9 +57,7 @@ impl Plugin for TerrainPlugin {
                 app.add_systems(Startup, terrain_systems::setup_world_system);
             }
             TerrainStrategy::LoadFromSave(world_save) => {
-                let mut manager = ChunkManager::new();
-                manager.insert_chunks(world_save.chunks.clone());
-                app.insert_resource(manager);
+                app.insert_resource(ChunkManager::with_chunks(world_save.chunks.clone()));
                 app.insert_resource(world_save.generator.clone());
             }
         }

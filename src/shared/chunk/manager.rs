@@ -22,6 +22,15 @@ impl ChunkManager {
         }
     }
 
+    pub fn with_chunks(chunks: Vec<Chunk>) -> Self {
+        let chunks: HashMap<IVec3, Chunk> = chunks
+            .into_iter()
+            .map(|chunk| (chunk.position, chunk))
+            .collect();
+
+        Self { chunks }
+    }
+
     pub fn instantiate_chunks(position: IVec3, render_distance: IVec3) -> Vec<Chunk> {
         let render_distance_x = render_distance.x;
         let render_distance_y = render_distance.y;
