@@ -6,7 +6,7 @@ use crate::{prelude::*, terrain::resources::Generator};
 const WORLDS_DIR: &str = "backups/";
 const SAVE_VERSION: &str = "0.1";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct WorldSave {
     pub name: String,
     pub version: String,
@@ -40,7 +40,11 @@ fn save_world_to_file(world_save: WorldSave) -> Result<String, Box<dyn std::erro
     Ok(String::from(file_path_str))
 }
 
-pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, generator: &Generator) {
+pub fn save_world_to_disk(
+    generation: usize,
+    chunk_manager: &ChunkManager,
+    generator: &Generator,
+) -> Result<String, Box<dyn std::error::Error>> {
     let chunks = chunk_manager.all_chunks().into_iter().copied().collect();
     let generator = generator.clone();
 
@@ -52,8 +56,14 @@ pub fn save_world_to_disk(generation: usize, chunk_manager: &ChunkManager, gener
     };
 
     match save_world_to_file(world_save) {
-        Ok(path) => println!("Saved world backup to: '{}'", path),
-        Err(err) => error!("Error occured saving world: {}", err),
+        Ok(path) => {
+            println!("Saved world backup to: '{}'", path);
+            Ok(path)
+        }
+        Err(err) => {
+            error!("Error occured saving world: {}", err);
+            Err(err)
+        }
     }
 }
 
@@ -68,4 +78,46 @@ pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, std::io::Er
         bincode::deserialize(&buffer).expect("World Save is expected to be deserializable");
 
     Ok(world_save)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_save_and_read_world_from_disk() {
+        let common_name = String::from("my_world");
+
+        let written_save = WorldSave {
+            name: common_name.clone(),
+            ..Default::default()
+        };
+
+        let path = save_world_to_file(written_save).unwrap();
+        let read_save = read_world_save_from_disk(&path).unwrap();
+        assert!(read_save.chunks.is_empty());
+        assert_eq!(read_save.name, common_name);
+    }
+
+    #[test]
+    fn test_save_and_read_generated_world_from_disk() {
+        let generator = Generator::with_seed(0);
+        let mut chunk_manager = ChunkManager::new();
+        let mut chunks = ChunkManager::instantiate_chunks(IVec3::ZERO, IVec3::ONE);
+
+        assert!(!chunks.is_empty());
+
+        chunks.par_iter_mut().for_each(|chunk| {
+            generator.generate_chunk(chunk);
+        });
+
+        chunk_manager.insert_chunks(chunks);
+        save_world_to_disk(67, &chunk_manager, &generator).unwrap();
+
+        let world =
+            read_world_save_from_disk(&(String::from("backups/") + &WorldSave::name(67))).unwrap();
+        assert!(!world.chunks.is_empty());
+        assert!(world.name.contains("67"));
+        assert!(world.name.contains(".rsmcw"));
+    }
 }
