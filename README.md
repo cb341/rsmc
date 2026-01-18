@@ -11,7 +11,8 @@ A stupid little Minecraft clone written in Rust, powered by the Bevy engine.
 * World update synchronization between game clients
 * World physics using rapier
 * World updates using primitive ray casting
-* World persistence with `.rsmcw` files
+* World saving/loading with `.rsmcw` files
+* Periodic world backups in `./backups/` directory
 * Modular architecture using ECS
 
 ## Installation
