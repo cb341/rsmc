@@ -5352,7 +5352,6 @@ dependencies = [
  "renet_visualizer",
  "serde",
  "serde-big-array",
- "serde_derive",
 ]
 
 [[package]]
