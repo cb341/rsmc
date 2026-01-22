@@ -1,4 +1,5 @@
 use crate::{prelude::*, terrain::persistence::WorldSave};
+use rand::distr::{Alphanumeric, SampleString};
 
 pub mod events;
 pub mod resources;
@@ -17,17 +18,17 @@ pub struct TerrainPlugin {
 }
 
 impl TerrainPlugin {
-    pub fn from_path(file_path: &String) -> std::result::Result<Self, std::io::Error> {
-        println!("Loading world save from file '{}'", file_path);
-        let world_save = persistence::read_world_save_from_disk(file_path).map_err(|err| {
+    pub fn from_world_name(world_name: &String) -> std::result::Result<Self, std::io::Error> {
+        println!("Loading world '{}'", world_name);
+        let world_save = persistence::read_world_from_name(world_name).map_err(|err| {
             match err.kind() {
                 std::io::ErrorKind::NotFound => {
-                    eprintln!("Error: Save File not found '{}'", file_path)
+                    eprintln!("Error: Save File not found '{}'. Make sure it is located within 'worlds/' directory", world_name)
                 }
                 std::io::ErrorKind::PermissionDenied => {
                     eprintln!(
                         "Error: Permission denied. Check file permissions '{}'.",
-                        file_path
+                        world_name
                     )
                 }
                 _ => eprintln!("Unknown Error loading file: {}", err),
@@ -51,12 +52,16 @@ impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         match &self.strategy {
             TerrainStrategy::SeededRandom(seed) => {
-                println!("Generating new world with seed [{}]", seed);
+                let random_name = Alphanumeric.sample_string(&mut rand::rng(), 16);
+                println!("Generating new world '{}' with seed [{}]", random_name, seed);
+
+                app.insert_resource(resources::AutoSaveName::with_name(random_name));
                 app.insert_resource(ChunkManager::new());
                 app.insert_resource(resources::Generator::with_seed(*seed));
                 app.add_systems(Startup, terrain_systems::setup_world_system);
             }
             TerrainStrategy::LoadFromSave(world_save) => {
+                app.insert_resource(resources::AutoSaveName::with_name(world_save.name.clone()));
                 app.insert_resource(ChunkManager::with_chunks(world_save.chunks.clone()));
                 app.insert_resource(world_save.generator.clone());
             }
@@ -64,7 +69,8 @@ impl Plugin for TerrainPlugin {
 
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.insert_resource(resources::PastBlockUpdates::default());
-        app.insert_resource(resources::AutoSave::default());
+        app.insert_resource(resources::AutoSaveTimer::default());
+        app.insert_resource(resources::AutoBackupTimer::default());
         app.add_systems(Update, terrain_systems::process_user_chunk_requests_system);
         app.add_systems(Update, terrain_systems::periodic_autosave_system);
         app.insert_resource(resources::ClientChunkRequests::default());

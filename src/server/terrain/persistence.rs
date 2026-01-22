@@ -1,76 +1,102 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use std::{fmt::Display, fs::File, io::Write, path::Path};
+use std::{fmt::Display, fs::{self, File}, io::Write, path::{Path, PathBuf}};
 
 use crate::{prelude::*, terrain::resources::Generator};
 
-const WORLDS_DIR: &str = "backups/";
-const SAVE_VERSION: &str = "0.1.0";
+const BACKUPS_DIR: &str = "backups/";
+const WORLDS_DIR: &str = "worlds/";
+const WORLD_EXTENSION: &str = ".rsmcw";
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct WorldSave {
     pub name: String,
-    pub version: String,
     pub generator: Generator,
     pub chunks: Vec<Chunk>,
 }
 
 impl Display for WorldSave {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}[{}]", self.name, self.version)
+        write!(f, "{}[{} chunks]", self.name, self.chunks.len())
     }
 }
 
 impl WorldSave {
-    fn name(generation: usize) -> String {
-        format!("my_world_{}.rsmcw", Utc::now().format("%Y%m%d%H%M%S%3f"))
+    fn backup_path(&self) -> PathBuf {
+        path_for_world_backup(&self.name, Utc::now())
+    }
+
+    fn save_path(&self) -> PathBuf {
+        path_for_world(&self.name)
     }
 }
 
-fn save_world_to_file(world_save: WorldSave) -> Result<String, Box<dyn std::error::Error>> {
-    std::fs::create_dir_all(WORLDS_DIR)?;
+fn path_for_world(world_name: &str) -> PathBuf {
+    let file_name = format!("{}{}", world_name, WORLD_EXTENSION);
+    PathBuf::from(WORLDS_DIR).join(file_name)
+}
 
-    let file_path_str: &str = &(String::from(WORLDS_DIR) + &world_save.name);
+fn path_for_world_backup(world_name: &str, timestamp: DateTime<Utc>) -> PathBuf {
+    let file_name = format!("{}_{}.rsmcw.bak", world_name, timestamp.format("%Y%m%d%H%M%S%3f"));
+    PathBuf::from(BACKUPS_DIR).join(file_name)
+}
 
-    let path = Path::new(file_path_str);
+fn upsert_file(world_save: &WorldSave, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
     let mut file = File::create(path)?;
-    let serialized = bincode::serialize(&world_save)?;
+    let serialized = bincode::serialize(world_save)?;
     file.write_all(&serialized)?;
     file.flush()?;
 
-    Ok(String::from(file_path_str))
+    Ok(())
 }
 
-pub fn save_world_to_disk(
-    generation: usize,
-    chunk_manager: &ChunkManager,
-    generator: &Generator,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub fn build_world_save_from_resources(name: &str, chunk_manager: &ChunkManager, generator: &Generator) -> WorldSave {
     let chunks = chunk_manager.all_chunks().into_iter().copied().collect();
     let generator = generator.clone();
 
-    let world_save = WorldSave {
-        name: WorldSave::name(generation),
-        version: String::from(SAVE_VERSION),
+     WorldSave {
+        name: String::from(name),
         generator,
         chunks,
-    };
-
-    match save_world_to_file(world_save) {
-        Ok(path) => {
-            println!("Saved world backup to: '{}'", path);
-            Ok(path)
-        }
-        Err(err) => {
-            error!("Error occured saving world: {}", err);
-            Err(err)
-        }
     }
 }
 
-pub fn read_world_save_from_disk(path: &String) -> Result<WorldSave, std::io::Error> {
+pub fn persist_world(
+    name: &str,
+    chunk_manager: &ChunkManager,
+    generator: &Generator,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let world_save = build_world_save_from_resources(name, chunk_manager, generator);
+    create_backup(&world_save)?;
+    update_world_file(&world_save)
+}
+
+fn create_backup(world_save: &WorldSave) -> Result<(), Box<dyn std::error::Error>> {
+    let path = world_save.backup_path();
+    upsert_file(world_save, &path)?;
+    println!("Saved world backup to: '{}'", path.display());
+    Ok(())
+}
+
+fn update_world_file(world_save: &WorldSave) -> Result<(), Box<dyn std::error::Error>> {
+    let path = world_save.save_path();
+    upsert_file(world_save, &path)?;
+    println!("Updated world file: '{}'", path.display());
+    Ok(())
+}
+
+pub fn read_world_from_name(name: &str) -> Result<WorldSave, std::io::Error> {
+    let path  = path_for_world(name);
+    Ok(read_world_save_from_disk(&path)?)
+}
+
+fn read_world_save_from_disk(path: &Path) -> Result<WorldSave, std::io::Error> {
     use std::io::Read;
-    let mut file = File::open(Path::new(path))?;
+    let mut file = File::open(path)?;
 
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)
@@ -116,7 +142,7 @@ mod tests {
         save_world_to_disk(67, &chunk_manager, &generator).unwrap();
 
         let world =
-            read_world_save_from_disk(&(String::from("backups/") + &WorldSave::name(67))).unwrap();
+            read_world_save_from_disk(&(String::from("backups/") + &WorldSave::name_with_time_and_extension(67))).unwrap();
         assert!(!world.chunks.is_empty());
         assert!(world.name.contains("67"));
         assert!(world.name.contains(".rsmcw"));

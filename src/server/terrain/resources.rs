@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use crate::prelude::*;
 
 use chrono::{DateTime, Duration, Utc};
+use rand::distr::{Alphanumeric, SampleString};
 use serde::{Deserialize, Serialize};
 use terrain_events::BlockUpdateEvent;
 
@@ -32,42 +33,45 @@ impl ClientChunkRequests {
 }
 
 #[derive(Resource)]
-pub struct AutoSave {
-    pub last_autosave_timestamp: DateTime<Utc>,
-    pub interval: usize,
-    pub generation: usize,
-}
+pub struct AutoSaveName(pub String);
 
-impl Default for AutoSave {
-    fn default() -> Self {
-        let interval = 10_000;
-        Self {
-            last_autosave_timestamp: Utc::now(),
-            interval,
-            generation: 0,
-        }
+impl AutoSaveName {
+    pub fn with_name(name: String) -> Self {
+        Self(name)
+    }
+
+    pub fn with_random() -> Self {
+        Self(Alphanumeric.sample_string(&mut rand::rng(), 16))
     }
 }
 
-const AUTO_SAVE_INTERVAL: chrono::TimeDelta = Duration::seconds(30);
+#[derive(Resource, Default)]
+pub struct AutoSaveTimer {
+    pub last_autosave_timestamp: Option<DateTime<Utc>>,
+}
 
-impl AutoSave {
+const AUTO_SAVE_INTERVAL: chrono::TimeDelta = Duration::seconds(60);
+
+impl AutoSaveTimer {
     pub fn reset(&mut self) {
-        self.last_autosave_timestamp = Utc::now();
-        self.generation += 1;
+        self.last_autosave_timestamp = Some(Utc::now());
     }
 
     pub fn is_ready(&mut self) -> bool {
-        let enough_time_passed = self
-            .last_autosave_timestamp
-            .checked_add_signed(AUTO_SAVE_INTERVAL);
+        match self.last_autosave_timestamp {
+            Some(timestamp) => {
+                let enough_time_passed = timestamp
+                    .checked_add_signed(AUTO_SAVE_INTERVAL);
 
-        match enough_time_passed {
-            Some(d) => d < Utc::now(),
-            None => {
-                eprintln!("Date predicate overflowed!");
-                false
+                match enough_time_passed {
+                    Some(d) => d < Utc::now(),
+                    None => {
+                        eprintln!("Date predicate overflowed!");
+                        false
+                    }
+                }
             }
+            None => true,
         }
     }
 }

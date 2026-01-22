@@ -8,7 +8,7 @@ pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
     generator: Res<terrain_resources::Generator>,
 ) {
-    let render_distance = IVec3::new(8, 3, 8);
+    let render_distance = IVec3::new(4, 3, 4);
 
     info!("Generating chunks");
 
@@ -69,11 +69,12 @@ pub fn process_user_chunk_requests_system(
 pub fn periodic_autosave_system(
     chunk_manager: Res<ChunkManager>,
     generator: Res<Generator>,
-    mut autosave_timer: ResMut<terrain_resources::AutoSave>,
+    world_name: ResMut<terrain_resources::AutoSaveName>,
+    mut autosave_timer: ResMut<terrain_resources::AutoSaveTimer>,
 ) {
     if autosave_timer.is_ready() {
         println!("Performing automatic world save...");
-        if save_world_to_disk(autosave_timer.generation, &chunk_manager, &generator).is_ok() {
+        if persist_world(&world_name.0, &chunk_manager, &generator).is_ok() {
             autosave_timer.reset();
         }
     }

@@ -20,7 +20,7 @@ use crate::prelude::*;
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long, default_value = None)]
-    world_file_path: Option<String>,
+    world_name: Option<String>,
 }
 
 fn main() {
@@ -41,10 +41,10 @@ fn main() {
     }
 
     let args = Args::parse();
-    let file_path = args.world_file_path;
-    let terrain_plugin = file_path
+    let file_pathworld_name = args.world_name;
+    let terrain_plugin = file_pathworld_name
         .as_ref()
-        .and_then(|path| terrain::TerrainPlugin::from_path(path).ok())
+        .and_then(|world_name| terrain::TerrainPlugin::from_world_name(world_name).ok())
         .unwrap_or_else(|| terrain::TerrainPlugin::from_seed(0));
     app.add_plugins(terrain_plugin);
 
@@ -54,5 +54,6 @@ fn main() {
     #[cfg(feature = "chat")]
     app.add_plugins(chat::ChatPlugin);
 
+    println!("Application is starting!");
     app.run();
 }
