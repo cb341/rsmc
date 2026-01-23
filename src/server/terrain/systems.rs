@@ -94,6 +94,21 @@ pub fn backup_world_system(
     }
 }
 
+pub fn save_world_on_shutdown_system(
+    chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
+    world_name: ResMut<terrain_resources::AutoSaveName>,
+    mut exit_events: MessageReader<AppExit>,
+) {
+    if exit_events.read().count() != 0 {
+        match save_world(&world_name.0, &chunk_manager, &generator) {
+            Ok(_) => println!("Saved world before exiting"),
+            Err(err) => eprintln!("Error saving world: {}", err),
+        }
+    }
+}
+
+use bevy::app::AppExit;
 #[cfg(feature = "generator_visualizer")]
 pub use visualizer::*;
 

@@ -4,6 +4,7 @@ pub mod player;
 pub mod prelude;
 pub mod terrain;
 
+use bevy::app::TerminalCtrlCHandlerPlugin;
 use clap::{command, Parser};
 
 #[cfg(feature = "egui_layer")]
@@ -26,6 +27,7 @@ struct Cli {
 
 fn main() {
     let mut app = App::new();
+    app.add_plugins(TerminalCtrlCHandlerPlugin);
 
     #[cfg(not(feature = "egui_layer"))]
     {

@@ -79,6 +79,7 @@ impl Plugin for TerrainPlugin {
         app.add_systems(Update, terrain_systems::process_user_chunk_requests_system);
         app.add_systems(Update, terrain_systems::save_world_system);
         app.add_systems(Update, terrain_systems::backup_world_system);
+        app.add_systems(Last, terrain_systems::save_world_on_shutdown_system);
         app.insert_resource(resources::ClientChunkRequests::default());
 
         #[cfg(feature = "generator_visualizer")]
