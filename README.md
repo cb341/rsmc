@@ -45,7 +45,7 @@ cargo rs --release
 cargo rc --release
 ```
 
-Hot reload client
+Hot patch client
 
 ```bash
 bin/dev
