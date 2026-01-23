@@ -41,12 +41,16 @@ fn main() {
     }
 
     let args = Args::parse();
-    let file_pathworld_name = args.world_name;
-    let terrain_plugin = file_pathworld_name
-        .as_ref()
-        .and_then(|world_name| terrain::TerrainPlugin::from_world_name(world_name).ok())
-        .unwrap_or_else(|| terrain::TerrainPlugin::from_seed(0));
-    app.add_plugins(terrain_plugin);
+
+    let terrain_plugin = match args.world_name {
+        Some(world_name) => terrain::TerrainPlugin::from_world_name(&world_name),
+        None => Ok(terrain::TerrainPlugin::from_seed(0))
+    };
+
+    match terrain_plugin {
+        Ok(terrain_plugin) => {app.add_plugins(terrain_plugin);},
+        Err(error) => { eprintln!("Error: {}", error); return }
+    };
 
     app.add_plugins(player::PlayerPlugin);
     app.add_plugins(networking::NetworkingPlugin);
