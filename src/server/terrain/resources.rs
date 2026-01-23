@@ -106,15 +106,10 @@ impl SaveTimer {
     pub fn is_ready(&self) -> bool {
         match self.last_autosave_timestamp {
             Some(timestamp) => {
-                let enough_time_passed = timestamp.checked_add_signed(self.interval);
-
-                match enough_time_passed {
-                    Some(d) => d < Utc::now(),
-                    None => {
-                        eprintln!("Err");
-                        false
-                    }
-                }
+                let timer_ready_timestamp = timestamp
+                    .checked_add_signed(self.interval)
+                    .expect("Time should never be out of range");
+                timer_ready_timestamp < Utc::now()
             }
             None => true,
         }

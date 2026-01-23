@@ -73,7 +73,7 @@ pub fn save_world_system(
     mut timer: ResMut<terrain_resources::WorldSaveTimer>,
 ) {
     if timer.is_ready() {
-        info!("Saving world");
+        info!("Saving world...");
         if save_world(&world_name.0, &chunk_manager, &generator).is_ok() {
             timer.reset();
         }
@@ -87,7 +87,7 @@ pub fn backup_world_system(
     mut timer: ResMut<terrain_resources::WorldBackupTimer>,
 ) {
     if timer.is_ready() {
-        println!("Backing up world..");
+        println!("Backing up world...");
         if backup_world(&world_name.0, &chunk_manager, &generator).is_ok() {
             timer.reset();
         }
