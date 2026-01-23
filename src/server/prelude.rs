@@ -4,7 +4,7 @@ pub use std::net::UdpSocket;
 pub use std::time::SystemTime;
 
 // bevy crates
-pub use bevy::app::{App, Plugin, Startup, Update, PreUpdate, Last};
+pub use bevy::app::{App, Last, Plugin, PreUpdate, Startup, Update};
 pub use bevy::ecs::event::*;
 pub use bevy::ecs::message::Message;
 pub use bevy::ecs::message::*;

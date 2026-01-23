@@ -47,14 +47,14 @@ impl AutoSaveName {
 
 #[derive(Resource)]
 struct SaveTimer {
-    pub last_autosave_timestamp: Option<DateTime<Utc>>,
+    pub last_autosave_timestamp: DateTime<Utc>,
     interval: chrono::TimeDelta,
 }
 
 impl SaveTimer {
     pub fn new(interval: TimeDelta) -> SaveTimer {
         SaveTimer {
-            last_autosave_timestamp: None,
+            last_autosave_timestamp: Utc::now(),
             interval,
         }
     }
@@ -100,19 +100,15 @@ impl Default for WorldSaveTimer {
 
 impl SaveTimer {
     pub fn reset(&mut self) {
-        self.last_autosave_timestamp = Some(Utc::now());
+        self.last_autosave_timestamp = Utc::now();
     }
 
     pub fn is_ready(&self) -> bool {
-        match self.last_autosave_timestamp {
-            Some(timestamp) => {
-                let timer_ready_timestamp = timestamp
-                    .checked_add_signed(self.interval)
-                    .expect("Time should never be out of range");
-                timer_ready_timestamp < Utc::now()
-            }
-            None => true,
-        }
+        let timer_ready_timestamp = self
+            .last_autosave_timestamp
+            .checked_add_signed(self.interval)
+            .expect("Time should never be out of range");
+        timer_ready_timestamp < Utc::now()
     }
 }
 
