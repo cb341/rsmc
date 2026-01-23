@@ -1,5 +1,4 @@
 use crate::{prelude::*, terrain::persistence::WorldSave};
-use rand::distr::{Alphanumeric, SampleString};
 
 pub mod events;
 pub mod resources;
@@ -9,7 +8,7 @@ pub mod util;
 mod persistence;
 
 pub enum TerrainStrategy {
-    SeededRandom(u32),
+    SeededRandom(String, u32),
     LoadFromSave(Box<WorldSave>),
 }
 
@@ -18,7 +17,7 @@ pub struct TerrainPlugin {
 }
 
 impl TerrainPlugin {
-    pub fn from_world_name(world_name: &str) -> Result<Self, String> {
+    pub fn load_from_save(world_name: &str) -> Result<Self, String> {
         println!("Loading world '{}'...", world_name);
         let world_save = persistence::read_world_save_by_name(world_name).map_err(|err| {
             match err.kind() {
@@ -40,9 +39,16 @@ impl TerrainPlugin {
         })
     }
 
-    pub fn from_seed(seed: u32) -> TerrainPlugin {
-        Self {
-            strategy: TerrainStrategy::SeededRandom(seed),
+    pub fn new_with_seed(world_name: String, replace: bool, seed: u32) -> Result<Self, String> {
+        if !replace && persistence::world_save_exists(&world_name) {
+            Err(format!(
+                "World Save '{}' already exists, pass replace flag if you want to replace it",
+                world_name
+            ))
+        } else {
+            Ok(Self {
+                strategy: TerrainStrategy::SeededRandom(world_name, seed),
+            })
         }
     }
 }
@@ -50,14 +56,10 @@ impl TerrainPlugin {
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         match &self.strategy {
-            TerrainStrategy::SeededRandom(seed) => {
-                let random_name = Alphanumeric.sample_string(&mut rand::rng(), 16);
-                println!(
-                    "Generating new world '{}' with seed [{}]",
-                    random_name, seed
-                );
+            TerrainStrategy::SeededRandom(world_name, seed) => {
+                println!("Generating new world '{}' with seed [{}]", world_name, seed);
 
-                app.insert_resource(resources::AutoSaveName::with_name(random_name));
+                app.insert_resource(resources::AutoSaveName::with_name(world_name.clone()));
                 app.insert_resource(ChunkManager::new());
                 app.insert_resource(resources::Generator::with_seed(*seed));
                 app.add_systems(Startup, terrain_systems::setup_world_system);

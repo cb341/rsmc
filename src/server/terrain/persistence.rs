@@ -47,9 +47,10 @@ mod path_helpers {
 
     pub fn path_for_world_backup(world_name: &str, timestamp: DateTime<Utc>) -> PathBuf {
         let file_name = format!(
-            "{}_{}.rsmcw.bak",
+            "{}_{}{}.bak",
             world_name,
-            timestamp.format("%Y%m%d%H%M%S%3f")
+            timestamp.format("%Y%m%d%H%M%S%3f"),
+            WORLD_EXTENSION,
         );
         PathBuf::from(BACKUPS_DIR).join(file_name)
     }
@@ -100,6 +101,11 @@ fn update_world_file(world_save: &WorldSave) -> Result<(), Box<dyn Error>> {
 pub use ecs_api::*;
 pub mod ecs_api {
     use super::*;
+
+    pub fn world_save_exists(name: &str) -> bool {
+        let path = path_helpers::path_for_world(name);
+        Path::new(&path).is_file()
+    }
 
     pub fn save_world(
         name: &str,

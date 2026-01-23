@@ -4,7 +4,7 @@ pub mod player;
 pub mod prelude;
 pub mod terrain;
 
-use clap::Parser;
+use clap::{arg, command, Parser, Subcommand};
 
 #[cfg(feature = "egui_layer")]
 use bevy::DefaultPlugins;
@@ -13,14 +13,31 @@ pub mod gui;
 
 #[cfg(not(feature = "egui_layer"))]
 use bevy::log::LogPlugin;
+use rand::RngCore;
 
 use crate::prelude::*;
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Subcommand)]
+enum Commands {
+    GenerateWorld {
+        #[arg(required = true)]
+        world_name: String,
+        #[arg(short, long = "replace", help = "Replace existing")]
+        replace_existing: bool,
+        #[arg(short, long)]
+        seed: Option<u32>,
+    },
+    LoadWorld {
+        #[arg()]
+        world_name: String,
+    },
+}
+
+#[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
-struct Args {
-    #[arg(short, long, default_value = None)]
-    world_name: Option<String>,
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
 }
 
 fn main() {
@@ -40,16 +57,26 @@ fn main() {
         app.add_systems(Startup, gui::setup_camera_system);
     }
 
-    let args = Args::parse();
+    let args = Cli::parse();
 
-    let terrain_plugin = match args.world_name {
-        Some(world_name) => terrain::TerrainPlugin::from_world_name(&world_name),
-        None => Ok(terrain::TerrainPlugin::from_seed(0))
+    let terrain_plugin = match args.command {
+        Commands::GenerateWorld {
+            world_name,
+            replace_existing,
+            seed,
+        } => {
+            let seed = seed.unwrap_or_else(|| rand::rng().next_u32());
+            terrain::TerrainPlugin::new_with_seed(world_name, replace_existing, seed)
+        }
+        Commands::LoadWorld { world_name } => terrain::TerrainPlugin::load_from_save(&world_name),
     };
 
     match terrain_plugin {
-        Ok(terrain_plugin) => {app.add_plugins(terrain_plugin);},
-        Err(error) => { eprintln!("Error: {}", error); return }
+        Ok(terrain_plugin) => app.add_plugins(terrain_plugin),
+        Err(error) => {
+            eprintln!("Error: {}", error);
+            return;
+        }
     };
 
     app.add_plugins(player::PlayerPlugin);
@@ -58,6 +85,6 @@ fn main() {
     #[cfg(feature = "chat")]
     app.add_plugins(chat::ChatPlugin);
 
-    println!("Application is starting!");
+    println!("Server is starting!");
     app.run();
 }
