@@ -20,7 +20,7 @@ pub struct TerrainPlugin {
 impl TerrainPlugin {
     pub fn from_world_name(world_name: &String) -> std::result::Result<Self, std::io::Error> {
         println!("Loading world '{}'", world_name);
-        let world_save = persistence::read_world_from_name(world_name).map_err(|err| {
+        let world_save = persistence::read_world_save_by_name(world_name).map_err(|err| {
             match err.kind() {
                 std::io::ErrorKind::NotFound => {
                     eprintln!("Error: Save File not found '{}'. Make sure it is located within 'worlds/' directory", world_name)
