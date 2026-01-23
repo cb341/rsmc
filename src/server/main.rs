@@ -17,7 +17,8 @@ use bevy::log::LogPlugin;
 use crate::prelude::*;
 
 #[derive(Debug, Parser)]
-#[command(version, about, long_about = None)]
+#[command(version)]
+#[command(long_about = None)]
 struct Cli {
     #[command(subcommand)]
     world_commands: terrain_commands::WorldCommands,
