@@ -110,23 +110,30 @@ fn update_world_file(world_save: &WorldSave) -> Result<(), Box<dyn std::error::E
     Ok(())
 }
 
-pub fn read_world_from_name(name: &str) -> Result<WorldSave, std::io::Error> {
-    let path = path_for_world(name);
-    read_world_save_from_disk(&path)
-}
+pub use ecs_api::*;
 
-fn read_world_save_from_disk(path: &Path) -> Result<WorldSave, std::io::Error> {
-    use std::io::Read;
-    let mut file = File::open(path)?;
+pub mod ecs_api {
+    use super::*;
 
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer)
-        .expect("File data is supposed to be readable");
-    let world_save: WorldSave =
+    pub fn read_world_from_name(name: &str) -> Result<WorldSave, std::io::Error> {
+        let path = path_for_world(name);
+        read_world_save_from_disk(&path)
+    }
+
+    fn read_world_save_from_disk(path: &Path) -> Result<WorldSave, std::io::Error> {
+        use std::io::Read;
+        let mut file = File::open(path)?;
+
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer)
+            .expect("File data is supposed to be readable");
+        let world_save: WorldSave =
         bincode::deserialize(&buffer).expect("World Save is expected to be deserializable");
 
-    Ok(world_save)
+        Ok(world_save)
+    }
 }
+
 
 #[cfg(test)]
 mod tests {
