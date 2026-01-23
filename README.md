@@ -30,12 +30,6 @@ cargo rs # run server
 cargo rc # run client
 ```
 
-Loading world
-
-```bash
-cargo rs -- -w my_world.rsmcw
-```
-
 ### More optimal setup
 
 Release Builds (for better performance):
