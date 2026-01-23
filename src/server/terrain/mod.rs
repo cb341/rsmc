@@ -1,5 +1,8 @@
+use std::io::ErrorKind::{NotFound, PermissionDenied};
+
 use crate::{prelude::*, terrain::persistence::WorldSave};
 
+pub mod commands;
 pub mod events;
 pub mod resources;
 pub mod systems;
@@ -19,20 +22,18 @@ pub struct TerrainPlugin {
 impl TerrainPlugin {
     pub fn load_from_save(world_name: &str) -> Result<Self, String> {
         println!("Loading world '{}'...", world_name);
-        let world_save = persistence::read_world_save_by_name(world_name).map_err(|err| {
-            match err.kind() {
-                std::io::ErrorKind::NotFound => {
-                    format!("Save File '{}' not found. Make sure it is located within 'worlds/' directory", world_name)
-                }
-                std::io::ErrorKind::PermissionDenied => {
-                    format!(
-                        "Permission denied. Check file permissions '{}'.",
-                        world_name
-                    )
-                }
-                _ => format!("Unknown Error loading file: {}", err)
-            }
-        })?;
+        let world_save =
+            persistence::read_world_save_by_name(world_name).map_err(|err| match err.kind() {
+                NotFound => format!(
+                    "Save File '{}' not found. Make sure it is located within 'worlds/' directory",
+                    world_name
+                ),
+                PermissionDenied => format!(
+                    "Permission denied. Check file permissions '{}'.",
+                    world_name
+                ),
+                _ => format!("Unknown Error loading file: {}", err),
+            })?;
 
         Ok(Self {
             strategy: TerrainStrategy::LoadFromSave(Box::new(world_save)),

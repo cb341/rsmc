@@ -4,7 +4,7 @@ pub mod player;
 pub mod prelude;
 pub mod terrain;
 
-use clap::{arg, command, Parser, Subcommand};
+use clap::{command, Parser};
 
 #[cfg(feature = "egui_layer")]
 use bevy::DefaultPlugins;
@@ -13,31 +13,14 @@ pub mod gui;
 
 #[cfg(not(feature = "egui_layer"))]
 use bevy::log::LogPlugin;
-use rand::RngCore;
 
 use crate::prelude::*;
-
-#[derive(Debug, Subcommand)]
-enum Commands {
-    GenerateWorld {
-        #[arg(required = true)]
-        world_name: String,
-        #[arg(short, long = "replace", help = "Replace existing")]
-        replace_existing: bool,
-        #[arg(short, long)]
-        seed: Option<u32>,
-    },
-    LoadWorld {
-        #[arg()]
-        world_name: String,
-    },
-}
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    world_commands: terrain_commands::WorldCommands,
 }
 
 fn main() {
@@ -58,20 +41,7 @@ fn main() {
     }
 
     let args = Cli::parse();
-
-    let terrain_plugin = match args.command {
-        Commands::GenerateWorld {
-            world_name,
-            replace_existing,
-            seed,
-        } => {
-            let seed = seed.unwrap_or_else(|| rand::rng().next_u32());
-            terrain::TerrainPlugin::new_with_seed(world_name, replace_existing, seed)
-        }
-        Commands::LoadWorld { world_name } => terrain::TerrainPlugin::load_from_save(&world_name),
-    };
-
-    match terrain_plugin {
+    match terrain::TerrainPlugin::from_command(args.world_commands) {
         Ok(terrain_plugin) => app.add_plugins(terrain_plugin),
         Err(error) => {
             eprintln!("Error: {}", error);
