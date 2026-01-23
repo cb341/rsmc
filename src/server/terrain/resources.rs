@@ -75,7 +75,7 @@ impl WorldBackupTimer {
 
 impl Default for WorldBackupTimer {
     fn default() -> Self {
-        Self(SaveTimer::new(TimeDelta::seconds(15)))
+        Self(SaveTimer::new(TimeDelta::seconds(180)))
     }
 }
 
@@ -94,7 +94,7 @@ impl WorldSaveTimer {
 
 impl Default for WorldSaveTimer {
     fn default() -> Self {
-        Self(SaveTimer::new(TimeDelta::seconds(120)))
+        Self(SaveTimer::new(TimeDelta::seconds(30)))
     }
 }
 
