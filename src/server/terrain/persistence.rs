@@ -132,14 +132,9 @@ pub mod ecs_api {
 }
 
 fn read_world_by_path(path: &Path) -> Result<WorldSave, std::io::Error> {
-    use std::io::Read;
-    let mut file = File::open(path)?;
-
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer)
-        .expect("File data is supposed to be readable");
+    let buffer = std::fs::read(path)?;
     let world_save: WorldSave =
-        bincode::deserialize(&buffer).expect("World Save is expected to be deserializable");
+        bincode::deserialize(&buffer).expect("World Save should to be deserializable");
 
     Ok(world_save)
 }
