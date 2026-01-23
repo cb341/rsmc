@@ -1,10 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::{
-    fmt::Display,
-    fs::{self, File},
-    io::Write,
-    path::{Path, PathBuf},
+    error::Error, fmt::Display, fs::{self, File}, io::Write, path::{Path, PathBuf}
 };
 
 use crate::{prelude::*, terrain::resources::Generator};
@@ -50,7 +47,7 @@ fn path_for_world_backup(world_name: &str, timestamp: DateTime<Utc>) -> PathBuf 
     PathBuf::from(BACKUPS_DIR).join(file_name)
 }
 
-fn upsert_file(world_save: &WorldSave, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn upsert_file(world_save: &WorldSave, path: &Path) -> Result<(), Box<dyn Error>> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -82,7 +79,7 @@ pub fn save_world(
     name: &str,
     chunk_manager: &ChunkManager,
     generator: &Generator,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     let world_save = build_world_save_from_resources(name, chunk_manager, generator);
     update_world_file(&world_save)
 }
@@ -91,19 +88,19 @@ pub fn backup_world(
     name: &str,
     chunk_manager: &ChunkManager,
     generator: &Generator,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     let world_save = build_world_save_from_resources(name, chunk_manager, generator);
     create_backup(&world_save)
 }
 
-fn create_backup(world_save: &WorldSave) -> Result<(), Box<dyn std::error::Error>> {
+fn create_backup(world_save: &WorldSave) -> Result<(), Box<dyn Error>> {
     let path = world_save.backup_path();
     upsert_file(world_save, &path)?;
     println!("Saved world backup to: '{}'", path.display());
     Ok(())
 }
 
-fn update_world_file(world_save: &WorldSave) -> Result<(), Box<dyn std::error::Error>> {
+fn update_world_file(world_save: &WorldSave) -> Result<(), Box<dyn Error>> {
     let path = world_save.save_path();
     upsert_file(world_save, &path)?;
     println!("Updated world file: '{}'", path.display());
