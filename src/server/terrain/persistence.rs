@@ -1,6 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use std::{fmt::Display, fs::{self, File}, io::Write, path::{Path, PathBuf}};
+use std::{
+    fmt::Display,
+    fs::{self, File},
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 use crate::{prelude::*, terrain::resources::Generator};
 
@@ -37,7 +42,11 @@ fn path_for_world(world_name: &str) -> PathBuf {
 }
 
 fn path_for_world_backup(world_name: &str, timestamp: DateTime<Utc>) -> PathBuf {
-    let file_name = format!("{}_{}.rsmcw.bak", world_name, timestamp.format("%Y%m%d%H%M%S%3f"));
+    let file_name = format!(
+        "{}_{}.rsmcw.bak",
+        world_name,
+        timestamp.format("%Y%m%d%H%M%S%3f")
+    );
     PathBuf::from(BACKUPS_DIR).join(file_name)
 }
 
@@ -54,25 +63,37 @@ fn upsert_file(world_save: &WorldSave, path: &Path) -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-pub fn build_world_save_from_resources(name: &str, chunk_manager: &ChunkManager, generator: &Generator) -> WorldSave {
+fn build_world_save_from_resources(
+    name: &str,
+    chunk_manager: &ChunkManager,
+    generator: &Generator,
+) -> WorldSave {
     let chunks = chunk_manager.all_chunks().into_iter().copied().collect();
     let generator = generator.clone();
 
-     WorldSave {
+    WorldSave {
         name: String::from(name),
         generator,
         chunks,
     }
 }
 
-pub fn persist_world(
+pub fn save_world(
     name: &str,
     chunk_manager: &ChunkManager,
     generator: &Generator,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let world_save = build_world_save_from_resources(name, chunk_manager, generator);
-    create_backup(&world_save)?;
     update_world_file(&world_save)
+}
+
+pub fn backup_world(
+    name: &str,
+    chunk_manager: &ChunkManager,
+    generator: &Generator,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let world_save = build_world_save_from_resources(name, chunk_manager, generator);
+    create_backup(&world_save)
 }
 
 fn create_backup(world_save: &WorldSave) -> Result<(), Box<dyn std::error::Error>> {
@@ -90,8 +111,8 @@ fn update_world_file(world_save: &WorldSave) -> Result<(), Box<dyn std::error::E
 }
 
 pub fn read_world_from_name(name: &str) -> Result<WorldSave, std::io::Error> {
-    let path  = path_for_world(name);
-    Ok(read_world_save_from_disk(&path)?)
+    let path = path_for_world(name);
+    read_world_save_from_disk(&path)
 }
 
 fn read_world_save_from_disk(path: &Path) -> Result<WorldSave, std::io::Error> {
@@ -112,23 +133,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_save_and_read_world_from_disk() {
-        let common_name = String::from("my_world");
-
-        let written_save = WorldSave {
-            name: common_name.clone(),
-            ..Default::default()
-        };
-
-        let path = save_world_to_file(written_save).unwrap();
-        let read_save = read_world_save_from_disk(&path).unwrap();
-        assert!(read_save.chunks.is_empty());
-        assert_eq!(read_save.name, common_name);
-    }
-
-    #[test]
     fn test_save_and_read_generated_world_from_disk() {
-        let generator = Generator::with_seed(0);
+        let mut generator = Generator::with_seed(0);
+        generator.params.density.squash_factor = 6.7;
+
         let mut chunk_manager = ChunkManager::new();
         let mut chunks = ChunkManager::instantiate_chunks(IVec3::ZERO, IVec3::ONE);
 
@@ -139,12 +147,12 @@ mod tests {
         });
 
         chunk_manager.insert_chunks(chunks);
-        save_world_to_disk(67, &chunk_manager, &generator).unwrap();
+        save_world("my_world", &chunk_manager, &generator).unwrap();
 
-        let world =
-            read_world_save_from_disk(&(String::from("backups/") + &WorldSave::name_with_time_and_extension(67))).unwrap();
+        let world = read_world_from_name("my_world").unwrap();
+
         assert!(!world.chunks.is_empty());
-        assert!(world.name.contains("67"));
-        assert!(world.name.contains(".rsmcw"));
+        assert_eq!(world.name, "my_world");
+        assert_eq!(world.generator.params.density.squash_factor, 6.7);
     }
 }

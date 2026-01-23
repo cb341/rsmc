@@ -53,7 +53,10 @@ impl Plugin for TerrainPlugin {
         match &self.strategy {
             TerrainStrategy::SeededRandom(seed) => {
                 let random_name = Alphanumeric.sample_string(&mut rand::rng(), 16);
-                println!("Generating new world '{}' with seed [{}]", random_name, seed);
+                println!(
+                    "Generating new world '{}' with seed [{}]",
+                    random_name, seed
+                );
 
                 app.insert_resource(resources::AutoSaveName::with_name(random_name));
                 app.insert_resource(ChunkManager::new());
@@ -69,10 +72,11 @@ impl Plugin for TerrainPlugin {
 
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.insert_resource(resources::PastBlockUpdates::default());
-        app.insert_resource(resources::AutoSaveTimer::default());
-        app.insert_resource(resources::AutoBackupTimer::default());
+        app.insert_resource(resources::WorldBackupTimer::default());
+        app.insert_resource(resources::WorldSaveTimer::default());
         app.add_systems(Update, terrain_systems::process_user_chunk_requests_system);
-        app.add_systems(Update, terrain_systems::periodic_autosave_system);
+        app.add_systems(Update, terrain_systems::save_world_system);
+        app.add_systems(Update, terrain_systems::backup_world_system);
         app.insert_resource(resources::ClientChunkRequests::default());
 
         #[cfg(feature = "generator_visualizer")]

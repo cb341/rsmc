@@ -66,16 +66,30 @@ pub fn process_user_chunk_requests_system(
     });
 }
 
-pub fn periodic_autosave_system(
+pub fn save_world_system(
     chunk_manager: Res<ChunkManager>,
     generator: Res<Generator>,
     world_name: ResMut<terrain_resources::AutoSaveName>,
-    mut autosave_timer: ResMut<terrain_resources::AutoSaveTimer>,
+    mut timer: ResMut<terrain_resources::WorldSaveTimer>,
 ) {
-    if autosave_timer.is_ready() {
-        println!("Performing automatic world save...");
-        if persist_world(&world_name.0, &chunk_manager, &generator).is_ok() {
-            autosave_timer.reset();
+    if timer.is_ready() {
+        info!("Saving world");
+        if save_world(&world_name.0, &chunk_manager, &generator).is_ok() {
+            timer.reset();
+        }
+    }
+}
+
+pub fn backup_world_system(
+    chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
+    world_name: ResMut<terrain_resources::AutoSaveName>,
+    mut timer: ResMut<terrain_resources::WorldBackupTimer>,
+) {
+    if timer.is_ready() {
+        println!("Backing up world..");
+        if backup_world(&world_name.0, &chunk_manager, &generator).is_ok() {
+            timer.reset();
         }
     }
 }

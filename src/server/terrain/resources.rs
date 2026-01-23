@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::prelude::*;
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, TimeDelta, Utc};
 use rand::distr::{Alphanumeric, SampleString};
 use serde::{Deserialize, Serialize};
 use terrain_events::BlockUpdateEvent;
@@ -45,28 +45,73 @@ impl AutoSaveName {
     }
 }
 
-#[derive(Resource, Default)]
-pub struct AutoSaveTimer {
+#[derive(Resource)]
+struct SaveTimer {
     pub last_autosave_timestamp: Option<DateTime<Utc>>,
+    interval: chrono::TimeDelta,
 }
 
-const AUTO_SAVE_INTERVAL: chrono::TimeDelta = Duration::seconds(60);
+impl SaveTimer {
+    pub fn new(interval: TimeDelta) -> SaveTimer {
+        SaveTimer {
+            last_autosave_timestamp: None,
+            interval,
+        }
+    }
+}
 
-impl AutoSaveTimer {
+#[derive(Resource)]
+pub struct WorldBackupTimer(SaveTimer);
+
+impl WorldBackupTimer {
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn is_ready(&self) -> bool {
+        self.0.is_ready()
+    }
+}
+
+impl Default for WorldBackupTimer {
+    fn default() -> Self {
+        Self(SaveTimer::new(TimeDelta::seconds(15)))
+    }
+}
+
+#[derive(Resource)]
+pub struct WorldSaveTimer(SaveTimer);
+
+impl WorldSaveTimer {
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn is_ready(&self) -> bool {
+        self.0.is_ready()
+    }
+}
+
+impl Default for WorldSaveTimer {
+    fn default() -> Self {
+        Self(SaveTimer::new(TimeDelta::seconds(120)))
+    }
+}
+
+impl SaveTimer {
     pub fn reset(&mut self) {
         self.last_autosave_timestamp = Some(Utc::now());
     }
 
-    pub fn is_ready(&mut self) -> bool {
+    pub fn is_ready(&self) -> bool {
         match self.last_autosave_timestamp {
             Some(timestamp) => {
-                let enough_time_passed = timestamp
-                    .checked_add_signed(AUTO_SAVE_INTERVAL);
+                let enough_time_passed = timestamp.checked_add_signed(self.interval);
 
                 match enough_time_passed {
                     Some(d) => d < Utc::now(),
                     None => {
-                        eprintln!("Date predicate overflowed!");
+                        eprintln!("Err");
                         false
                     }
                 }
