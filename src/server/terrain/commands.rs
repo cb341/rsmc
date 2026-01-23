@@ -1,4 +1,4 @@
-use clap::{arg, Subcommand};
+use clap::Subcommand;
 use rand::RngCore;
 
 use crate::terrain::TerrainPlugin;

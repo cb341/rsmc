@@ -5,7 +5,7 @@ pub mod prelude;
 pub mod terrain;
 
 use bevy::app::TerminalCtrlCHandlerPlugin;
-use clap::{command, Parser};
+use clap::Parser;
 
 #[cfg(feature = "egui_layer")]
 use bevy::DefaultPlugins;
