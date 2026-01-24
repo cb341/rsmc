@@ -75,6 +75,7 @@ pub fn receive_message_system(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_events_system(
     mut server: ResMut<RenetServer>,
     mut server_events: MessageReader<ServerEvent>,
@@ -87,6 +88,7 @@ pub fn handle_events_system(
     #[cfg(feature = "chat")] mut chat_sync_events: MessageWriter<
         chat_events::SyncPlayerChatMessagesEvent,
     >,
+    transport: Res<NetcodeServerTransport>
 ) {
     for event in server_events.read() {
         match event {
@@ -111,8 +113,11 @@ pub fn handle_events_system(
                     message: format!("Player {} joined the game", *client_id),
                 });
 
+                let user_data = transport.user_data(*client_id).unwrap();
+                let username = Username::from_user_data(&user_data).0;
+
                 let message =
-                    bincode::serialize(&NetworkingMessage::PlayerJoin(*client_id)).unwrap();
+                    bincode::serialize(&NetworkingMessage::PlayerJoin(*client_id, username)).unwrap();
                 server.broadcast_message_except(
                     *client_id,
                     DefaultChannel::ReliableOrdered,

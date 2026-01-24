@@ -3,8 +3,7 @@ pub mod commands;
 
 use crate::connection_config;
 use bevy_renet::{
-    netcode::{ClientAuthentication, NetcodeClientPlugin, NetcodeClientTransport},
-    RenetClientPlugin,
+    RenetClientPlugin, netcode::{ClientAuthentication, NETCODE_USER_DATA_BYTES, NetcodeClientPlugin, NetcodeClientTransport}
 };
 
 use crate::prelude::*;
@@ -12,12 +11,12 @@ use crate::prelude::*;
 const DEFAULT_SERVER_ADDR: &str = "127.0.0.1:5000";
 
 pub struct NetworkingPlugin {
-    client_id: u64,
+    username: Username,
     server_addr: SocketAddr,
 }
 
 impl NetworkingPlugin {
-    pub fn new(server_addr: &str, client_id: u64) -> Result<NetworkingPlugin, String> {
+    pub fn new(server_addr: &str, username: String) -> Result<NetworkingPlugin, String> {
         let server_addr = server_addr.parse().map_err(|_| {
             format!(
                 "Address '{}' is invalid, please specify address in format like 127.0.0.1:500",
@@ -27,7 +26,7 @@ impl NetworkingPlugin {
 
         Ok(Self {
             server_addr,
-            client_id,
+            username: Username(username)
         })
     }
 }
@@ -41,8 +40,8 @@ impl Plugin for NetworkingPlugin {
 
         let authentication = ClientAuthentication::Unsecure {
             server_addr: self.server_addr,
-            client_id: self.client_id,
-            user_data: None,
+            client_id: rand::random::<u64>(),
+            user_data: Some(self.username.to_netcode_user_data()),
             protocol_id: 0,
         };
         let socket = UdpSocket::bind("127.0.0.1:0").unwrap();

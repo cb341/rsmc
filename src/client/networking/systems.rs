@@ -19,9 +19,10 @@ pub fn receive_message_system(
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         match bincode::deserialize(&message) {
             Ok(message) => match message {
-                NetworkingMessage::PlayerJoin(event) => {
+                NetworkingMessage::PlayerJoin(client_id, username) => {
                     player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
-                        client_id: event,
+                        client_id,
+                        // TODO: add username
                         position: Vec3::ZERO,
                     });
                 }
