@@ -13,6 +13,7 @@ mod states;
 mod terrain;
 
 use bevy_flair::FlairPlugin;
+use clap::{command, Parser};
 use scene::setup_scene;
 
 #[cfg(feature = "wireframe")]
@@ -32,7 +33,17 @@ mod wireframe_config {
     }
 }
 
+#[derive(Debug, Parser)]
+#[command(version)]
+#[command(long_about = None)]
+struct Cli {
+    #[command(flatten)]
+    networking_args: networking_commands::NetworkingArgs,
+}
+
 fn main() {
+    let cli = Cli::parse();
+
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
             resolution: WindowResolution::new(1920, 1080).with_scale_factor_override(2.0),
@@ -47,6 +58,18 @@ fn main() {
         .set(ImagePlugin::default_nearest());
 
     let mut app = App::new();
+
+    let networking_plugin = networking::NetworkingPlugin::from_args(cli.networking_args);
+    match networking_plugin {
+        Ok(plugin) => {
+            app.add_plugins(plugin);
+        }
+        Err(err) => {
+            eprintln!("Error: {}", err);
+            return;
+        }
+    }
+
     app.add_plugins((
         default_plugins,
         FlairPlugin,
@@ -56,7 +79,6 @@ fn main() {
         EntityCountDiagnosticsPlugin::default(),
         SystemInformationDiagnosticsPlugin,
         gui::GuiPlugin,
-        networking::NetworkingPlugin,
         terrain::TerrainPlugin,
         collider::ColliderPlugin,
         player::PlayerPlugin,
