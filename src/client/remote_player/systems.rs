@@ -11,7 +11,7 @@ pub fn spawn_remote_player_system(
     let terminus_handle = asset_server.load("fonts/Terminus500.ttf");
 
     for event in spawn_events.read() {
-        let username = event.username.clone();
+        let username = event.username;
 
         let material = materials.add(StandardMaterial {
             base_color: Color::srgb(0.8, 0.7, 0.6),
@@ -24,7 +24,7 @@ pub fn spawn_remote_player_system(
                 bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
                 MeshMaterial3d(material),
                 remote_player_components::RemotePlayer {
-                    username: username.clone(),
+                    username: username,
                 },
             ))
             .with_children(|parent| {
@@ -79,7 +79,7 @@ pub fn update_remote_player_system(
 
             if !player_exists {
                 spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
-                    username: username.clone(),
+                    username: *username,
                     position: player_state.position,
                 });
             }

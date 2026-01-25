@@ -1,4 +1,4 @@
-use std::{fmt::Display, time::Duration};
+use std::{fmt::{Debug, Display}, time::Duration};
 
 use bevy::{
     ecs::resource::Resource,
@@ -23,7 +23,7 @@ pub struct ClientUsernames {
 
 impl ClientUsernames {
     pub fn insert(&mut self, client_id: ClientId, username: Username) {
-        self.client_to_username.insert(client_id, username.clone());
+        self.client_to_username.insert(client_id, username);
         self.username_to_client.insert(username, client_id);
     }
 
@@ -36,51 +36,84 @@ impl ClientUsernames {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Serialize, Deserialize, Clone)]
-pub struct Username(pub String);
+const USERNAME_BUFFER_SIZE: usize = MAX_USERNAME_LENGTH_BYTES + 1;
 
-impl Display for Username {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<&str> for Username {
-    fn from(value: &str) -> Self {
-        Self(String::from(value))
-    }
-}
-
-impl From<String> for Username {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub struct Username([u8; USERNAME_BUFFER_SIZE]);
 
 impl Username {
-    pub fn is_server(&self) -> bool {
-        self.0.eq(SERVER_USERNAME)
+    pub fn new(s: &str) -> Result<Self, String> {
+        if s.len() > MAX_USERNAME_LENGTH_BYTES {
+            return Err(format!(
+                "Username too long: {} bytes (max {MAX_USERNAME_LENGTH_BYTES})",
+                s.len()
+            ));
+        }
+        let mut buf = [0u8; USERNAME_BUFFER_SIZE];
+        buf[0] = s.len() as u8;
+        buf[1..=s.len()].copy_from_slice(s.as_bytes());
+        Ok(Self(buf))
     }
+
+    pub fn as_str(&self) -> &str {
+        let len = self.0[0] as usize;
+        std::str::from_utf8(&self.0[1..=len]).unwrap_or("invalid")
+    }
+
+    pub fn is_server(&self) -> bool {
+        self.as_str() == SERVER_USERNAME
+    }
+
     pub fn to_netcode_user_data(&self) -> [u8; NETCODE_USER_DATA_BYTES] {
         let mut user_data = [0u8; NETCODE_USER_DATA_BYTES];
-        if self.0.len() > MAX_USERNAME_LENGTH_BYTES {
-            panic!(
-                "Username is too big: has {} bytes out of max {MAX_USERNAME_LENGTH_BYTES}",
-                self.0.len()
-            );
-        }
-        user_data[0] = self.0.len() as u8;
-        user_data[1..self.0.len() + 1].copy_from_slice(self.0.as_bytes());
-
+        let len = self.0[0] as usize;
+        user_data[..=len].copy_from_slice(&self.0[..=len]);
         user_data
     }
 
     pub fn from_user_data(user_data: &[u8; NETCODE_USER_DATA_BYTES]) -> Self {
         let mut len = user_data[0] as usize;
-        len = len.min(NETCODE_USER_DATA_BYTES - 1);
-        let data = user_data[1..len + 1].to_vec();
-        let username = String::from_utf8(data).unwrap_or("unknown".to_string());
-        Self(username)
+        len = len.min(MAX_USERNAME_LENGTH_BYTES);
+        let mut buf = [0u8; USERNAME_BUFFER_SIZE];
+        buf[..=len].copy_from_slice(&user_data[..=len]);
+        Self(buf)
+    }
+}
+
+impl Display for Username {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl Debug for Username {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Username({:?})", self.as_str())
+    }
+}
+
+impl From<&str> for Username {
+    fn from(value: &str) -> Self {
+        Self::new(value).unwrap()
+    }
+}
+
+impl From<String> for Username {
+    fn from(value: String) -> Self {
+        Self::from(value.as_str())
+    }
+}
+
+impl Serialize for Username {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Username {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s = String::deserialize(deserializer)?;
+        Self::new(&s).map_err(serde::de::Error::custom)
     }
 }
 
@@ -98,11 +131,10 @@ pub enum ChatMessageSender {
 
 impl Display for ChatMessageSender {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str: &str = match self {
-            ChatMessageSender::Player(username) => &username.0,
-            ChatMessageSender::Server => "SERVER",
-        };
-        write!(f, "{}", str)
+        match self {
+            ChatMessageSender::Player(username) => write!(f, "{username}"),
+            ChatMessageSender::Server => write!(f, "SERVER"),
+        }
     }
 }
 

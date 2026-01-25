@@ -29,7 +29,7 @@ impl NetworkingPlugin {
 
         Ok(Self {
             server_addr,
-            username: Username(username),
+            username: Username::new(&username)?,
         })
     }
 }

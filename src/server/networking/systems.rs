@@ -62,7 +62,7 @@ pub fn receive_message_system(
                 NetworkingMessage::ChatMessageSend(message) => {
                     info!("Received chat message from {}", client_id);
                     chat_message_events.write(chat_events::PlayerChatMessageSendEvent {
-                        sender: ChatMessageSender::Player(username.clone()),
+                        sender: ChatMessageSender::Player(username),
                         message,
                     });
                 }
@@ -87,7 +87,7 @@ pub fn receive_message_system(
                     let username = client_usernames
                         .username_for_client_id(&client_id)
                         .expect("All clients should have associated username");
-                    player_states.players.insert(username.clone(), player);
+                    player_states.players.insert(*username, player);
                 }
                 NetworkingMessage::ChunkBatchRequest(positions) => {
                     info!(
@@ -149,13 +149,13 @@ pub fn handle_events_system(
                 active_connections.accept(*client_id);
 
                 player_states.players.insert(
-                    username.clone(),
+                    username,
                     PlayerState {
                         position: Vec3::ZERO,
                         rotation: Quat::IDENTITY,
                     },
                 );
-                client_usernames.insert(*client_id, username.clone());
+                client_usernames.insert(*client_id, username);
                 server.send_message(
                     *client_id,
                     DefaultChannel::ReliableOrdered,
@@ -211,7 +211,7 @@ pub fn handle_events_system(
 
                     if let Some(username) = client_usernames.username_for_client_id(client_id) {
                         let message =
-                            bincode::serialize(&NetworkingMessage::PlayerLeave(username.clone()))
+                            bincode::serialize(&NetworkingMessage::PlayerLeave(*username))
                                 .unwrap();
                         server.broadcast_message(DefaultChannel::ReliableOrdered, message);
                     }
