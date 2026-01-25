@@ -117,6 +117,7 @@ type RejectReason = String;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum NetworkingMessage {
+    PlayerAccept(),
     PlayerReject(RejectReason),
     PlayerJoin(Username),
     PlayerLeave(Username),

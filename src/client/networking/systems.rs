@@ -16,6 +16,7 @@ pub fn receive_message_system(
     >,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
     mut exit_events: MessageWriter<AppExit>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         match bincode::deserialize(&message) {
@@ -24,6 +25,9 @@ pub fn receive_message_system(
                     // no reason to keep on living without connections, so die
                     eprintln!("Server connection rejected: {reject_reason}");
                     exit_events.write(AppExit::error());
+                }
+                NetworkingMessage::PlayerAccept() => {
+                    next_state.set(GameState::Playing);
                 }
                 NetworkingMessage::PlayerJoin(username) => {
                     player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {

@@ -86,7 +86,7 @@ fn main() {
         #[cfg(feature = "chat")]
         chat::ChatPlugin,
     ));
-    app.insert_state(GameState::Playing);
+    app.insert_state(GameState::WaitingForServer);
 
     #[cfg(feature = "wireframe")]
     app.insert_resource(wireframe_config::wireframe_config());

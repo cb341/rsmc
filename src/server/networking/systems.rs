@@ -103,11 +103,14 @@ pub fn handle_events_system(
 
                 if client_usernames.has_username(&username) {
                     println!("Client {client_id} with Username '{username}' rejected");
-                    let message = bincode::serialize(&NetworkingMessage::PlayerReject(
-                        String::from("Another Client is already connected with that Username."),
-                    ))
-                    .expect("Message should always be sendable");
-                    server.send_message(*client_id, DefaultChannel::ReliableOrdered, message);
+                    server.send_message(
+                        *client_id,
+                        DefaultChannel::ReliableOrdered,
+                        bincode::serialize(&NetworkingMessage::PlayerReject(String::from(
+                            "Another Client is already connected with that Username.",
+                        )))
+                        .expect("Message should always be sendable"),
+                    );
                     break;
                 }
 
@@ -119,6 +122,12 @@ pub fn handle_events_system(
                     },
                 );
                 client_usernames.insert(*client_id, username.clone());
+                server.send_message(
+                    *client_id,
+                    DefaultChannel::ReliableOrdered,
+                    bincode::serialize(&NetworkingMessage::PlayerAccept())
+                        .expect("Message should always be sendable"),
+                );
                 println!("Client {client_id} connected");
 
                 #[cfg(feature = "chat")]
