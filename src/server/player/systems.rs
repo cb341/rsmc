@@ -2,11 +2,13 @@ use crate::prelude::*;
 
 pub fn broadcast_player_attributes_system(
     mut server: ResMut<RenetServer>,
+    usernames: Res<ClientUsernames>,
     player_states: Res<player_resources::PlayerStates>,
 ) {
     for client_id in server.clients_id() {
-        let mut other_player_states = player_states.players.clone();
-        other_player_states.remove(&client_id);
+        let other_player_states = player_states.players.clone();
+        // let username = usernames.username_for_client_id(&client_id).expect("Each client should have a username");
+        // other_player_states.remove(username);
 
         server.send_message(
             client_id,

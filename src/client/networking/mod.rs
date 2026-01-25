@@ -1,9 +1,10 @@
-pub mod systems;
 pub mod commands;
+pub mod systems;
 
 use crate::connection_config;
 use bevy_renet::{
-    RenetClientPlugin, netcode::{ClientAuthentication, NETCODE_USER_DATA_BYTES, NetcodeClientPlugin, NetcodeClientTransport}
+    netcode::{ClientAuthentication, NetcodeClientPlugin, NetcodeClientTransport},
+    RenetClientPlugin,
 };
 
 use crate::prelude::*;
@@ -26,7 +27,7 @@ impl NetworkingPlugin {
 
         Ok(Self {
             server_addr,
-            username: Username(username)
+            username: Username(username),
         })
     }
 }

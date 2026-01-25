@@ -7,7 +7,7 @@ pub fn spawn_remote_player_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in spawn_events.read() {
-        let client_id = event.client_id;
+        let username = event.username.clone();
 
         let material = materials.add(StandardMaterial {
             base_color: Color::srgb(0.8, 0.7, 0.6),
@@ -17,7 +17,7 @@ pub fn spawn_remote_player_system(
         commands.spawn((
             bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
             MeshMaterial3d(material),
-            remote_player_components::RemotePlayer { client_id },
+            remote_player_components::RemotePlayer { username },
         ));
     }
 }
@@ -29,7 +29,7 @@ pub fn despawn_remote_player_system(
 ) {
     for event in despawn_events.read() {
         for (entity, remote_player) in query.iter() {
-            if remote_player.client_id == event.client_id {
+            if remote_player.username == event.username {
                 commands.entity(entity).despawn();
             }
         }
@@ -44,10 +44,10 @@ pub fn update_remote_player_system(
     let latest_event = sync_events.read().last();
 
     if let Some(event) = latest_event {
-        for (client_id, player_state) in event.players.iter() {
+        for (username, player_state) in event.players.iter() {
             let mut player_exists = false;
             for (remote_player, mut transform) in query.iter_mut() {
-                if remote_player.client_id == *client_id {
+                if remote_player.username == *username {
                     player_exists = true;
                     transform.translation = player_state.position + Vec3::new(0.0, 1.55, 0.0);
                     transform.rotation = player_state.rotation;
@@ -56,7 +56,7 @@ pub fn update_remote_player_system(
 
             if !player_exists {
                 spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
-                    client_id: *client_id,
+                    username: username.clone(),
                     position: player_state.position,
                 });
             }

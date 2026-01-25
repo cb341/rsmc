@@ -15,21 +15,25 @@ pub fn receive_message_system(
         Messages<chat_events::SingleChatSendEvent>,
     >,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
+    mut exit_events: MessageWriter<AppExit>,
 ) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         match bincode::deserialize(&message) {
             Ok(message) => match message {
-                NetworkingMessage::PlayerJoin(client_id, username) => {
+                NetworkingMessage::PlayerReject(reject_reason) => {
+                    // no reason to keep on living without connections, so die
+                    eprintln!("Server connection rejected: {reject_reason}");
+                    exit_events.write(AppExit::error());
+                }
+                NetworkingMessage::PlayerJoin(username) => {
                     player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
-                        client_id,
-                        // TODO: add username
+                        username,
                         position: Vec3::ZERO,
                     });
                 }
-                NetworkingMessage::PlayerLeave(event) => {
-                    player_despawn_events.write(remote_player_events::RemotePlayerDespawnedEvent {
-                        client_id: event,
-                    });
+                NetworkingMessage::PlayerLeave(username) => {
+                    player_despawn_events
+                        .write(remote_player_events::RemotePlayerDespawnedEvent { username });
                 }
                 NetworkingMessage::BlockUpdate { position, block } => {
                     debug!("Client received block update message: {:?}", position);

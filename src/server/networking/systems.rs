@@ -5,6 +5,7 @@ pub fn receive_message_system(
     mut player_states: ResMut<player_resources::PlayerStates>,
     mut past_block_updates: ResMut<terrain_resources::PastBlockUpdates>,
     mut chunk_manager: ResMut<ChunkManager>,
+    client_usernames: Res<ClientUsernames>,
     mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
@@ -57,7 +58,10 @@ pub fn receive_message_system(
                         "Received player update from client {} {}",
                         client_id, player.position
                     );
-                    player_states.players.insert(client_id, player);
+                    let username = client_usernames
+                        .username_for_client_id(&client_id)
+                        .expect("All clients should have associated username");
+                    player_states.players.insert(username.clone(), player);
                 }
                 NetworkingMessage::ChunkBatchRequest(positions) => {
                     info!(
@@ -82,25 +86,40 @@ pub fn handle_events_system(
     mut player_states: ResMut<player_resources::PlayerStates>,
     past_block_updates: Res<terrain_resources::PastBlockUpdates>,
     mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
+    mut client_usernames: ResMut<ClientUsernames>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
     #[cfg(feature = "chat")] mut chat_sync_events: MessageWriter<
         chat_events::SyncPlayerChatMessagesEvent,
     >,
-    transport: Res<NetcodeServerTransport>
+    transport: Res<NetcodeServerTransport>,
 ) {
     for event in server_events.read() {
         match event {
             ServerEvent::ClientConnected { client_id } => {
-                println!("Client {client_id} connected");
+                let user_data = transport.user_data(*client_id).unwrap();
+                let username = Username::from_user_data(&user_data);
+
+                if client_usernames.has_username(&username) {
+                    println!("Client {client_id} with Username '{username}' rejected");
+                    let message = bincode::serialize(&NetworkingMessage::PlayerReject(
+                        String::from("Another Client is already connected with that Username."),
+                    ))
+                    .expect("Message should always be sendable");
+                    server.send_message(*client_id, DefaultChannel::ReliableOrdered, message);
+                    break;
+                }
+
                 player_states.players.insert(
-                    *client_id,
+                    username.clone(),
                     PlayerState {
                         position: Vec3::ZERO,
                         rotation: Quat::IDENTITY,
                     },
                 );
+                client_usernames.insert(*client_id, username.clone());
+                println!("Client {client_id} connected");
 
                 #[cfg(feature = "chat")]
                 chat_sync_events.write(chat_events::SyncPlayerChatMessagesEvent {
@@ -113,11 +132,7 @@ pub fn handle_events_system(
                     message: format!("Player {} joined the game", *client_id),
                 });
 
-                let user_data = transport.user_data(*client_id).unwrap();
-                let username = Username::from_user_data(&user_data).0;
-
-                let message =
-                    bincode::serialize(&NetworkingMessage::PlayerJoin(*client_id, username)).unwrap();
+                let message = bincode::serialize(&NetworkingMessage::PlayerJoin(username)).unwrap();
                 server.broadcast_message_except(
                     *client_id,
                     DefaultChannel::ReliableOrdered,
@@ -135,9 +150,9 @@ pub fn handle_events_system(
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {
                 println!("Client {client_id} disconnected: {reason}");
-                player_states.players.remove(client_id);
 
                 request_queue.remove(client_id);
+                client_usernames.remove(client_id);
 
                 #[cfg(feature = "chat")]
                 chat_message_events.write(chat_events::PlayerChatMessageSendEvent {
@@ -145,9 +160,12 @@ pub fn handle_events_system(
                     message: format!("Player {} left the game", client_id),
                 });
 
-                let message =
-                    bincode::serialize(&NetworkingMessage::PlayerLeave(*client_id)).unwrap();
-                server.broadcast_message(DefaultChannel::ReliableOrdered, message);
+                if let Some(username) = client_usernames.username_for_client_id(client_id) {
+                    let message =
+                        bincode::serialize(&NetworkingMessage::PlayerLeave(username.clone()))
+                            .unwrap();
+                    server.broadcast_message(DefaultChannel::ReliableOrdered, message);
+                }
             }
         }
     }

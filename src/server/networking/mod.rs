@@ -48,7 +48,7 @@ impl Plugin for NetworkingPlugin {
         };
         let transport = NetcodeServerTransport::new(server_config, socket).unwrap();
         app.insert_resource(transport);
-
+        app.insert_resource(ClientUsernames::default());
         app.add_systems(Update, networking_systems::receive_message_system);
         app.add_systems(Update, networking_systems::handle_events_system);
     }
