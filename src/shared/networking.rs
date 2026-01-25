@@ -1,4 +1,4 @@
-use std::{fmt::Display, time::Duration};
+use std::{collections::HashSet, fmt::Display, time::Duration};
 
 use bevy::{
     ecs::resource::Resource,
@@ -12,33 +12,35 @@ use std::collections::HashMap;
 
 use super::{BlockId, Chunk};
 
-pub const SERVER_MESSAGE_ID: ClientId = 0;
+pub const SERVER_USERNAME: &str = "SERVER";
 
 #[derive(Resource, Default)]
 pub struct ClientUsernames {
+    active_client_ids: HashSet<ClientId>,
     client_to_username: HashMap<ClientId, Username>,
     username_to_client: HashMap<Username, ClientId>,
 }
 
 impl ClientUsernames {
-    pub fn has_client_id(&self, client_id: &ClientId) -> bool {
-        self.client_to_username.contains_key(client_id)
+    pub fn has_active_client_id(&self, client_id: &ClientId) -> bool {
+        self.active_client_ids.contains(client_id)
     }
 
     pub fn insert(&mut self, client_id: ClientId, username: Username) {
+        self.active_client_ids.insert(client_id);
         self.client_to_username.insert(client_id, username.clone());
         self.username_to_client.insert(username, client_id);
     }
 
-    pub fn remove(&mut self, client_id: &ClientId) {
-        self.client_to_username
-            .retain(|current_client_id, _| current_client_id != client_id);
-        self.username_to_client
-            .retain(|_, current_client_id| current_client_id != client_id);
+    pub fn deactivate_client_id(&mut self, client_id: &ClientId) {
+        self.active_client_ids.remove(client_id);
     }
 
-    pub fn has_username(&self, username: &Username) -> bool {
-        self.username_to_client.contains_key(username)
+    pub fn has_active_username(&self, username: &Username) -> bool {
+        match self.username_to_client.get(username) {
+            Some(client_id) => self.active_client_ids.contains(client_id),
+            None => false,
+        }
     }
 
     pub fn client_id_for_username(&self, username: &Username) -> Option<&ClientId> {
@@ -58,6 +60,12 @@ impl Display for Username {
     }
 }
 
+impl From<&str> for Username {
+    fn from(value: &str) -> Self {
+        Self(String::from(value))
+    }
+}
+
 impl From<String> for Username {
     fn from(value: String) -> Self {
         Self(value)
@@ -65,6 +73,9 @@ impl From<String> for Username {
 }
 
 impl Username {
+    pub fn is_server(&self) -> bool {
+        self.0.eq(SERVER_USERNAME)
+    }
     pub fn to_netcode_user_data(&self) -> [u8; NETCODE_USER_DATA_BYTES] {
         let mut user_data = [0u8; NETCODE_USER_DATA_BYTES];
         if self.0.len() > NETCODE_USER_DATA_BYTES - 8 {
@@ -92,8 +103,24 @@ pub struct PlayerState {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum ChatMessageSender {
+    Player(Username),
+    Server,
+}
+
+impl Display for ChatMessageSender {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str: &str = match self {
+            ChatMessageSender::Player(username) => &username.0,
+            ChatMessageSender::Server => "SERVER",
+        };
+        write!(f, "{}", str)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ChatMessage {
-    pub client_id: ClientId,
+    pub sender: ChatMessageSender,
     pub message_id: usize,
     pub timestamp: i64,
     pub message: String,
@@ -104,12 +131,10 @@ impl ChatMessage {
         let dt = DateTime::from_timestamp_millis(self.timestamp).expect("invalid timestamp");
         let timestamp_string = dt.to_string();
 
-        let client_name = match self.client_id {
-            SERVER_MESSAGE_ID => "SERVER".to_string(),
-            _ => self.client_id.to_string(),
-        };
+        let username = &self.sender;
+        let message = &self.message;
 
-        format!("[{}] {}: {}", timestamp_string, client_name, self.message)
+        format!("[{timestamp_string}] {username}: {message}")
     }
 }
 

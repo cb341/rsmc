@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use bevy::color::palettes;
 use bevy_mod_billboard::prelude::*;
 
 pub fn spawn_remote_player_system(
@@ -10,7 +9,6 @@ pub fn spawn_remote_player_system(
     asset_server: Res<AssetServer>,
 ) {
     let terminus_handle = asset_server.load("fonts/Terminus500.ttf");
-    // return;
 
     for event in spawn_events.read() {
         let username = event.username.clone();
@@ -25,7 +23,9 @@ pub fn spawn_remote_player_system(
                 Node::default(),
                 bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
                 MeshMaterial3d(material),
-                remote_player_components::RemotePlayer { username: username.clone() },
+                remote_player_components::RemotePlayer {
+                    username: username.clone(),
+                },
             ))
             .with_children(|parent| {
                 parent

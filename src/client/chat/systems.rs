@@ -168,7 +168,7 @@ pub fn add_message_to_chat_container_system(
                 Node::default(),
                 Name::new("chat_entry"),
                 chat_components::ChatMessageElement,
-                Text::new(event.0.message.clone()),
+                Text::new(event.0.format_string()),
             ));
         });
     }
@@ -277,7 +277,7 @@ mod tests {
 
         event_writer.write(SingleChatSendEvent(ChatMessage {
             message: "Hello World".to_string(),
-            client_id: 0,
+            sender: ChatMessageSender::Server,
             message_id: 1,
             timestamp: 0,
         }));

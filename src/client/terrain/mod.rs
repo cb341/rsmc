@@ -29,8 +29,14 @@ impl Plugin for TerrainPlugin {
         {
             app.insert_resource(terrain_resources::SpawnAreaLoaded(false));
 
-            app.add_systems(OnExit(GameState::WaitingForServer), terrain_systems::prepare_spawn_area_system);
-            app.add_systems(OnExit(GameState::WaitingForServer), terrain_systems::generate_world_system);
+            app.add_systems(
+                OnExit(GameState::WaitingForServer),
+                terrain_systems::prepare_spawn_area_system,
+            );
+            app.add_systems(
+                OnExit(GameState::WaitingForServer),
+                terrain_systems::generate_world_system,
+            );
             app.add_systems(
                 Update,
                 terrain_systems::handle_chunk_mesh_update_events_system,
