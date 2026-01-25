@@ -13,7 +13,7 @@ mod states;
 mod terrain;
 
 use bevy_flair::FlairPlugin;
-use clap::{command, Parser};
+use clap::Parser;
 use scene::setup_scene;
 
 #[cfg(feature = "wireframe")]

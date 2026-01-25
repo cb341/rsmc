@@ -1,5 +1,17 @@
 use crate::prelude::*;
 
+pub fn exit_on_last_window_closed_system(
+    close_events: MessageReader<WindowCloseRequested>,
+    windows: Query<(), With<Window>>,
+    mut client: ResMut<RenetClient>,
+    mut exit: MessageWriter<AppExit>,
+) {
+    if !close_events.is_empty() && windows.iter().count() <= 1 {
+        client.disconnect();
+        exit.write(AppExit::Success);
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn receive_message_system(
     mut client: ResMut<RenetClient>,

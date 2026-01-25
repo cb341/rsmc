@@ -3,7 +3,9 @@ pub mod systems;
 
 use crate::connection_config;
 use bevy_renet::{
-    netcode::{ClientAuthentication, NetcodeClientPlugin, NetcodeClientTransport},
+    netcode::{
+        ClientAuthentication, NetcodeClientPlugin, NetcodeClientTransport, NetcodeTransportError,
+    },
     RenetClientPlugin,
 };
 
@@ -52,6 +54,21 @@ impl Plugin for NetworkingPlugin {
         let transport = NetcodeClientTransport::new(current_time, authentication, socket).unwrap();
         app.insert_resource(transport);
 
+        app.add_systems(Last, networking_systems::exit_on_last_window_closed_system);
         app.add_systems(Update, networking_systems::receive_message_system);
+
+        fn exit_on_transport_error(
+            mut renet_error: MessageReader<NetcodeTransportError>,
+            mut exit_events: MessageWriter<AppExit>,
+        ) {
+            if !renet_error.is_empty() {
+                exit_events.write(AppExit::error());
+            }
+            for error in renet_error.read() {
+                eprintln!("{}", error);
+            }
+        }
+
+        app.add_systems(Update, exit_on_transport_error);
     }
 }

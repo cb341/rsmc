@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display, time::Duration};
+use std::{fmt::Display, time::Duration};
 
 use bevy::{
     ecs::resource::Resource,
@@ -16,36 +16,20 @@ pub const SERVER_USERNAME: &str = "SERVER";
 
 #[derive(Resource, Default)]
 pub struct ClientUsernames {
-    active_client_ids: HashSet<ClientId>,
     client_to_username: HashMap<ClientId, Username>,
     username_to_client: HashMap<Username, ClientId>,
 }
 
 impl ClientUsernames {
-    pub fn has_active_client_id(&self, client_id: &ClientId) -> bool {
-        self.active_client_ids.contains(client_id)
-    }
-
     pub fn insert(&mut self, client_id: ClientId, username: Username) {
-        self.active_client_ids.insert(client_id);
         self.client_to_username.insert(client_id, username.clone());
         self.username_to_client.insert(username, client_id);
     }
 
-    pub fn deactivate_client_id(&mut self, client_id: &ClientId) {
-        self.active_client_ids.remove(client_id);
-    }
-
-    pub fn has_active_username(&self, username: &Username) -> bool {
-        match self.username_to_client.get(username) {
-            Some(client_id) => self.active_client_ids.contains(client_id),
-            None => false,
-        }
-    }
-
-    pub fn client_id_for_username(&self, username: &Username) -> Option<&ClientId> {
+    pub fn get_client_id(&self, username: &Username) -> Option<&ClientId> {
         self.username_to_client.get(username)
     }
+
     pub fn username_for_client_id(&self, client_id: &ClientId) -> Option<&Username> {
         self.client_to_username.get(client_id)
     }
