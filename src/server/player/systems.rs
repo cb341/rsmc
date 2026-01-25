@@ -6,9 +6,10 @@ pub fn broadcast_player_attributes_system(
     player_states: Res<player_resources::PlayerStates>,
 ) {
     for client_id in server.clients_id() {
-        let other_player_states = player_states.players.clone();
-        // let username = usernames.username_for_client_id(&client_id).expect("Each client should have a username");
-        // other_player_states.remove(username);
+        let mut other_player_states = player_states.players.clone();
+        if let Some(username) = usernames.username_for_client_id(&client_id) {
+            other_player_states.remove(username);
+        }
 
         server.send_message(
             client_id,
