@@ -2,6 +2,15 @@ use crate::{networking::resources::ActiveConnections, prelude::*};
 
 use bevy::prelude::*;
 
+pub fn disconnect_all_clients_on_exit_system(
+    mut server: ResMut<RenetServer>,
+    mut exit_events: MessageReader<AppExit>,
+) {
+    if exit_events.read().len() > 0 {
+        server.disconnect_all();
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn receive_message_system(
     mut server: ResMut<RenetServer>,
