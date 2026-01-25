@@ -1,14 +1,5 @@
 use crate::prelude::*;
 
-#[cfg(feature = "skip_terrain")]
-const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
-
-#[cfg(all(not(feature = "skip_terrain"), not(feature = "lock_player")))]
-const SPAWN_POINT: Vec3 = Vec3::new(0.0, 43.0, 0.0); // TODO: determine terrain height at 0,0
-
-#[cfg(all(not(feature = "skip_terrain"), feature = "lock_player"))]
-const SPAWN_POINT: Vec3 = Vec3::new(128.0, 96.0, -128.0);
-
 pub fn setup_player_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Player cam?"),
@@ -38,8 +29,11 @@ pub fn setup_controller_on_area_ready_system(
     mut commands: Commands,
     mut player_spawned: ResMut<player_resources::PlayerSpawned>,
     mut render_player: Query<&mut RenderPlayer>,
+    spawn_state: Res<player_resources::LocalPlayerSpawnState>,
 ) {
-    info!("Setting up controller");
+    info!("Setting up controller at {:?}", spawn_state.0.position);
+
+    let (yaw, pitch, _roll) = spawn_state.0.rotation.to_euler(EulerRot::YXZ);
 
     let logical_entity = commands
         .spawn((
@@ -62,13 +56,13 @@ pub fn setup_controller_on_area_ready_system(
             LockedAxes::ROTATION_LOCKED,
             AdditionalMassProperties::Mass(1.0),
             GravityScale(0.0),
-            Ccd { enabled: true }, // Prevent clipping when going fast
-            Transform::from_translation(SPAWN_POINT),
+            Ccd { enabled: true },
+            Transform::from_translation(spawn_state.0.position),
             LogicalPlayer,
             #[cfg(not(feature = "lock_player"))]
             FpsControllerInput {
-                pitch: -TAU / 20.0,
-                yaw: TAU * 5.0 / 12.0,
+                pitch,
+                yaw,
                 ..default()
             },
             #[cfg(feature = "lock_player")]

@@ -14,6 +14,7 @@ pub fn exit_on_last_window_closed_system(
 
 #[allow(clippy::too_many_arguments)]
 pub fn receive_message_system(
+    mut commands: Commands,
     mut client: ResMut<RenetClient>,
     mut player_spawn_events: ResMut<Messages<remote_player_events::RemotePlayerSpawnedEvent>>,
     mut player_despawn_events: ResMut<Messages<remote_player_events::RemotePlayerDespawnedEvent>>,
@@ -37,7 +38,8 @@ pub fn receive_message_system(
                     eprintln!("Server connection rejected: {reject_reason}");
                     exit_events.write(AppExit::error());
                 }
-                NetworkingMessage::PlayerAccept() => {
+                NetworkingMessage::PlayerAccept(player_state) => {
+                    commands.insert_resource(player_resources::LocalPlayerSpawnState(player_state));
                     next_state.set(GameState::Playing);
                 }
                 NetworkingMessage::PlayerJoin(username) => {

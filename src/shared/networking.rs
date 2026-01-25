@@ -117,10 +117,21 @@ impl<'de> Deserialize<'de> for Username {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+pub const DEFAULT_SPAWN_POINT: Vec3 = Vec3::new(0.0, 43.0, 0.0); // TODO: determine spawn point from terain 
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct PlayerState {
     pub position: Vec3,
     pub rotation: Quat,
+}
+
+impl Default for PlayerState {
+    fn default() -> Self {
+        Self {
+            position: DEFAULT_SPAWN_POINT,
+            rotation: Quat::IDENTITY,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -162,7 +173,7 @@ type RejectReason = String;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum NetworkingMessage {
-    PlayerAccept(),
+    PlayerAccept(PlayerState),
     PlayerReject(RejectReason),
     PlayerJoin(Username),
     PlayerLeave(Username),

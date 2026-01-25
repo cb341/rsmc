@@ -148,18 +148,16 @@ pub fn handle_events_system(
 
                 active_connections.accept(*client_id);
 
-                player_states.players.insert(
-                    username,
-                    PlayerState {
-                        position: Vec3::ZERO,
-                        rotation: Quat::IDENTITY,
-                    },
-                );
+                let player_state = player_states
+                    .players
+                    .entry(username)
+                    .or_insert_with(PlayerState::default);
+
                 client_usernames.insert(*client_id, username);
                 server.send_message(
                     *client_id,
                     DefaultChannel::ReliableOrdered,
-                    bincode::serialize(&NetworkingMessage::PlayerAccept())
+                    bincode::serialize(&NetworkingMessage::PlayerAccept(*player_state))
                         .expect("Message should always be sendable"),
                 );
                 println!("{username} connected");
