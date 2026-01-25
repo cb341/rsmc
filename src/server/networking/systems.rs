@@ -23,7 +23,7 @@ pub fn receive_message_system(
         let username = client_usernames
             .username_for_client_id(&client_id)
             .cloned()
-            .unwrap_or(Username::from("unknown"));
+            .expect("All clients should be associated with a username");
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
         {
             let message = bincode::deserialize(&message).unwrap();
@@ -186,7 +186,7 @@ pub fn handle_events_system(
                     let username = client_usernames
                         .username_for_client_id(client_id)
                         .cloned()
-                        .unwrap_or(Username("unknown".to_string()));
+                        .expect("All clients should have an associated username");
 
                     println!("Player {username} disconnected");
 
