@@ -42,7 +42,10 @@ impl Plugin for NetworkingPlugin {
         app.insert_resource(ActiveConnections::default());
         app.add_systems(Update, networking_systems::receive_message_system);
         app.add_systems(Update, networking_systems::handle_events_system);
-        app.add_systems(Last, networking_systems::disconnect_all_clients_on_exit_system);
+        app.add_systems(
+            Last,
+            networking_systems::disconnect_all_clients_on_exit_system,
+        );
     }
 }
 
