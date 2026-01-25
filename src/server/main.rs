@@ -4,6 +4,9 @@ pub mod player;
 pub mod prelude;
 pub mod terrain;
 
+use bevy::app::TerminalCtrlCHandlerPlugin;
+use clap::Parser;
+
 #[cfg(feature = "egui_layer")]
 use bevy::DefaultPlugins;
 #[cfg(feature = "egui_layer")]
@@ -14,8 +17,18 @@ use bevy::log::LogPlugin;
 
 use crate::prelude::*;
 
+#[derive(Debug, Parser)]
+#[command(version)]
+#[command(long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    world_commands: terrain_commands::WorldCommands,
+}
+
 fn main() {
     let mut app = App::new();
+    app.add_plugins(TerminalCtrlCHandlerPlugin);
+
     #[cfg(not(feature = "egui_layer"))]
     {
         app.add_plugins(MinimalPlugins);
@@ -30,12 +43,21 @@ fn main() {
         app.add_systems(Startup, gui::setup_camera_system);
     }
 
+    let args = Cli::parse();
+    match terrain::TerrainPlugin::from_command(args.world_commands) {
+        Ok(terrain_plugin) => app.add_plugins(terrain_plugin),
+        Err(error) => {
+            eprintln!("Error: {}", error);
+            return;
+        }
+    };
+
     app.add_plugins(player::PlayerPlugin);
     app.add_plugins(networking::NetworkingPlugin);
-    app.add_plugins(terrain::TerrainPlugin);
 
     #[cfg(feature = "chat")]
     app.add_plugins(chat::ChatPlugin);
 
+    println!("Server is starting!");
     app.run();
 }

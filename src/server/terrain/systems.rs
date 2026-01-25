@@ -1,12 +1,14 @@
+use crate::{
+    prelude::*,
+    terrain::{persistence::*, resources::Generator},
+};
 use std::cmp::min;
-
-use crate::prelude::*;
 
 pub fn setup_world_system(
     mut chunk_manager: ResMut<ChunkManager>,
     generator: Res<terrain_resources::Generator>,
 ) {
-    let render_distance = IVec3::new(8, 3, 8);
+    let render_distance = IVec3::new(4, 3, 4);
 
     info!("Generating chunks");
 
@@ -39,7 +41,7 @@ pub fn process_user_chunk_requests_system(
         let chunks = positions_to_process
             .into_par_iter()
             .map(|position| {
-                let chunk = chunk_manager.get_chunk(position);
+                let chunk = chunk_manager.get_chunk(&position);
 
                 match chunk {
                     Some(chunk) => *chunk,
@@ -64,6 +66,49 @@ pub fn process_user_chunk_requests_system(
     });
 }
 
+pub fn save_world_system(
+    chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
+    world_name: ResMut<terrain_resources::AutoSaveName>,
+    mut timer: ResMut<terrain_resources::WorldSaveTimer>,
+) {
+    if timer.is_ready() {
+        info!("Saving world...");
+        if save_world(&world_name.0, &chunk_manager, &generator).is_ok() {
+            timer.reset();
+        }
+    }
+}
+
+pub fn backup_world_system(
+    chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
+    world_name: ResMut<terrain_resources::AutoSaveName>,
+    mut timer: ResMut<terrain_resources::WorldBackupTimer>,
+) {
+    if timer.is_ready() {
+        println!("Backing up world...");
+        if backup_world(&world_name.0, &chunk_manager, &generator).is_ok() {
+            timer.reset();
+        }
+    }
+}
+
+pub fn save_world_on_shutdown_system(
+    chunk_manager: Res<ChunkManager>,
+    generator: Res<Generator>,
+    world_name: ResMut<terrain_resources::AutoSaveName>,
+    mut exit_events: MessageReader<AppExit>,
+) {
+    if exit_events.read().count() != 0 {
+        match save_world(&world_name.0, &chunk_manager, &generator) {
+            Ok(_) => println!("Saved world before exiting"),
+            Err(err) => eprintln!("Error saving world: {}", err),
+        }
+    }
+}
+
+use bevy::app::AppExit;
 #[cfg(feature = "generator_visualizer")]
 pub use visualizer::*;
 

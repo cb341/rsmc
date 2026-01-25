@@ -2,6 +2,9 @@ use std::collections::VecDeque;
 
 use crate::prelude::*;
 
+use chrono::{DateTime, TimeDelta, Utc};
+use rand::distr::{Alphanumeric, SampleString};
+use serde::{Deserialize, Serialize};
 use terrain_events::BlockUpdateEvent;
 
 #[derive(Resource, Default)]
@@ -30,57 +33,131 @@ impl ClientChunkRequests {
 }
 
 #[derive(Resource)]
-pub struct PastBlockUpdates {
-    pub updates: Vec<BlockUpdateEvent>,
-}
+pub struct AutoSaveName(pub String);
 
-impl Default for PastBlockUpdates {
-    fn default() -> Self {
-        Self::new()
+impl AutoSaveName {
+    pub fn with_name(name: String) -> Self {
+        Self(name)
+    }
+
+    pub fn with_random() -> Self {
+        Self(Alphanumeric.sample_string(&mut rand::rng(), 16))
     }
 }
 
-impl PastBlockUpdates {
-    pub fn new() -> Self {
-        Self {
-            updates: Vec::new(),
+#[derive(Resource)]
+struct SaveTimer {
+    pub last_autosave_timestamp: DateTime<Utc>,
+    interval: chrono::TimeDelta,
+}
+
+impl SaveTimer {
+    pub fn new(interval: TimeDelta) -> SaveTimer {
+        SaveTimer {
+            last_autosave_timestamp: Utc::now(),
+            interval,
         }
     }
 }
 
 #[derive(Resource)]
-pub struct Generator {
-    pub seed: u32,
-    pub perlin: Perlin,
-    pub params: TerrainGeneratorParams,
+pub struct WorldBackupTimer(SaveTimer);
+
+impl WorldBackupTimer {
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn is_ready(&self) -> bool {
+        self.0.is_ready()
+    }
 }
 
+impl Default for WorldBackupTimer {
+    fn default() -> Self {
+        Self(SaveTimer::new(TimeDelta::seconds(180)))
+    }
+}
+
+#[derive(Resource)]
+pub struct WorldSaveTimer(SaveTimer);
+
+impl WorldSaveTimer {
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn is_ready(&self) -> bool {
+        self.0.is_ready()
+    }
+}
+
+impl Default for WorldSaveTimer {
+    fn default() -> Self {
+        Self(SaveTimer::new(TimeDelta::seconds(30)))
+    }
+}
+
+impl SaveTimer {
+    pub fn reset(&mut self) {
+        self.last_autosave_timestamp = Utc::now();
+    }
+
+    pub fn is_ready(&self) -> bool {
+        let timer_ready_timestamp = self
+            .last_autosave_timestamp
+            .checked_add_signed(self.interval)
+            .expect("Time should never be out of range");
+        timer_ready_timestamp < Utc::now()
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct PastBlockUpdates {
+    pub updates: Vec<BlockUpdateEvent>,
+}
+
+#[derive(Resource, Clone, Serialize, Deserialize)]
+pub struct Generator {
+    pub seed: u32,
+    pub params: TerrainGeneratorParams,
+
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
+    pub perlin: Perlin,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HeightParams {
     pub noise: NoiseFunctionParams,
     pub splines: Vec<Vec2>,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DensityParams {
     pub noise: NoiseFunctionParams,
     pub squash_factor: f64,
     pub height_offset: f64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CaveParams {
     pub noise: NoiseFunctionParams,
     pub base_value: f64,
     pub threshold: f64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct HeightAdjustParams {
     pub noise: NoiseFunctionParams,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GrassParams {
     pub frequency: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct NoiseFunctionParams {
     pub octaves: u32,
     pub height: f64,
@@ -90,6 +167,7 @@ pub struct NoiseFunctionParams {
     pub persistence: f64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TreeParams {
     pub spawn_attempts_per_chunk: u32,
     pub min_stump_height: u32,
@@ -104,6 +182,13 @@ impl Default for Generator {
     }
 }
 
+impl Generator {
+    pub fn with_seed(seed: u32) -> Self {
+        Self::new(seed)
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TerrainGeneratorParams {
     pub height: HeightParams,
     pub height_adjust: HeightAdjustParams,
