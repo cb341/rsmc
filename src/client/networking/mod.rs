@@ -20,7 +20,7 @@ impl NetworkingPlugin {
     pub fn new(server_addr: &str, username: String) -> Result<NetworkingPlugin, String> {
         let server_addr = server_addr.parse().map_err(|_| {
             format!(
-                "Address '{}' is invalid, please specify address in format like 127.0.0.1:500",
+                "Address '{}' is invalid, please specify address in format like {DEFAULT_SERVER_ADDR}",
                 server_addr
             )
         })?;

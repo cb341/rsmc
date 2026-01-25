@@ -1,5 +1,6 @@
 use clap::*;
 
+use crate::networking::DEFAULT_SERVER_ADDR;
 use crate::prelude::NetworkingPlugin;
 
 #[derive(Parser, Debug)]
@@ -10,8 +11,6 @@ pub struct NetworkingArgs {
     #[arg(short, long)]
     server_addr: Option<String>,
 }
-
-const DEFAULT_SERVER_ADDR: &str = "127.0.0.1:5000";
 
 impl NetworkingPlugin {
     pub fn from_args(args: NetworkingArgs) -> Result<Self, String> {
