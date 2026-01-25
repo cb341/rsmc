@@ -21,7 +21,7 @@ pub fn broadcast_player_attributes_system(
                     .username_for_client_id(&client_id)
                     .is_none_or(|own_username| own_username != *username)
             })
-            .map(|(u, s)| (u.clone(), s.clone()))
+            .map(|(u, s)| (*u, *s))
             .collect();
 
         server.send_message(

@@ -148,10 +148,7 @@ pub fn handle_events_system(
 
                 active_connections.accept(*client_id);
 
-                let player_state = player_states
-                    .players
-                    .entry(username)
-                    .or_insert_with(PlayerState::default);
+                let player_state = player_states.players.entry(username).or_default();
 
                 client_usernames.insert(*client_id, username);
                 server.send_message(
@@ -210,7 +207,7 @@ pub fn handle_events_system(
                     if let Some(username) = client_usernames.username_for_client_id(client_id) {
                         let message =
                             bincode::serialize(&NetworkingMessage::PlayerLeave(*username))
-                                .unwrap();
+                                .expect("Messages should be serializable");
                         server.broadcast_message(DefaultChannel::ReliableOrdered, message);
                     }
                 }

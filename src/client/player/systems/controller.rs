@@ -33,7 +33,6 @@ pub fn setup_controller_on_area_ready_system(
 ) {
     info!("Setting up controller at {:?}", spawn_state.0.position);
 
-
     let logical_entity = commands
         .spawn((
             Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.5),
