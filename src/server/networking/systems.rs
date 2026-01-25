@@ -15,7 +15,7 @@ pub fn receive_message_system(
         let username = client_usernames
             .username_for_client_id(&client_id)
             .cloned()
-            .unwrap_or(Username::from("f"));
+            .unwrap_or(Username::from("unknown"));
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
         {
             let message = bincode::deserialize(&message).unwrap();

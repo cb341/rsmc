@@ -59,8 +59,7 @@ fn main() {
 
     let mut app = App::new();
 
-    let networking_plugin = networking::NetworkingPlugin::from_args(cli.networking_args);
-    match networking_plugin {
+    match networking::NetworkingPlugin::from_args(cli.networking_args) {
         Ok(plugin) => {
             app.add_plugins(plugin);
         }

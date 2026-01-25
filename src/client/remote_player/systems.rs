@@ -37,7 +37,6 @@ pub fn spawn_remote_player_system(
                     ))
                     .with_child((
                         Node::default(),
-                        Transform::from_translation(Vec3::new(1.0, 1.0, 2.0)),
                         TextSpan::new(format!("{username}\n\n\n")),
                         TextFont::from(terminus_handle.clone()).with_font_size(60.0),
                         TextColor::from(Color::WHITE),
