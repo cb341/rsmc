@@ -1,11 +1,17 @@
 use crate::prelude::*;
+use bevy::color::palettes;
+use bevy_mod_billboard::prelude::*;
 
 pub fn spawn_remote_player_system(
     mut commands: Commands,
     mut spawn_events: MessageReader<remote_player_events::RemotePlayerSpawnedEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
+    let terminus_handle = asset_server.load("fonts/Terminus500.ttf");
+    // return;
+
     for event in spawn_events.read() {
         let username = event.username.clone();
 
@@ -14,11 +20,29 @@ pub fn spawn_remote_player_system(
             ..default()
         });
 
-        commands.spawn((
-            bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
-            MeshMaterial3d(material),
-            remote_player_components::RemotePlayer { username },
-        ));
+        commands
+            .spawn((
+                Node::default(),
+                bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
+                MeshMaterial3d(material),
+                remote_player_components::RemotePlayer { username: username.clone() },
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn((
+                        Node::default(),
+                        BillboardText::default(),
+                        TextLayout::new_with_justify(Justify::Center),
+                        Transform::from_scale(Vec3::splat(0.0085)),
+                    ))
+                    .with_child((
+                        Node::default(),
+                        Transform::from_translation(Vec3::new(1.0, 1.0, 2.0)),
+                        TextSpan::new(format!("{username}\n\n\n")),
+                        TextFont::from(terminus_handle.clone()).with_font_size(60.0),
+                        TextColor::from(Color::WHITE),
+                    ));
+            });
     }
 }
 

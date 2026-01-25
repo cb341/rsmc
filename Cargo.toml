@@ -20,6 +20,7 @@ bevy_egui = { version = "0.38.1", features = ["immutable_ctx"]}
 bevy_diagnostic = "0.17.3"
 bevy-inspector-egui = {version = "0.35", features = ["bevy_render"]}
 bevy_renet = "3.0.0"
+bevy_mod_billboard = "0.7.0"
 renet_visualizer = {version="1.1.0", features=["bevy"]}
 egui_plot = "0.34.0"
 
@@ -41,6 +42,8 @@ clap = { version = "4.5.54", features = ["derive"] }
 renet_visualizer = {git = "https://github.com/cb341/renet.git" }
 bevy_renet = {git = "https://github.com/cb341/renet.git" }
 renet = {git = "https://github.com/cb341/renet.git" }
+bevy_mod_billboard = {git = "https://github.com/kisya-games/bevy_mod_billboard.git", branch="bevy-0.17"} # TODO: Remove once https://github.com/kulkalkul/bevy_mod_billboard/pull/36 is merged
+# bevy_mod_billboard = {git = "https://github.com/kulkalkul/bevy_mod_billboard.git"}
 
 [profile.dev.package."*"]
 opt-level = 3
