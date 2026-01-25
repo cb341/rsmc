@@ -23,9 +23,7 @@ pub fn spawn_remote_player_system(
                 Node::default(),
                 bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
                 MeshMaterial3d(material),
-                remote_player_components::RemotePlayer {
-                    username: username,
-                },
+                remote_player_components::RemotePlayer { username },
             ))
             .with_children(|parent| {
                 parent
@@ -72,7 +70,7 @@ pub fn update_remote_player_system(
             for (remote_player, mut transform) in query.iter_mut() {
                 if remote_player.username == *username {
                     player_exists = true;
-                    transform.translation = player_state.position + Vec3::new(0.0, 1.55, 0.0);
+                    transform.translation = player_state.position + Vec3::new(0.0, 0.55, 0.0);
                     transform.rotation = player_state.rotation;
                 }
             }
