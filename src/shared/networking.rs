@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use super::{BlockId, Chunk};
 
 pub const SERVER_USERNAME: &str = "SERVER";
+pub const MAX_USERNAME_LENGTH_BYTES: usize = 50;
 
 #[derive(Resource, Default)]
 pub struct ClientUsernames {
@@ -62,8 +63,11 @@ impl Username {
     }
     pub fn to_netcode_user_data(&self) -> [u8; NETCODE_USER_DATA_BYTES] {
         let mut user_data = [0u8; NETCODE_USER_DATA_BYTES];
-        if self.0.len() > NETCODE_USER_DATA_BYTES - 8 {
-            panic!("Username is too big");
+        if self.0.len() > MAX_USERNAME_LENGTH_BYTES {
+            panic!(
+                "Username is too big: has {} bytes out of max {MAX_USERNAME_LENGTH_BYTES}",
+                self.0.len()
+            );
         }
         user_data[0] = self.0.len() as u8;
         user_data[1..self.0.len() + 1].copy_from_slice(self.0.as_bytes());
