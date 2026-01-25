@@ -34,7 +34,6 @@ pub fn receive_message_system(
         match bincode::deserialize(&message) {
             Ok(message) => match message {
                 NetworkingMessage::PlayerReject(reject_reason) => {
-                    // no reason to keep on living without connections, so die
                     eprintln!("Server connection rejected: {reject_reason}");
                     exit_events.write(AppExit::error());
                 }

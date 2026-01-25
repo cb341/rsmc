@@ -3,7 +3,7 @@ pub mod systems;
 
 use crate::connection_config;
 
-use crate::networking::resources::ActiveConnections;
+use crate::networking::resources::{ActiveConnections, PendingDisconnects};
 use crate::prelude::*;
 
 const SERVER_ADDR: &str = "127.0.0.1:5000";
@@ -40,11 +40,15 @@ impl Plugin for NetworkingPlugin {
         app.insert_resource(Self::build_transport_resource());
         app.insert_resource(ClientUsernames::default());
         app.insert_resource(ActiveConnections::default());
+        app.insert_resource(PendingDisconnects::default());
         app.add_systems(Update, networking_systems::receive_message_system);
         app.add_systems(Update, networking_systems::handle_events_system);
         app.add_systems(
             Last,
-            networking_systems::disconnect_all_clients_on_exit_system,
+            (
+                networking_systems::process_pending_disconnects_system,
+                networking_systems::disconnect_all_clients_on_exit_system,
+            ),
         );
     }
 }

@@ -1,4 +1,7 @@
-use crate::{networking::resources::ActiveConnections, prelude::*};
+use crate::{
+    networking::resources::{ActiveConnections, PendingDisconnects},
+    prelude::*,
+};
 
 use bevy::prelude::*;
 
@@ -19,7 +22,7 @@ pub fn receive_message_system(
     mut chunk_manager: ResMut<ChunkManager>,
     client_usernames: Res<ClientUsernames>,
     mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
-    mut accepted_clients: ResMut<ActiveConnections>,
+    accepted_clients: Res<ActiveConnections>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
@@ -111,6 +114,7 @@ pub fn handle_events_system(
     mut request_queue: ResMut<terrain_resources::ClientChunkRequests>,
     mut client_usernames: ResMut<ClientUsernames>,
     mut active_connections: ResMut<ActiveConnections>,
+    mut pending_disconnects: ResMut<PendingDisconnects>,
     #[cfg(feature = "chat")] mut chat_message_events: MessageWriter<
         chat_events::PlayerChatMessageSendEvent,
     >,
@@ -136,9 +140,9 @@ pub fn handle_events_system(
                             .expect("Message should always be sendable"),
                         );
                         active_connections.reject(client_id);
-                        server.disconnect(*client_id);
+                        pending_disconnects.queue(*client_id);
                         println!("Client {client_id} with Username '{username}' rejected");
-                        break;
+                        continue;
                     }
                 }
 
@@ -214,6 +218,15 @@ pub fn handle_events_system(
                 }
             }
         }
+    }
+}
+
+pub fn process_pending_disconnects_system(
+    mut server: ResMut<RenetServer>,
+    mut pending_disconnects: ResMut<PendingDisconnects>,
+) {
+    for client_id in pending_disconnects.drain_ready() {
+        server.disconnect(client_id);
     }
 }
 
