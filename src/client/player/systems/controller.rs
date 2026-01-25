@@ -33,7 +33,6 @@ pub fn setup_controller_on_area_ready_system(
 ) {
     info!("Setting up controller at {:?}", spawn_state.0.position);
 
-    let (yaw, pitch, _roll) = spawn_state.0.rotation.to_euler(EulerRot::YXZ);
 
     let logical_entity = commands
         .spawn((
@@ -60,10 +59,13 @@ pub fn setup_controller_on_area_ready_system(
             Transform::from_translation(spawn_state.0.position),
             LogicalPlayer,
             #[cfg(not(feature = "lock_player"))]
-            FpsControllerInput {
-                pitch,
-                yaw,
-                ..default()
+            {
+                let (yaw, pitch, _roll) = spawn_state.0.rotation.to_euler(EulerRot::YXZ);
+                FpsControllerInput {
+                    pitch,
+                    yaw,
+                    ..default()
+                }
             },
             #[cfg(feature = "lock_player")]
             FpsControllerInput {
