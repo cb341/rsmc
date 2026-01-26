@@ -292,7 +292,7 @@ mod tests {
         assert_eq!(message_count, 1);
         assert_eq!(
             messages.iter(app.world()).next().unwrap().0 .0,
-            "Hello World"
+            "[1970-01-01 00:00:00 UTC] SERVER: Hello World"
         );
     }
 
