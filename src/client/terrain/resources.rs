@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use bevy::tasks::Task;
 
 use crate::prelude::*;
@@ -9,6 +11,11 @@ impl SpawnAreaLoaded {
     pub fn is_loaded(resource: Res<SpawnAreaLoaded>) -> bool {
         resource.0
     }
+}
+
+#[derive(Resource, Default)]
+pub struct RequestedChunks {
+    pub previous_chunks: HashSet<IVec3>,
 }
 
 #[derive(Eq, Hash, Clone, PartialEq)]

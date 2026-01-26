@@ -11,6 +11,11 @@ pub struct RerequestChunks {
 }
 
 #[derive(Message)]
+pub struct RequestChunkBatch {
+    pub positions: Vec<IVec3>,
+}
+
+#[derive(Message)]
 pub struct BlockUpdateEvent {
     pub position: IVec3,
     pub block: BlockId,
