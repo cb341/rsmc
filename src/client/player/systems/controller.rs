@@ -97,6 +97,7 @@ pub fn handle_controller_movement_system(
     query: Query<(Entity, &FpsControllerInput, &Transform)>,
     mut last_position: ResMut<player_resources::LastPlayerPosition>,
     mut collider_events: MessageWriter<collider_events::ColliderUpdateEvent>,
+    mut terrain_events: MessageWriter<terrain_events::RerequestChunks>,
 ) {
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position: IVec3 = transform.translation.as_ivec3();
@@ -110,6 +111,15 @@ pub fn handle_controller_movement_system(
                     controller_position.z as f32,
                 ],
             });
+
+            if !last_position.has_same_chunk_position_as(controller_position) {
+                println!("REREQUESTING CHUNKS FROM {controller_position}");
+                terrain_events.write(terrain_events::RerequestChunks {
+                    center_chunk_position: ChunkManager::world_position_to_chunk_position(
+                        controller_position,
+                    ),
+                });
+            }
         }
         last_position.0 = controller_position;
     }

@@ -19,6 +19,7 @@ impl Plugin for TerrainPlugin {
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.add_message::<terrain_events::ChunkMeshUpdateEvent>();
         app.add_message::<terrain_events::WorldRegenerateEvent>();
+        app.add_message::<terrain_events::RerequestChunks>();
         app.add_systems(Startup, terrain_systems::prepare_mesher_materials_system);
         #[cfg(feature = "skip_terrain")]
         {
@@ -46,6 +47,7 @@ impl Plugin for TerrainPlugin {
                 terrain_systems::handle_terrain_regeneration_events_system,
             );
             app.add_systems(Update, terrain_systems::handle_chunk_tasks_system);
+            app.add_systems(Update, terrain_systems::handle_chunk_rerequests_system);
         }
     }
 }

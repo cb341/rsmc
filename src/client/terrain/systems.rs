@@ -104,6 +104,42 @@ pub fn handle_chunk_mesh_update_events_system(
     }
 }
 
+pub fn handle_chunk_rerequests_system(
+    mut chunk_manager: ResMut<ChunkManager>,
+    mut terrain_events: MessageReader<terrain_events::RerequestChunks>,
+    mut client: ResMut<RenetClient>,
+) {
+    for event in terrain_events.read() {
+        let render_distance = IVec3::new(4, 4, 4);
+
+        info!("Sending chunk requests for chunks");
+
+        let origin = event.center_chunk_position;
+        let chunks = chunk_manager.instantiate_new_chunks(origin, render_distance);
+
+        let mut positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
+        positions.sort_by(|a, b| {
+            (a - origin)
+                .length_squared()
+                .cmp(&(b - origin).length_squared())
+        });
+
+        let batched_positions = positions.chunks(32);
+
+        batched_positions.enumerate().for_each(|(index, batch)| {
+            let request_positions = batch.to_vec();
+            info!(
+                "Sending chunk batch request for {:?}",
+                request_positions.len()
+            );
+            let message =
+                bincode::serialize(&NetworkingMessage::ChunkBatchRequest(request_positions));
+            info!("requesting chunks #{}", index);
+            client.send_message(DefaultChannel::ReliableUnordered, message.unwrap());
+        });
+    }
+}
+
 fn create_mesh_task(chunk: &Chunk, texture_manager: &terrain_util::TextureManager) -> MeshTask {
     let task_pool = AsyncComputeTaskPool::get();
     let chunk = *chunk;

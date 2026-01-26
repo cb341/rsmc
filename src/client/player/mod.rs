@@ -38,6 +38,7 @@ impl Plugin for PlayerPlugin {
                 player_systems::handle_controller_movement_system,
                 player_systems::handle_player_collider_events_system,
             )
+                .run_if(terrain_resources::SpawnAreaLoaded::is_loaded) // TODO: doublecheck
                 .run_if(player_resources::PlayerSpawned::is_spawned),
         );
         app.add_systems(
