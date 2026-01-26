@@ -35,7 +35,7 @@ impl BlockSelection {
 }
 
 #[derive(Resource)]
-pub struct LastPlayerPosition(pub Vec3);
+pub struct LastPlayerPosition(pub IVec3);
 
 impl Default for LastPlayerPosition {
     fn default() -> Self {
@@ -45,7 +45,7 @@ impl Default for LastPlayerPosition {
 
 impl LastPlayerPosition {
     pub fn new() -> Self {
-        Self(Vec3::ZERO)
+        Self(IVec3::ZERO)
     }
 }
 

@@ -171,12 +171,16 @@ impl ChunkManager {
         out
     }
 
-    fn chunk_at_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
-        let chunk_position = IVec3 {
+    pub fn world_position_to_chunk_position(position: IVec3) -> IVec3 {
+        IVec3 {
             x: position.x.div_euclid(CHUNK_SIZE as i32),
             y: position.y.div_euclid(CHUNK_SIZE as i32),
             z: position.z.div_euclid(CHUNK_SIZE as i32),
-        };
+        }
+    }
+
+    fn chunk_at_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
+        let chunk_position = Self::world_position_to_chunk_position(position);
         self.get_chunk_mut(&chunk_position)
     }
 

@@ -99,13 +99,19 @@ pub fn handle_controller_movement_system(
     mut collider_events: MessageWriter<collider_events::ColliderUpdateEvent>,
 ) {
     for (_entity, _input, transform) in &mut query.iter() {
-        let controller_position = transform.translation;
-        if last_position.0.floor() != controller_position.floor() {
+        let controller_position: IVec3 = transform.translation.as_ivec3();
+
+        if last_position.0 != controller_position {
             collider_events.write(collider_events::ColliderUpdateEvent {
-                grid_center_position: controller_position.floor().into(),
+                grid_center_position: [
+                    // TODO: refactor colliders to use integers over floats
+                    controller_position.x as f32,
+                    controller_position.y as f32,
+                    controller_position.z as f32,
+                ],
             });
         }
-        last_position.0 = controller_position.floor();
+        last_position.0 = controller_position;
     }
 }
 
