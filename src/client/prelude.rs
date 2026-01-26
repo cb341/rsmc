@@ -44,6 +44,7 @@ pub use crate::collider::components as collider_components;
 pub use crate::collider::events as collider_events;
 pub use crate::collider::systems as collider_systems;
 
+pub use crate::networking::commands as networking_commands;
 pub use crate::networking::systems as networking_systems;
 pub use crate::networking::NetworkingPlugin;
 

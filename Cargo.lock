@@ -1313,6 +1313,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ef8e4b7e61dfe7719bb03c884dc270cd46a82efb40f93e9933b990c5c190c59"
 
 [[package]]
+name = "bevy_mod_billboard"
+version = "0.7.0"
+source = "git+https://github.com/kisya-games/bevy_mod_billboard.git?branch=bevy-0.17#dfaa4d2107fc2aa439fdc548d264a450b915e5c4"
+dependencies = [
+ "bevy",
+ "bitflags 2.10.0",
+ "smallvec",
+]
+
+[[package]]
 name = "bevy_pbr"
 version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5337,6 +5347,7 @@ dependencies = [
  "bevy_flair",
  "bevy_fps_controller",
  "bevy_mesh",
+ "bevy_mod_billboard",
  "bevy_rapier3d",
  "bevy_renet",
  "bincode",

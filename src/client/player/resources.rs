@@ -48,3 +48,6 @@ impl LastPlayerPosition {
         Self(Vec3::ZERO)
     }
 }
+
+#[derive(Resource)]
+pub struct LocalPlayerSpawnState(pub PlayerState);

@@ -1,24 +1,45 @@
 use crate::prelude::*;
+use bevy_mod_billboard::prelude::*;
 
 pub fn spawn_remote_player_system(
     mut commands: Commands,
     mut spawn_events: MessageReader<remote_player_events::RemotePlayerSpawnedEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
+    let terminus_handle = asset_server.load("fonts/Terminus500.ttf");
+
     for event in spawn_events.read() {
-        let client_id = event.client_id;
+        let username = event.username;
 
         let material = materials.add(StandardMaterial {
             base_color: Color::srgb(0.8, 0.7, 0.6),
             ..default()
         });
 
-        commands.spawn((
-            bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
-            MeshMaterial3d(material),
-            remote_player_components::RemotePlayer { client_id },
-        ));
+        commands
+            .spawn((
+                Node::default(),
+                bevy::prelude::Mesh3d(meshes.add(Cuboid::new(0.5, 0.5, 0.5))),
+                MeshMaterial3d(material),
+                remote_player_components::RemotePlayer { username },
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn((
+                        Node::default(),
+                        BillboardText::default(),
+                        TextLayout::new_with_justify(Justify::Center),
+                        Transform::from_scale(Vec3::splat(0.0085)),
+                    ))
+                    .with_child((
+                        Node::default(),
+                        TextSpan::new(format!("{username}\n\n\n")),
+                        TextFont::from(terminus_handle.clone()).with_font_size(60.0),
+                        TextColor::from(Color::WHITE),
+                    ));
+            });
     }
 }
 
@@ -29,7 +50,7 @@ pub fn despawn_remote_player_system(
 ) {
     for event in despawn_events.read() {
         for (entity, remote_player) in query.iter() {
-            if remote_player.client_id == event.client_id {
+            if remote_player.username == event.username {
                 commands.entity(entity).despawn();
             }
         }
@@ -44,19 +65,19 @@ pub fn update_remote_player_system(
     let latest_event = sync_events.read().last();
 
     if let Some(event) = latest_event {
-        for (client_id, player_state) in event.players.iter() {
+        for (username, player_state) in event.players.iter() {
             let mut player_exists = false;
             for (remote_player, mut transform) in query.iter_mut() {
-                if remote_player.client_id == *client_id {
+                if remote_player.username == *username {
                     player_exists = true;
-                    transform.translation = player_state.position + Vec3::new(0.0, 1.55, 0.0);
+                    transform.translation = player_state.position + Vec3::new(0.0, 0.55, 0.0);
                     transform.rotation = player_state.rotation;
                 }
             }
 
             if !player_exists {
                 spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
-                    client_id: *client_id,
+                    username: *username,
                     position: player_state.position,
                 });
             }

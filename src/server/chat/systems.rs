@@ -9,14 +9,14 @@ pub fn sync_single_player_chat_messages_system(
 ) {
     for event in player_send_messages.read() {
         let message = event.message.clone();
-        let client_id = event.client_id;
+        let sender = event.sender.clone();
 
-        info!("Broadcasting message from sender {}", client_id);
+        info!("Broadcasting message from sender {sender}");
         let message_count = chat_messages.messages.len();
         let message_id = message_count;
 
         let chat_message = ChatMessage {
-            client_id,
+            sender,
             message_id,
             message,
             timestamp: get_current_time_in_ms(),

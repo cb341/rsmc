@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Message)]
 pub struct PlayerChatMessageSendEvent {
-    pub client_id: ClientId,
+    pub sender: ChatMessageSender,
     pub message: String,
 }
 

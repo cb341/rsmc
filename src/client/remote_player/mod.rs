@@ -1,3 +1,5 @@
+use bevy_mod_billboard::prelude::BillboardPlugin;
+
 pub mod components;
 pub mod events;
 pub mod systems;
@@ -8,6 +10,7 @@ pub struct RemotePlayerPlugin;
 
 impl Plugin for RemotePlayerPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(BillboardPlugin);
         app.add_message::<events::RemotePlayerSpawnedEvent>();
         app.init_gizmo_group::<remote_player_components::RemotePlayerGizmos>();
         app.add_message::<events::RemotePlayerDespawnedEvent>();

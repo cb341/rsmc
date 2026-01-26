@@ -35,6 +35,7 @@ pub use noise::Perlin;
 pub use rsmc as lib;
 
 // my crates
+pub use crate::networking::resources as networking_resources;
 pub use crate::networking::systems as networking_systems;
 
 pub use crate::player::resources as player_resources;

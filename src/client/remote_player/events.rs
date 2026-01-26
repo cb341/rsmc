@@ -2,16 +2,16 @@ use crate::prelude::*;
 
 #[derive(Message)]
 pub struct RemotePlayerSpawnedEvent {
-    pub client_id: ClientId,
+    pub username: Username,
     pub position: Vec3,
 }
 
 #[derive(Message)]
 pub struct RemotePlayerDespawnedEvent {
-    pub client_id: ClientId,
+    pub username: Username,
 }
 
 #[derive(Message)]
 pub struct RemotePlayerSyncEvent {
-    pub players: HashMap<ClientId, PlayerState>,
+    pub players: HashMap<Username, PlayerState>,
 }

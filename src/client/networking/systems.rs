@@ -1,7 +1,20 @@
 use crate::prelude::*;
 
+pub fn exit_on_last_window_closed_system(
+    close_events: MessageReader<WindowCloseRequested>,
+    windows: Query<(), With<Window>>,
+    mut client: ResMut<RenetClient>,
+    mut exit: MessageWriter<AppExit>,
+) {
+    if !close_events.is_empty() && windows.iter().count() <= 1 {
+        client.disconnect();
+        exit.write(AppExit::Success);
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn receive_message_system(
+    mut commands: Commands,
     mut client: ResMut<RenetClient>,
     mut player_spawn_events: ResMut<Messages<remote_player_events::RemotePlayerSpawnedEvent>>,
     mut player_despawn_events: ResMut<Messages<remote_player_events::RemotePlayerDespawnedEvent>>,
@@ -15,20 +28,29 @@ pub fn receive_message_system(
         Messages<chat_events::SingleChatSendEvent>,
     >,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
+    mut exit_events: MessageWriter<AppExit>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         match bincode::deserialize(&message) {
             Ok(message) => match message {
-                NetworkingMessage::PlayerJoin(event) => {
+                NetworkingMessage::PlayerReject(reject_reason) => {
+                    eprintln!("Server connection rejected: {reject_reason}");
+                    exit_events.write(AppExit::error());
+                }
+                NetworkingMessage::PlayerAccept(player_state) => {
+                    commands.insert_resource(player_resources::LocalPlayerSpawnState(player_state));
+                    next_state.set(GameState::Playing);
+                }
+                NetworkingMessage::PlayerJoin(username) => {
                     player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
-                        client_id: event,
+                        username,
                         position: Vec3::ZERO,
                     });
                 }
-                NetworkingMessage::PlayerLeave(event) => {
-                    player_despawn_events.write(remote_player_events::RemotePlayerDespawnedEvent {
-                        client_id: event,
-                    });
+                NetworkingMessage::PlayerLeave(username) => {
+                    player_despawn_events
+                        .write(remote_player_events::RemotePlayerDespawnedEvent { username });
                 }
                 NetworkingMessage::BlockUpdate { position, block } => {
                     debug!("Client received block update message: {:?}", position);
