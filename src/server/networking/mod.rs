@@ -6,7 +6,7 @@ use crate::connection_config;
 use crate::networking::resources::{ActiveConnections, PendingDisconnects};
 use crate::prelude::*;
 
-const SERVER_ADDR: &str = "127.0.0.1:5000";
+const DEFAULT_SERVER_ADDR: &str = "127.0.0.1:5000";
 
 pub struct NetworkingPlugin;
 
@@ -55,7 +55,7 @@ impl Plugin for NetworkingPlugin {
 
 impl NetworkingPlugin {
     fn build_transport_resource() -> NetcodeServerTransport {
-        let server_addr = SERVER_ADDR.parse().unwrap();
+        let server_addr = DEFAULT_SERVER_ADDR.parse().unwrap();
         let socket = UdpSocket::bind(server_addr).unwrap();
         let server_config = ServerConfig {
             current_time: SystemTime::now()

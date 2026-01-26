@@ -15,20 +15,11 @@ const DEFAULT_SERVER_ADDR: &str = "127.0.0.1:5000";
 
 pub struct NetworkingPlugin {
     username: Username,
-    server_addr: SocketAddr,
 }
 
 impl NetworkingPlugin {
-    pub fn new(server_addr: &str, username: String) -> Result<NetworkingPlugin, String> {
-        let server_addr = server_addr.parse().map_err(|_| {
-            format!(
-                "Address '{}' is invalid, please specify address in format like {DEFAULT_SERVER_ADDR}",
-                server_addr
-            )
-        })?;
-
+    pub fn new(username: String) -> Result<NetworkingPlugin, String> {
         Ok(Self {
-            server_addr,
             username: Username::new(&username)?,
         })
     }
@@ -42,7 +33,9 @@ impl Plugin for NetworkingPlugin {
         app.insert_resource(client);
 
         let authentication = ClientAuthentication::Unsecure {
-            server_addr: self.server_addr,
+            server_addr: DEFAULT_SERVER_ADDR
+                .parse()
+                .expect("Hardcoded server address should be valid"),
             client_id: rand::random::<u64>(),
             user_data: Some(self.username.to_netcode_user_data()),
             protocol_id: 0,
