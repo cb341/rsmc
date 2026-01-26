@@ -43,7 +43,6 @@ renet_visualizer = {git = "https://github.com/cb341/renet.git" }
 bevy_renet = {git = "https://github.com/cb341/renet.git" }
 renet = {git = "https://github.com/cb341/renet.git" }
 bevy_mod_billboard = {git = "https://github.com/kisya-games/bevy_mod_billboard.git", branch="bevy-0.17"} # TODO: Remove once https://github.com/kulkalkul/bevy_mod_billboard/pull/36 is merged
-# bevy_mod_billboard = {git = "https://github.com/kulkalkul/bevy_mod_billboard.git"}
 
 [profile.dev.package."*"]
 opt-level = 3
