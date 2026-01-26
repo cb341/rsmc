@@ -51,21 +51,38 @@ impl ChunkManager {
         chunks
     }
 
-    pub fn instantiate_new_chunks(
-        &mut self,
-        position: IVec3,
-        render_distance: IVec3,
-    ) -> Vec<Chunk> {
-        let chunks = Self::instantiate_chunks(position, render_distance);
-
-        chunks
+    pub fn sorted_new_chunk_positions(&self, origin: IVec3, distance: IVec3) -> Vec<IVec3> {
+        let all_positions = Self::get_sorted_chunk_positions_in_range(origin, distance);
+        all_positions
             .into_iter()
-            .filter(|chunk| {
-                let chunk_position = chunk.position;
-                let chunk = self.get_chunk_mut(&chunk_position);
-                chunk.is_none()
-            })
+            .filter(|position| self.get_chunk(position).is_none())
             .collect()
+    }
+
+    pub fn get_sorted_chunk_positions_in_range(origin: IVec3, distance: IVec3) -> Vec<IVec3> {
+        let distance_x = distance.x;
+        let distance_y = distance.y;
+        let distance_z = distance.z;
+
+        let mut positions: Vec<IVec3> =
+            Vec::with_capacity((distance_x * 2 * distance_y * 2 * distance_z * 2) as usize);
+
+        for x in -distance_x..distance_x {
+            for y in -distance_y..distance_y {
+                for z in -distance_z..distance_z {
+                    let chunk_position = IVec3::new(x + origin.x, y + origin.y, z + origin.z);
+                    positions.push(chunk_position);
+                }
+            }
+        }
+
+        positions.sort_by(|a, b| {
+            (a - origin)
+                .length_squared()
+                .cmp(&(b - origin).length_squared())
+        });
+
+        positions
     }
 
     pub fn insert_chunk(&mut self, chunk: Chunk) {

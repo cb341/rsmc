@@ -39,18 +39,11 @@ pub fn generate_simple_ground_system(
 }
 
 pub fn generate_world_system(
-    mut chunk_manager: ResMut<ChunkManager>,
+    chunk_manager: Res<ChunkManager>,
     mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
 ) {
     let origin = IVec3::ZERO;
-    let chunks = chunk_manager.instantiate_new_chunks(origin, RENDER_DISTANCE);
-
-    let mut positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
-    positions.sort_by(|a, b| {
-        (a - origin)
-            .length_squared()
-            .cmp(&(b - origin).length_squared())
-    });
+    let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
 
     batch_events.write(terrain_events::RequestChunkBatch { positions });
 }
@@ -120,7 +113,7 @@ pub fn handle_chunk_mesh_update_events_system(
 }
 
 pub fn handle_chunk_rerequests_system(
-    mut chunk_manager: ResMut<ChunkManager>,
+    chunk_manager: Res<ChunkManager>,
     mut terrain_events: MessageReader<terrain_events::RerequestChunks>,
     mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
 ) {
@@ -128,14 +121,7 @@ pub fn handle_chunk_rerequests_system(
         info!("Sending chunk requests for chunks");
 
         let origin = event.center_chunk_position;
-        let chunks = chunk_manager.instantiate_new_chunks(origin, RENDER_DISTANCE);
-
-        let mut positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
-        positions.sort_by(|a, b| {
-            (a - origin)
-                .length_squared()
-                .cmp(&(b - origin).length_squared())
-        });
+        let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
 
         batch_events.write(terrain_events::RequestChunkBatch { positions });
     }
