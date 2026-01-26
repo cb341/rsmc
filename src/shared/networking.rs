@@ -46,15 +46,20 @@ pub struct Username([u8; USERNAME_BUFFER_SIZE]);
 
 impl Username {
     pub fn new(s: &str) -> Result<Self, String> {
-        if s.len() > MAX_USERNAME_LENGTH_BYTES {
+        let len = s.len();
+        if len > MAX_USERNAME_LENGTH_BYTES {
             return Err(format!(
-                "Username too long: {} bytes (max {MAX_USERNAME_LENGTH_BYTES})",
-                s.len()
+                "Username too long: {len} bytes (max {MAX_USERNAME_LENGTH_BYTES})",
+            ));
+        }
+        if s.to_lowercase() == SERVER_USERNAME.to_lowercase() {
+            return Err(format!(
+                "Username '{s}' is too similar to '{SERVER_USERNAME}"
             ));
         }
         let mut buf = [0u8; USERNAME_BUFFER_SIZE];
-        buf[0] = s.len() as u8;
-        buf[1..=s.len()].copy_from_slice(s.as_bytes());
+        buf[0] = len as u8;
+        buf[1..=len].copy_from_slice(s.as_bytes());
         Ok(Self(buf))
     }
 
@@ -80,6 +85,30 @@ impl Username {
         let mut buf = [0u8; USERNAME_BUFFER_SIZE];
         buf[..=len].copy_from_slice(&user_data[..=len]);
         Self(buf)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_username_acts_like_a_string() {
+        let username = Username::new("Steve").unwrap();
+        assert_eq!(format!("{}", username), "Steve");
+    }
+
+    #[test]
+    fn test_bad_usernames_are_rejected() {
+        let bad_username = Username::new(
+            "MyUserNameIsProbablyWayyToLongAndCouldCauseTroubleInChatMessagesAndOtherPlaces",
+        );
+        assert!(bad_username.is_err());
+        assert!(bad_username.err().unwrap().contains("too long"));
+
+        let bad_username = Username::new("SErVER");
+        assert!(bad_username.is_err());
+        assert!(bad_username.err().unwrap().contains("SERVER"));
     }
 }
 
