@@ -135,7 +135,7 @@ pub fn handle_events_system(
                             *client_id,
                             DefaultChannel::ReliableOrdered,
                             bincode::serialize(&NetworkingMessage::PlayerReject(String::from(
-                                "Another Client is already connected with that Username.",
+                                "Another Client is already connected with that Username. Wait 15 seconds before trying again.",
                             )))
                             .expect("Message should always be sendable"),
                         );
