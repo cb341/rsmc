@@ -27,7 +27,6 @@ pub fn receive_message_system(
     #[cfg(feature = "chat")] mut single_chat_events: ResMut<
         Messages<chat_events::SingleChatSendEvent>,
     >,
-    mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
     mut exit_events: MessageWriter<AppExit>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
@@ -40,7 +39,8 @@ pub fn receive_message_system(
                 }
                 NetworkingMessage::PlayerAccept(player_state) => {
                     commands.insert_resource(player_resources::LocalPlayerSpawnState(player_state));
-                    next_state.set(GameState::Playing);
+                    commands.insert_resource(terrain_resources::SpawnArea{ origin: player_state.position.as_ivec3() });
+                    next_state.set(GameState::LoadingSpawnArea);
                 }
                 NetworkingMessage::PlayerJoin(username) => {
                     player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {
@@ -102,11 +102,6 @@ pub fn receive_message_system(
                         chunk_manager.insert_chunk(chunk);
                         chunk_mesh_events
                             .write(terrain_events::ChunkMeshUpdateEvent { chunk_position });
-
-                        if chunk_position.eq(&IVec3::ZERO) {
-                            info!("Spawn area loaded.");
-                            spawn_area_loaded.0 = true;
-                        }
                     }
                 }
                 NetworkingMessage::PlayerSync(event) => {

@@ -113,7 +113,7 @@ pub fn handle_controller_movement_system(
             });
 
             if !last_position.has_same_chunk_position_as(controller_position) {
-                println!("REREQUESTING CHUNKS FROM {controller_position}");
+                info!("Player moved out of chunk, rerequesting chunks for: {controller_position}");
                 terrain_events.write(terrain_events::RerequestChunks {
                     center_chunk_position: ChunkManager::world_position_to_chunk_position(
                         controller_position,

@@ -17,6 +17,7 @@ impl Plugin for TerrainPlugin {
         app.insert_resource(resources::MesherTasks::default());
         app.insert_resource(resources::ChunkEntityMap::default());
         app.insert_resource(resources::RequestedChunks::default());
+        app.insert_resource(resources::LastChunkRequestOrigin::default());
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.add_message::<terrain_events::ChunkMeshUpdateEvent>();
         app.add_message::<terrain_events::WorldRegenerateEvent>();
@@ -33,8 +34,13 @@ impl Plugin for TerrainPlugin {
             app.insert_resource(terrain_resources::SpawnAreaLoaded(false));
 
             app.add_systems(
-                OnExit(GameState::WaitingForServer),
+                OnEnter(GameState::LoadingSpawnArea),
                 terrain_systems::generate_world_system,
+            );
+            app.add_systems(
+                Update,
+                (terrain_systems::check_if_spawn_area_is_loaded_system)
+                    .run_if(in_state(GameState::LoadingSpawnArea)),
             );
             app.add_systems(
                 Update,
@@ -50,6 +56,7 @@ impl Plugin for TerrainPlugin {
                 Update,
                 terrain_systems::handle_chunk_request_chunk_batch_event_system,
             );
+            app.add_systems(Update, terrain_systems::cleanup_chunk_entities_system);
         }
     }
 }
