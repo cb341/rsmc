@@ -24,7 +24,7 @@ pub fn setup_world_system(
 
 pub fn process_user_chunk_requests_system(
     mut requests: ResMut<terrain_resources::ClientChunkRequests>,
-    chunk_manager: Res<ChunkManager>,
+    mut chunk_manager: ResMut<ChunkManager>,
     mut server: ResMut<RenetServer>,
     generator: Res<terrain_resources::Generator>,
 ) {
@@ -38,21 +38,31 @@ pub fn process_user_chunk_requests_system(
         let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
         let positions_to_process: Vec<IVec3> = positions.drain(0..take_count).collect();
 
-        let chunks = positions_to_process
+        // TODO: refactor
+
+        let (existing, generated): (Vec<_>, Vec<_>) = positions_to_process
+            .into_iter()
+            .partition(|pos| chunk_manager.get_chunk(pos).is_some());
+
+        let existing_chunks: Vec<Chunk> = existing
+            .into_iter()
+            .map(|pos| *chunk_manager.get_chunk(&pos).unwrap())
+            .collect();
+
+        let generated_chunks: Vec<Chunk> = generated
             .into_par_iter()
             .map(|position| {
-                let chunk = chunk_manager.get_chunk(&position);
-
-                match chunk {
-                    Some(chunk) => *chunk,
-                    None => {
-                        let mut chunk = Chunk::new(position);
-                        generator.generate_chunk(&mut chunk);
-                        chunk
-                    }
-                }
+                let mut chunk = Chunk::new(position);
+                generator.generate_chunk(&mut chunk);
+                chunk
             })
             .collect();
+
+        for chunk in &generated_chunks {
+            chunk_manager.insert_chunk(*chunk);
+        }
+
+        let chunks: Vec<Chunk> = existing_chunks.into_iter().chain(generated_chunks).collect();
 
         let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
 
