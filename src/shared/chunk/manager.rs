@@ -136,7 +136,7 @@ impl ChunkManager {
             .collect()
     }
 
-    pub fn get_block(&mut self, position: IVec3) -> Option<BlockId> {
+    pub fn get_block(&self, position: IVec3) -> Option<BlockId> {
         match self.chunk_at_position(position) {
             Some(chunk) => {
                 let chunk_position = IVec3::new(
@@ -196,7 +196,12 @@ impl ChunkManager {
         }
     }
 
-    fn chunk_at_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
+    fn chunk_at_position(&self, position: IVec3) -> Option<&Chunk> {
+        let chunk_position = Self::world_position_to_chunk_position(position);
+        self.get_chunk(&chunk_position)
+    }
+
+    fn mut_chunk_at_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
         let chunk_position = Self::world_position_to_chunk_position(position);
         self.get_chunk_mut(&chunk_position)
     }

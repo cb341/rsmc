@@ -70,6 +70,14 @@ impl BlockId {
         ]
     }
 
+    pub fn is_standable(&self) -> bool {
+        *self != Air && *self != Tallgrass
+    }
+
+    pub fn is_walkable(&self) -> bool {
+        *self == Air || *self == Tallgrass
+    }
+
     pub fn supports_grass(&self) -> bool {
         *self == Grass || *self == Dirt
     }

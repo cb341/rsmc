@@ -1,5 +1,30 @@
 use crate::prelude::*;
 
+fn find_ground_spawn_position(
+    chunk_manager: &mut ChunkManager,
+    base_world_position: &IVec3,
+) -> IVec3 {
+    const MAX_DELTA: i32 = 30;
+    for dy in 0..MAX_DELTA {
+        let current_pos = base_world_position + IVec3::new(0,-dy,0);
+        if is_standable(chunk_manager, &current_pos) {
+            return current_pos;
+        }
+    }
+
+    IVec3::ZERO
+}
+
+fn is_standable(chunk_manager: &ChunkManager, world_position: &IVec3) -> bool {
+    let legs_block = chunk_manager.get_block(*world_position);
+    let head_block = chunk_manager.get_block(*world_position + IVec3::new(0,1,0));
+    let ground_block = chunk_manager.get_block(*world_position + IVec3::new(0,-1,0));
+
+    legs_block.is_some_and(|b| b.is_walkable()) &&
+    head_block.is_some_and(|b| b.is_walkable()) &&
+    ground_block.is_some_and(|b| b.is_standable())
+}
+
 pub fn setup_player_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Player cam?"),
@@ -30,8 +55,11 @@ pub fn setup_controller_on_area_ready_system(
     mut player_spawned: ResMut<player_resources::PlayerSpawned>,
     mut render_player: Query<&mut RenderPlayer>,
     spawn_state: Res<player_resources::LocalPlayerSpawnState>,
+    spawn_area: Res<terrain_resources::SpawnArea>,
+    mut chunk_manager: ResMut<ChunkManager>,
 ) {
-    info!("Setting up controller at {:?}", spawn_state.0.position);
+    let spawn_position = find_ground_spawn_position(&mut chunk_manager, &spawn_state.0.position.as_ivec3());
+    info!("Setting up controller at {:?} (original: {:?})", spawn_position, spawn_state.0.position);
 
     let logical_entity = commands
         .spawn((
@@ -55,7 +83,7 @@ pub fn setup_controller_on_area_ready_system(
             AdditionalMassProperties::Mass(1.0),
             GravityScale(0.0),
             Ccd { enabled: true },
-            Transform::from_translation(spawn_state.0.position),
+            Transform::from_translation(spawn_position.as_vec3()),
             LogicalPlayer,
             #[cfg(not(feature = "lock_player"))]
             {
