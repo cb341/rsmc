@@ -9,6 +9,7 @@ use terrain_resources::{
 use crate::prelude::*;
 
 const RENDER_DISTANCE: IVec3 = IVec3::new(4, 4, 4);
+const CLEANUP_DISTANCE: IVec3 = IVec3::new(6, 6, 6);
 const MIN_SPAWN_AREA_DISTANCE: IVec3 = IVec3::new(1,1,1);
 
 pub fn prepare_mesher_materials_system(
@@ -211,10 +212,10 @@ pub fn cleanup_chunk_entities_system(
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
     origin: Res<terrain_resources::LastChunkRequestOrigin>,
 ) {
-    if chunk_entities.count() as i32 > RENDER_DISTANCE.x * RENDER_DISTANCE.y * RENDER_DISTANCE.z * 5
+    if chunk_entities.count() as i32 > CLEANUP_DISTANCE.x * CLEANUP_DISTANCE.y * CLEANUP_DISTANCE.z * 2
     {
         chunk_entities
-            .extract_outside_distance(&origin.position, &RENDER_DISTANCE)
+            .extract_outside_distance(&origin.position, &CLEANUP_DISTANCE)
             .iter()
             .for_each(|(_position, entities)| {
                 entities

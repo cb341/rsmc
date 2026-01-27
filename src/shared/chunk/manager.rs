@@ -65,11 +65,11 @@ impl ChunkManager {
         let distance_z = distance.z;
 
         let mut positions: Vec<IVec3> =
-            Vec::with_capacity((distance_x * 2 * distance_y * 2 * distance_z * 2) as usize);
+            Vec::with_capacity(((distance_x * 2 + 1) * (distance_y * 2 + 1) * (distance_z * 2 + 1)) as usize);
 
-        for x in -distance_x..distance_x {
-            for y in -distance_y..distance_y {
-                for z in -distance_z..distance_z {
+        for x in -distance_x..=distance_x {
+            for y in -distance_y..=distance_y {
+                for z in -distance_z..=distance_z {
                     let chunk_position = IVec3::new(x + origin.x, y + origin.y, z + origin.z);
                     positions.push(chunk_position);
                 }
@@ -199,11 +199,6 @@ impl ChunkManager {
     fn chunk_at_position(&self, position: IVec3) -> Option<&Chunk> {
         let chunk_position = Self::world_position_to_chunk_position(position);
         self.get_chunk(&chunk_position)
-    }
-
-    fn mut_chunk_at_position(&mut self, position: IVec3) -> Option<&mut Chunk> {
-        let chunk_position = Self::world_position_to_chunk_position(position);
-        self.get_chunk_mut(&chunk_position)
     }
 
     pub fn get_all_chunk_positions(&self) -> Vec<IVec3> {

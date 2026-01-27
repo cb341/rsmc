@@ -41,7 +41,7 @@ pub fn setup_coliders_system(mut commands: Commands) {
 pub fn handle_collider_update_events_system(
     mut collider_grid_events: MessageReader<collider_events::ColliderUpdateEvent>,
     mut query: Query<(&mut Transform, &collider_components::BlockCollider)>,
-    mut chunk_manager: ResMut<ChunkManager>,
+    chunk_manager: Res<ChunkManager>,
 ) {
     for event in collider_grid_events.read() {
         let event_position = Vec3::new(
