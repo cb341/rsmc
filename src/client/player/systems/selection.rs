@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 const RAY_DIST: f32 = 20.0;
-const HIGHLIGHT_CUBE_ORIGIN: Vec3 = Vec3::new(0.0, 2.0, 0.0);
+const HIGHLIGHT_CUBE_ORIGIN: Vec3 = Vec3::MIN;
 
 pub fn setup_highlight_cube_system(
     mut commands: Commands,

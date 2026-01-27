@@ -43,10 +43,6 @@ impl Generator {
     }
 
     pub fn generate_chunk(&self, chunk: &mut Chunk) {
-        if chunk.position.y < 0 {
-            return;
-        }
-
         for_each_chunk_coordinate!(chunk, |x, y, z, world_position| {
             let block = self.generate_block(world_position);
             chunk.set_unpadded(x, y, z, block);

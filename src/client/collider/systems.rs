@@ -3,7 +3,7 @@ use terrain_util::client_block::block_properties;
 use crate::prelude::*;
 
 static COLLIDER_GRID_SIZE: u32 = 4;
-static COLLIDER_RESTING_POSITION: Vec3 = Vec3::ZERO;
+static COLLIDER_RESTING_POSITION: Vec3 = Vec3::MIN;
 static COLLIDER_CUBOID_WIDTH: f32 = 1.0;
 
 pub fn setup_coliders_system(mut commands: Commands) {
@@ -11,7 +11,7 @@ pub fn setup_coliders_system(mut commands: Commands) {
 
     commands.spawn((
         Collider::cuboid(256.0, 1.0, 256.0),
-        Transform::from_xyz(0.0, 0.0, 0.0),
+        Transform::from_translation(COLLIDER_RESTING_POSITION),
     ));
 
     for x in collider_range.clone() {
