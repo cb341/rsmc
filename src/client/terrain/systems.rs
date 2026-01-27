@@ -43,8 +43,10 @@ pub fn generate_world_system(
     chunk_manager: Res<ChunkManager>,
     spawn_area: Res<terrain_resources::SpawnArea>,
     mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
+    mut last_chunk_request_origin: ResMut<terrain_resources::LastChunkRequestOrigin>,
 ) {
-    let origin = spawn_area.origin;
+    let origin = spawn_area.origin_chunk_position;
+    last_chunk_request_origin.position = origin;
     let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
 
     batch_events.write(terrain_events::RequestChunkBatch { positions });
@@ -212,7 +214,7 @@ pub fn cleanup_chunk_entities_system(
     if chunk_entities.count() as i32 > RENDER_DISTANCE.x * RENDER_DISTANCE.y * RENDER_DISTANCE.z * 5
     {
         chunk_entities
-            .extract_within_distance(&origin.position, &RENDER_DISTANCE)
+            .extract_outside_distance(&origin.position, &RENDER_DISTANCE)
             .iter()
             .for_each(|(_position, entities)| {
                 entities
@@ -225,17 +227,23 @@ pub fn cleanup_chunk_entities_system(
 
 pub fn check_if_spawn_area_is_loaded_system(
     chunk_manager: Res<ChunkManager>,
+    spawn_area: Res<terrain_resources::SpawnArea>,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
-    let len = chunk_manager.get_all_chunk_positions().len();
-    // let expected_len = ((MIN_SPAWN_AREA_DISTANCE.x * 2) * (MIN_SPAWN_AREA_DISTANCE.y * 2) * (MIN_SPAWN_AREA_DISTANCE.z * 2)) as usize;
-    let expected_len = 3;
-    warn!("{} {}", expected_len, len);
-    if len >= expected_len {
-        warn!("All chunks for spawn area have been received, proceeding with GameState::Playing");
-        next_state.set(GameState::Playing);
+    let required_positions = ChunkManager::get_sorted_chunk_positions_in_range(
+        spawn_area.origin_chunk_position,
+        MIN_SPAWN_AREA_DISTANCE,
+    );
+
+    let all_required_loaded = required_positions
+        .iter()
+        .all(|pos| chunk_manager.get_chunk(pos).is_some());
+
+    if all_required_loaded {
+        info!("All chunks for spawn area loaded, proceeding with GameState::Playing");
         spawn_area_loaded.0 = true;
+        next_state.set(GameState::Playing);
     }
 }
 

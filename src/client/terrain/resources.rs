@@ -1,4 +1,4 @@
-use std::{collections::{HashSet, hash_map::ExtractIf}, option::Iter};
+use std::collections::HashSet;
 
 use bevy::tasks::Task;
 
@@ -51,7 +51,15 @@ pub struct ChunkEntityMap {
 
 #[derive(Resource, Default)]
 pub struct SpawnArea {
-    pub origin: IVec3
+    pub origin_chunk_position: IVec3
+}
+
+impl SpawnArea {
+    pub fn from_world_position(world_position: IVec3) -> Self {
+        Self {
+            origin_chunk_position: ChunkManager::world_position_to_chunk_position(world_position),
+        }
+    }
 }
 
 impl ChunkEntityMap {
@@ -67,16 +75,14 @@ impl ChunkEntityMap {
         self.map.remove(&chunk_position)
     }
 
-    pub fn extract_within_distance(&mut self, origin: &IVec3, distance: &IVec3) -> Vec<(IVec3, Vec<Entity>)> {
+    pub fn extract_outside_distance(&mut self, origin: &IVec3, distance: &IVec3) -> Vec<(IVec3, Vec<Entity>)> {
         let extracted: HashMap<IVec3, Vec<Entity>> = self.map.extract_if(|k, _v| {
-            (k.x - origin.x) > distance.x
-            || (k.y - origin.y) > distance.y
-            || (k.z - origin.z) > distance.z
+            (k.x - origin.x).abs() > distance.x
+            || (k.y - origin.y).abs() > distance.y
+            || (k.z - origin.z).abs() > distance.z
         }).collect();
 
-        extracted.into_iter().map(|(key, entities)| {
-            (key, entities)
-        }).collect()
+        extracted.into_iter().collect()
     }
 }
 
