@@ -19,7 +19,7 @@ pub struct RequestedChunks {
 }
 #[derive(Resource, Default)]
 pub struct LastChunkRequestOrigin {
-    pub position: IVec3
+    pub position: IVec3,
 }
 
 #[derive(Eq, Hash, Clone, PartialEq)]
@@ -51,7 +51,7 @@ pub struct ChunkEntityMap {
 
 #[derive(Resource, Default)]
 pub struct SpawnArea {
-    pub origin_chunk_position: IVec3
+    pub origin_chunk_position: IVec3,
 }
 
 impl SpawnArea {
@@ -64,7 +64,7 @@ impl SpawnArea {
 
 impl ChunkEntityMap {
     pub fn count(&self) -> usize {
-        return self.map.iter().count()
+        self.map.len()
     }
 
     pub fn add(&mut self, chunk_position: IVec3, entity: Entity) {
@@ -75,12 +75,19 @@ impl ChunkEntityMap {
         self.map.remove(&chunk_position)
     }
 
-    pub fn extract_outside_distance(&mut self, origin: &IVec3, distance: &IVec3) -> Vec<(IVec3, Vec<Entity>)> {
-        let extracted: HashMap<IVec3, Vec<Entity>> = self.map.extract_if(|k, _v| {
-            (k.x - origin.x).abs() > distance.x
-            || (k.y - origin.y).abs() > distance.y
-            || (k.z - origin.z).abs() > distance.z
-        }).collect();
+    pub fn extract_outside_distance(
+        &mut self,
+        origin: &IVec3,
+        distance: &IVec3,
+    ) -> Vec<(IVec3, Vec<Entity>)> {
+        let extracted: HashMap<IVec3, Vec<Entity>> = self
+            .map
+            .extract_if(|k, _v| {
+                (k.x - origin.x).abs() > distance.x
+                    || (k.y - origin.y).abs() > distance.y
+                    || (k.z - origin.z).abs() > distance.z
+            })
+            .collect();
 
         extracted.into_iter().collect()
     }

@@ -24,8 +24,9 @@ impl Plugin for PlayerPlugin {
             (
                 player_systems::setup_highlight_cube_system,
                 player_systems::setup_player_camera,
-                player_systems::setup_controller_on_area_ready_system
-            ).chain(),
+                player_systems::setup_controller_on_area_ready_system,
+            )
+                .chain(),
         );
         app.add_systems(
             Update,

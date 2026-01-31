@@ -10,7 +10,7 @@ use crate::prelude::*;
 
 const RENDER_DISTANCE: IVec3 = IVec3::new(4, 4, 4);
 const CLEANUP_DISTANCE: IVec3 = IVec3::new(6, 6, 6);
-const MIN_SPAWN_AREA_DISTANCE: IVec3 = IVec3::new(1,1,1);
+const MIN_SPAWN_AREA_DISTANCE: IVec3 = IVec3::new(1, 1, 1);
 
 pub fn prepare_mesher_materials_system(
     mut render_materials: ResMut<RenderMaterials>,
@@ -212,7 +212,8 @@ pub fn cleanup_chunk_entities_system(
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
     origin: Res<terrain_resources::LastChunkRequestOrigin>,
 ) {
-    if chunk_entities.count() as i32 > CLEANUP_DISTANCE.x * CLEANUP_DISTANCE.y * CLEANUP_DISTANCE.z * 2
+    if chunk_entities.count() as i32
+        > CLEANUP_DISTANCE.x * CLEANUP_DISTANCE.y * CLEANUP_DISTANCE.z * 2
     {
         chunk_entities
             .extract_outside_distance(&origin.position, &CLEANUP_DISTANCE)
@@ -224,7 +225,6 @@ pub fn cleanup_chunk_entities_system(
             });
     }
 }
-
 
 pub fn check_if_spawn_area_is_loaded_system(
     chunk_manager: Res<ChunkManager>,

@@ -28,7 +28,7 @@ pub fn process_user_chunk_requests_system(
     mut server: ResMut<RenetServer>,
     generator: Res<terrain_resources::Generator>,
 ) {
-    const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 5;
+    const MAX_REQUESTS_PER_CYCLE_PER_PLAYER: usize = 10;
 
     requests.retain(|client_id, positions| {
         if positions.is_empty() {
@@ -62,7 +62,10 @@ pub fn process_user_chunk_requests_system(
             chunk_manager.insert_chunk(*chunk);
         }
 
-        let chunks: Vec<Chunk> = existing_chunks.into_iter().chain(generated_chunks).collect();
+        let chunks: Vec<Chunk> = existing_chunks
+            .into_iter()
+            .chain(generated_chunks)
+            .collect();
 
         let message = bincode::serialize(&NetworkingMessage::ChunkBatchResponse(chunks));
 

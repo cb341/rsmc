@@ -178,16 +178,14 @@ pub fn handle_events_system(
 
                 active_connections.accept(*client_id);
 
-                let player_state = player_states
-                    .players
-                    .entry(username)
-                    .or_insert_with(|| {
-                        let ground_pos = find_ground_spawn_position(&chunk_manager, DEFAULT_SPAWN_POINT.as_ivec3());
-                        PlayerState {
-                            position: ground_pos.as_vec3(),
-                            rotation: Quat::IDENTITY,
-                        }
-                    });
+                let player_state = player_states.players.entry(username).or_insert_with(|| {
+                    let ground_pos =
+                        find_ground_spawn_position(&chunk_manager, DEFAULT_SPAWN_POINT.as_ivec3());
+                    PlayerState {
+                        position: ground_pos.as_vec3(),
+                        rotation: Quat::IDENTITY,
+                    }
+                });
 
                 client_usernames.insert(*client_id, username);
                 server.send_message(

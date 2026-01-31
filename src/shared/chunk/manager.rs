@@ -64,8 +64,9 @@ impl ChunkManager {
         let distance_y = distance.y;
         let distance_z = distance.z;
 
-        let mut positions: Vec<IVec3> =
-            Vec::with_capacity(((distance_x * 2 + 1) * (distance_y * 2 + 1) * (distance_z * 2 + 1)) as usize);
+        let mut positions: Vec<IVec3> = Vec::with_capacity(
+            ((distance_x * 2 + 1) * (distance_y * 2 + 1) * (distance_z * 2 + 1)) as usize,
+        );
 
         for x in -distance_x..=distance_x {
             for y in -distance_y..=distance_y {

@@ -56,7 +56,9 @@ pub fn chat_state_transition_system(
 ) {
     let current_state_value = current_state.get();
 
-    if *current_state_value == GameState::WaitingForServer || *current_state_value == GameState::LoadingSpawnArea {
+    if *current_state_value == GameState::WaitingForServer
+        || *current_state_value == GameState::LoadingSpawnArea
+    {
         // TODO: Introduce Chatting Substate
         return;
     }
