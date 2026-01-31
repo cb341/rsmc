@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, ops::Range};
 
 use crate::prelude::*;
 
@@ -135,6 +135,20 @@ impl Noise {
             seed,
             perlin: Perlin::new(seed),
         }
+    }
+
+    // Very noisy deterministic RNG, uses position as reference point
+    pub fn random_range(&self, position: IVec3, range: Range<i32>) -> i32
+    {
+        let fac = 100000.0;
+        let normalized_value = self.get([position.x as f64 / fac, position.y as f64 / fac, position.z as f64 / fac]);
+        assert!((-1.0..=1.0).contains(&normalized_value));
+        let normalized_value = normalized_value / 2.0 + 0.5;
+        assert!((0.0..=1.0).contains(&normalized_value));
+
+        let range: Range<f64> = (range.start as f64)..(range.end as f64);
+
+        (range.start + normalized_value * (range.end - range.start)) as i32
     }
 
     pub fn get(&self, frequency: [f64; 3]) -> f64 {

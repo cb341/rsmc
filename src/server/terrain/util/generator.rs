@@ -1,3 +1,4 @@
+use bevy::log::info_once;
 use terrain_resources::{Generator, NoiseFunctionParams, TerrainGeneratorParams};
 
 use crate::{prelude::*, terrain::resources::Noise};
@@ -81,15 +82,20 @@ impl Generator {
             },
         );
 
-        let sapling_x: i32 = rand::random_range(
+        let sapling_x: i32 = self.noise.random_range(
+            chunk.position,
             proposal_bounds.min.x.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.x),
         );
-        let sapling_y: i32 = rand::random_range(
+        let sapling_y: i32 = self.noise.random_range(
+            chunk.position,
             proposal_bounds.min.y.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.y),
         );
-        let sapling_z: i32 = rand::random_range(
+        let sapling_z: i32 = self.noise.random_range(
+            chunk.position,
             proposal_bounds.min.z.abs()..(CHUNK_SIZE as i32 - proposal_bounds.max.z),
         );
+
+        info!("{},{},{}", sapling_x, sapling_y, sapling_z);
 
         if chunk.get(sapling_x, sapling_y, sapling_z) != BlockId::Grass {
             return;
@@ -98,13 +104,13 @@ impl Generator {
         let proposal_valid = proposal.iter().all(|(relative_pos, _block)| {
             let IVec3 { x, y, z } = relative_pos;
             Chunk::is_within_padded_bounds(
-                sapling_x as i32 + { *x },
-                sapling_y as i32 + { *y },
-                sapling_z as i32 + { *z },
+                sapling_x + { *x },
+                sapling_y + { *y },
+                sapling_z + { *z },
             ) && chunk.get(
-                sapling_x as i32 + { *x },
-                sapling_y as i32 + { *y },
-                sapling_z as i32 + { *z },
+                sapling_x + { *x },
+                sapling_y + { *y },
+                sapling_z + { *z },
             ) == BlockId::Air
         });
 
@@ -115,9 +121,9 @@ impl Generator {
         proposal.iter().for_each(|(relative_pos, block_id)| {
             let IVec3 { x, y, z } = relative_pos;
             chunk.set(
-                sapling_x as i32 + { *x },
-                sapling_y as i32 + { *y },
-                sapling_z as i32 + { *z },
+                sapling_x + { *x },
+                sapling_y + { *y },
+                sapling_z + { *z },
                 *block_id,
             );
         });
@@ -173,7 +179,7 @@ impl Generator {
                 && Chunk::valid_unpadded(x, y - 1, z)
                 && chunk.get_unpadded(x, y - 1, z) == BlockId::Grass
             {
-                let random_number = rand::random_range(0..=self.params.grass.frequency);
+                let random_number = self.noise.random_range(chunk.position, 0..(self.params.grass.frequency as i32));
                 if random_number == 0 {
                     chunk.set_unpadded(x, y, z, BlockId::Tallgrass);
                 }
