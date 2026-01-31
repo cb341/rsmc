@@ -129,6 +129,10 @@ pub struct Noise {
     perlin: Perlin,
 }
 
+pub trait NoiseSample<T> {
+    fn get(&self, position: T) -> f64;
+}
+
 impl Noise {
     pub fn new(seed: u32) -> Self {
         Self {
@@ -136,13 +140,17 @@ impl Noise {
             perlin: Perlin::new(seed),
         }
     }
+}
 
-    pub fn get(&self, frequency: [f64; 3]) -> f64 {
-        self.perlin.get(frequency)
+impl NoiseSample<DVec3> for Noise {
+    fn get(&self, position: DVec3) -> f64 {
+        self.perlin.get(position.to_array())
     }
+}
 
-    pub fn get_2d(&self, frequency: [f64; 2]) -> f64 {
-        self.perlin.get(frequency)
+impl NoiseSample<DVec2> for Noise {
+    fn get(&self, position: DVec2) -> f64 {
+        self.perlin.get(position.to_array())
     }
 }
 
