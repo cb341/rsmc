@@ -1,6 +1,6 @@
 use terrain_resources::{Generator, NoiseFunctionParams, TerrainGeneratorParams};
 
-use crate::prelude::*;
+use crate::{prelude::*, terrain::resources::Noise};
 
 macro_rules! for_each_chunk_coordinate {
     ($chunk:expr, $body:expr) => {
@@ -31,14 +31,9 @@ macro_rules! for_each_chunk_coordinate {
 
 impl Generator {
     pub fn new(seed: u32) -> Generator {
-        Self::new_with_params(seed, TerrainGeneratorParams::default())
-    }
-
-    pub fn new_with_params(seed: u32, params: TerrainGeneratorParams) -> Generator {
         Generator {
-            seed,
-            perlin: Perlin::new(seed),
-            params,
+            noise: Noise::new(seed),
+            params: TerrainGeneratorParams::default(),
         }
     }
 
@@ -305,8 +300,8 @@ impl Generator {
 
         for _ in 0..params.octaves {
             let new_sample = self
-                .perlin
-                .get([position.x as f64 * frequency, position.y as f64 * frequency]);
+                .noise
+                .get_2d([position.x as f64 * frequency, position.y as f64 * frequency]);
 
             frequency *= params.lacuranity;
             sample += new_sample * weight;
@@ -324,7 +319,7 @@ impl Generator {
         let mut weight_sum = 0.0;
 
         for _ in 0..params.octaves {
-            let new_sample = self.perlin.get([
+            let new_sample = self.noise.get([
                 position.x as f64 * frequency,
                 position.y as f64 * frequency,
                 position.z as f64 * frequency,
