@@ -166,4 +166,21 @@ mod tests {
         assert_eq!(world.name, "my_world");
         assert_eq!(world.generator.params.density.squash_factor, 6.7);
     }
+
+    #[test]
+    fn test_world_continuation() {
+        let generator = Generator::with_seed(0);
+        let mut possible_new_chunk = Chunk::new(IVec3::new(20,0,20));
+        generator.generate_chunk(&mut possible_new_chunk);
+
+        save_world("my_world", &ChunkManager::new(), &generator).unwrap();
+
+        let world = read_world_save_by_name("my_world").unwrap();
+        let generator = world.generator;
+
+        let mut actual_new_chunk = Chunk::new(IVec3::new(20,0,20));
+        generator.generate_chunk(&mut actual_new_chunk);
+
+        assert_eq!(possible_new_chunk.data, actual_new_chunk.data);
+    }
 }
