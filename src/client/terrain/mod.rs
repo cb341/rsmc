@@ -26,12 +26,12 @@ impl Plugin for TerrainPlugin {
         app.add_systems(Startup, terrain_systems::prepare_mesher_materials_system);
         #[cfg(feature = "skip_terrain")]
         {
-            app.insert_resource(terrain_resources::SpawnAreaLoaded(true));
+            app.insert_resource(terrain_resources::SpawnRegionLoaded(true));
             app.add_systems(Startup, terrain_systems::generate_simple_ground_system);
         }
         #[cfg(not(feature = "skip_terrain"))]
         {
-            app.insert_resource(terrain_resources::SpawnAreaLoaded(false));
+            app.insert_resource(terrain_resources::SpawnRegionLoaded(false));
 
             app.add_systems(
                 OnEnter(GameState::LoadingSpawnRegion),

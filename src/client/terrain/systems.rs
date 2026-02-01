@@ -225,7 +225,7 @@ pub fn cleanup_chunk_entities_system(
 pub fn check_if_spawn_area_is_loaded_system(
     chunk_manager: Res<ChunkManager>,
     spawn_area: Res<terrain_resources::SpawnRegion>,
-    mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
+    mut spawn_area_loaded: ResMut<terrain_resources::SpawnRegionLoaded>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     let required_positions = ChunkManager::get_sorted_chunk_positions_in_range(

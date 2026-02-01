@@ -5,10 +5,10 @@ use bevy::tasks::Task;
 use crate::prelude::*;
 
 #[derive(Resource)]
-pub struct SpawnAreaLoaded(pub bool);
+pub struct SpawnRegionLoaded(pub bool);
 
-impl SpawnAreaLoaded {
-    pub fn is_loaded(resource: Res<SpawnAreaLoaded>) -> bool {
+impl SpawnRegionLoaded {
+    pub fn is_loaded(resource: Res<SpawnRegionLoaded>) -> bool {
         resource.0
     }
 }
