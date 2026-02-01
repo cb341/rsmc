@@ -99,6 +99,7 @@ pub fn handle_controller_movement_system(
     mut last_position: ResMut<player_resources::LastPlayerPosition>,
     mut collider_events: MessageWriter<collider_events::ColliderUpdateEvent>,
     mut terrain_events: MessageWriter<terrain_events::RerequestChunks>,
+    mut cleanup_events: MessageWriter<terrain_events::CleanupChunksAroundOrigin>,
 ) {
     for (_entity, _input, transform) in &mut query.iter() {
         let controller_position: IVec3 = transform.translation.as_ivec3();
@@ -116,6 +117,11 @@ pub fn handle_controller_movement_system(
             if !last_position.has_same_chunk_position_as(controller_position) {
                 info!("Player moved out of chunk, rerequesting chunks for: {controller_position}");
                 terrain_events.write(terrain_events::RerequestChunks {
+                    center_chunk_position: ChunkManager::world_position_to_chunk_position(
+                        controller_position,
+                    ),
+                });
+                cleanup_events.write(terrain_events::CleanupChunksAroundOrigin {
                     center_chunk_position: ChunkManager::world_position_to_chunk_position(
                         controller_position,
                     ),

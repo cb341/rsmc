@@ -16,6 +16,11 @@ pub struct RequestChunkBatch {
 }
 
 #[derive(Message)]
+pub struct CleanupChunksAroundOrigin {
+    pub center_chunk_position: IVec3,
+}
+
+#[derive(Message)]
 pub struct BlockUpdateEvent {
     pub position: IVec3,
     pub block: BlockId,

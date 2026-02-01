@@ -17,10 +17,6 @@ impl SpawnAreaLoaded {
 pub struct RequestedChunks {
     pub previous_chunks: HashSet<IVec3>,
 }
-#[derive(Resource, Default)]
-pub struct LastChunkRequestOrigin {
-    pub position: IVec3,
-}
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum MeshType {

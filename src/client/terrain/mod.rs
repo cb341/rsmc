@@ -17,12 +17,12 @@ impl Plugin for TerrainPlugin {
         app.insert_resource(resources::MesherTasks::default());
         app.insert_resource(resources::ChunkEntityMap::default());
         app.insert_resource(resources::RequestedChunks::default());
-        app.insert_resource(resources::LastChunkRequestOrigin::default());
         app.add_message::<terrain_events::BlockUpdateEvent>();
         app.add_message::<terrain_events::ChunkMeshUpdateEvent>();
         app.add_message::<terrain_events::WorldRegenerateEvent>();
         app.add_message::<terrain_events::RerequestChunks>();
         app.add_message::<terrain_events::RequestChunkBatch>();
+        app.add_message::<terrain_events::CleanupChunksAroundOrigin>();
         app.add_systems(Startup, terrain_systems::prepare_mesher_materials_system);
         #[cfg(feature = "skip_terrain")]
         {

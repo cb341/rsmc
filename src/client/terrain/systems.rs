@@ -44,10 +44,8 @@ pub fn generate_world_system(
     chunk_manager: Res<ChunkManager>,
     spawn_area: Res<terrain_resources::SpawnArea>,
     mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
-    mut last_chunk_request_origin: ResMut<terrain_resources::LastChunkRequestOrigin>,
 ) {
     let origin = spawn_area.origin_chunk_position;
-    last_chunk_request_origin.position = origin;
     let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
 
     batch_events.write(terrain_events::RequestChunkBatch { positions });
@@ -121,13 +119,11 @@ pub fn handle_chunk_rerequests_system(
     chunk_manager: Res<ChunkManager>,
     mut terrain_events: MessageReader<terrain_events::RerequestChunks>,
     mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
-    mut last_chunk_request_origin: ResMut<terrain_resources::LastChunkRequestOrigin>,
 ) {
     for event in terrain_events.read() {
         info!("Sending chunk requests for chunks");
 
         let origin = event.center_chunk_position;
-        last_chunk_request_origin.position = origin;
         let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
         batch_events.write(terrain_events::RequestChunkBatch { positions });
     }
@@ -210,16 +206,20 @@ pub fn handle_chunk_tasks_system(
 pub fn cleanup_chunk_entities_system(
     mut commands: Commands,
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
-    origin: Res<terrain_resources::LastChunkRequestOrigin>,
+    mut cleanup_events: MessageReader<terrain_events::CleanupChunksAroundOrigin>,
 ) {
-    chunk_entities
-        .extract_outside_distance(&origin.position, &CLEANUP_DISTANCE)
-        .iter()
-        .for_each(|(_position, entities)| {
-            entities
-                .iter()
-                .for_each(|entity| commands.entity(*entity).despawn())
-        });
+    let last_event = cleanup_events.read().last();
+
+    if let Some(event) = last_event {
+        chunk_entities
+            .extract_outside_distance(&event.center_chunk_position, &CLEANUP_DISTANCE)
+            .iter()
+            .for_each(|(_position, entities)| {
+                entities
+                    .iter()
+                    .for_each(|entity| commands.entity(*entity).despawn())
+            });
+    }
 }
 
 pub fn check_if_spawn_area_is_loaded_system(
