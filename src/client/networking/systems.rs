@@ -42,7 +42,7 @@ pub fn receive_message_system(
                     commands.insert_resource(terrain_resources::SpawnRegion::from_world_position(
                         player_state.position.as_ivec3(),
                     ));
-                    next_state.set(GameState::LoadingSpawnArea);
+                    next_state.set(GameState::LoadingSpawnRegion);
                 }
                 NetworkingMessage::PlayerJoin(username) => {
                     player_spawn_events.write(remote_player_events::RemotePlayerSpawnedEvent {

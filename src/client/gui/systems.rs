@@ -25,7 +25,7 @@ pub fn handle_debug_state_transition_system(
 ) {
     if key_input.just_pressed(KeyCode::Tab) {
         match *current_state.get() {
-            GameState::LoadingSpawnArea => {}
+            GameState::LoadingSpawnRegion => {}
             GameState::WaitingForServer => {}
             GameState::Playing => next_state.set(GameState::Debugging),
             GameState::Chatting => next_state.set(GameState::Debugging),

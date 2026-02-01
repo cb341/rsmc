@@ -20,7 +20,7 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(player_resources::PlayerSpawned(false));
         app.insert_resource(player_resources::LastPlayerPosition::new());
         app.add_systems(
-            OnExit(GameState::LoadingSpawnArea),
+            OnExit(GameState::LoadingSpawnRegion),
             (
                 player_systems::setup_highlight_cube_system,
                 player_systems::setup_player_camera,

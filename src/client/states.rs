@@ -4,7 +4,7 @@ use bevy::prelude::States;
 pub enum GameState {
     #[default]
     WaitingForServer,
-    LoadingSpawnArea,
+    LoadingSpawnRegion,
     Chatting,
     Debugging,
     Playing,

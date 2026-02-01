@@ -34,13 +34,13 @@ impl Plugin for TerrainPlugin {
             app.insert_resource(terrain_resources::SpawnAreaLoaded(false));
 
             app.add_systems(
-                OnEnter(GameState::LoadingSpawnArea),
+                OnEnter(GameState::LoadingSpawnRegion),
                 terrain_systems::generate_world_system,
             );
             app.add_systems(
                 Update,
                 (terrain_systems::check_if_spawn_area_is_loaded_system)
-                    .run_if(in_state(GameState::LoadingSpawnArea)),
+                    .run_if(in_state(GameState::LoadingSpawnRegion)),
             );
             app.add_systems(
                 Update,
