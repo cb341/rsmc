@@ -54,6 +54,7 @@ pub fn setup_controller_on_area_ready_system(
             Sleeping::disabled(),
             LockedAxes::ROTATION_LOCKED,
             AdditionalMassProperties::Mass(1.0),
+            GravityScale(0.0),
             Ccd { enabled: true },
             Transform::from_translation(spawn_position),
             LogicalPlayer,
