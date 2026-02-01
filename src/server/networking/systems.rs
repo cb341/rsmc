@@ -187,7 +187,7 @@ pub fn handle_events_system(
                                 &chunk_manager,
                                 DEFAULT_SPAWN_POINT,
                             )
-                            .as_vec3(),
+                            .as_vec3() + Vec3::new(0.5,0.0,0.5),
                             rotation: Quat::IDENTITY,
                         });
 
