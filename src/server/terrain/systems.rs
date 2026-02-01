@@ -44,7 +44,11 @@ pub fn process_user_chunk_requests_system(
 
         let existing_chunks: Vec<Chunk> = existing
             .into_iter()
-            .map(|pos| *chunk_manager.get_chunk(&pos).expect("Chunk must exist, as it is inside the 'existing' partition"))
+            .map(|pos| {
+                *chunk_manager
+                    .get_chunk(&pos)
+                    .expect("Chunk must exist, as it is inside the 'existing' partition")
+            })
             .collect();
 
         let generated_chunks: Vec<Chunk> = generated
