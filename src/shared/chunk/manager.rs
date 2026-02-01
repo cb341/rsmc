@@ -193,16 +193,16 @@ impl ChunkManager {
         out
     }
 
-    pub fn world_position_to_chunk_position(position: IVec3) -> IVec3 {
+    pub fn world_position_to_chunk_position(world_position: IVec3) -> IVec3 {
         IVec3 {
-            x: position.x.div_euclid(CHUNK_SIZE as i32),
-            y: position.y.div_euclid(CHUNK_SIZE as i32),
-            z: position.z.div_euclid(CHUNK_SIZE as i32),
+            x: world_position.x.div_euclid(CHUNK_SIZE as i32),
+            y: world_position.y.div_euclid(CHUNK_SIZE as i32),
+            z: world_position.z.div_euclid(CHUNK_SIZE as i32),
         }
     }
 
-    fn chunk_at_position(&self, position: IVec3) -> Option<&Chunk> {
-        let chunk_position = Self::world_position_to_chunk_position(position);
+    fn chunk_at_position(&self, world_position: IVec3) -> Option<&Chunk> {
+        let chunk_position = Self::world_position_to_chunk_position(world_position);
         self.get_chunk(&chunk_position)
     }
 
