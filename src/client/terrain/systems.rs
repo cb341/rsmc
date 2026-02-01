@@ -212,18 +212,14 @@ pub fn cleanup_chunk_entities_system(
     mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
     origin: Res<terrain_resources::LastChunkRequestOrigin>,
 ) {
-    if chunk_entities.count() as i32
-        > CLEANUP_DISTANCE.x * CLEANUP_DISTANCE.y * CLEANUP_DISTANCE.z * 2
-    {
-        chunk_entities
-            .extract_outside_distance(&origin.position, &CLEANUP_DISTANCE)
-            .iter()
-            .for_each(|(_position, entities)| {
-                entities
-                    .iter()
-                    .for_each(|entity| commands.entity(*entity).despawn())
-            });
-    }
+    chunk_entities
+        .extract_outside_distance(&origin.position, &CLEANUP_DISTANCE)
+        .iter()
+        .for_each(|(_position, entities)| {
+            entities
+                .iter()
+                .for_each(|entity| commands.entity(*entity).despawn())
+        });
 }
 
 pub fn check_if_spawn_area_is_loaded_system(
