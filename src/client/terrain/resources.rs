@@ -46,11 +46,11 @@ pub struct ChunkEntityMap {
 }
 
 #[derive(Resource, Default)]
-pub struct SpawnArea {
+pub struct SpawnRegion {
     pub origin_chunk_position: IVec3,
 }
 
-impl SpawnArea {
+impl SpawnRegion {
     pub fn from_world_position(world_position: IVec3) -> Self {
         Self {
             origin_chunk_position: ChunkManager::world_position_to_chunk_position(world_position),

@@ -39,7 +39,7 @@ pub fn receive_message_system(
                 }
                 NetworkingMessage::PlayerAccept(player_state) => {
                     commands.insert_resource(player_resources::LocalPlayerSpawnState(player_state));
-                    commands.insert_resource(terrain_resources::SpawnArea::from_world_position(
+                    commands.insert_resource(terrain_resources::SpawnRegion::from_world_position(
                         player_state.position.as_ivec3(),
                     ));
                     next_state.set(GameState::LoadingSpawnArea);

@@ -42,7 +42,7 @@ pub fn generate_simple_ground_system(
 
 pub fn generate_world_system(
     chunk_manager: Res<ChunkManager>,
-    spawn_area: Res<terrain_resources::SpawnArea>,
+    spawn_area: Res<terrain_resources::SpawnRegion>,
     mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
 ) {
     let origin = spawn_area.origin_chunk_position;
@@ -224,7 +224,7 @@ pub fn cleanup_chunk_entities_system(
 
 pub fn check_if_spawn_area_is_loaded_system(
     chunk_manager: Res<ChunkManager>,
-    spawn_area: Res<terrain_resources::SpawnArea>,
+    spawn_area: Res<terrain_resources::SpawnRegion>,
     mut spawn_area_loaded: ResMut<terrain_resources::SpawnAreaLoaded>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
