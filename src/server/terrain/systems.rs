@@ -38,15 +38,13 @@ pub fn process_user_chunk_requests_system(
         let take_count = min(MAX_REQUESTS_PER_CYCLE_PER_PLAYER, positions.len());
         let positions_to_process: Vec<IVec3> = positions.drain(0..take_count).collect();
 
-        // TODO: refactor
-
         let (existing, generated): (Vec<_>, Vec<_>) = positions_to_process
             .into_iter()
-            .partition(|pos| chunk_manager.get_chunk(pos).is_some());
+            .partition(|pos| chunk_manager.has_chunk(pos));
 
         let existing_chunks: Vec<Chunk> = existing
             .into_iter()
-            .map(|pos| *chunk_manager.get_chunk(&pos).unwrap())
+            .map(|pos| *chunk_manager.get_chunk(&pos).expect("Chunk must exist, as it is inside the 'existing' partition"))
             .collect();
 
         let generated_chunks: Vec<Chunk> = generated

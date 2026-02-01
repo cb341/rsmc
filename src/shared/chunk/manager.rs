@@ -104,6 +104,10 @@ impl ChunkManager {
         self.chunks.get(position)
     }
 
+    pub fn has_chunk(&self, position: &IVec3) -> bool {
+        self.chunks.contains_key(position)
+    }
+
     pub fn get_chunk_mut(&mut self, position: &IVec3) -> Option<&mut Chunk> {
         self.chunks.get_mut(position)
     }
