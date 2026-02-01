@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use bevy::tasks::{futures_lite::future, AsyncComputeTaskPool};
 use terrain_components::ChunkMesh;
 use terrain_resources::{
@@ -5,6 +7,10 @@ use terrain_resources::{
 };
 
 use crate::prelude::*;
+
+const RENDER_DISTANCE: IVec3 = IVec3::new(4, 4, 4);
+const CLEANUP_DISTANCE: IVec3 = IVec3::new(6, 6, 6);
+const MIN_SPAWN_AREA_DISTANCE: IVec3 = IVec3::new(1, 1, 1);
 
 pub fn prepare_mesher_materials_system(
     mut render_materials: ResMut<RenderMaterials>,
@@ -34,37 +40,38 @@ pub fn generate_simple_ground_system(
     ));
 }
 
-pub fn prepare_spawn_area_system(mut client: ResMut<RenetClient>) {
-    info!("Sending chunk requests for spawn area");
+pub fn generate_world_system(
+    chunk_manager: Res<ChunkManager>,
+    spawn_area: Res<terrain_resources::SpawnRegion>,
+    mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
+) {
+    let origin = spawn_area.origin_chunk_position;
+    let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
 
-    let chunks = ChunkManager::instantiate_chunks(IVec3::ZERO, IVec3::ONE);
-
-    let positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
-    let message = bincode::serialize(&NetworkingMessage::ChunkBatchRequest(positions));
-    info!("requesting world");
-    client.send_message(DefaultChannel::ReliableUnordered, message.unwrap());
+    batch_events.write(terrain_events::RequestChunkBatch { positions });
 }
 
-pub fn generate_world_system(
+pub fn handle_chunk_request_chunk_batch_event_system(
     mut client: ResMut<RenetClient>,
-    mut chunk_manager: ResMut<ChunkManager>,
+    mut batch_events: MessageReader<terrain_events::RequestChunkBatch>,
+    mut all_requests: ResMut<terrain_resources::RequestedChunks>,
 ) {
-    let render_distance = IVec3::new(4, 4, 4);
+    if batch_events.is_empty() {
+        return;
+    }
 
-    info!("Sending chunk requests for chunks");
+    let mut new_positions: HashSet<IVec3> = HashSet::new();
+    for batch_event in batch_events.read() {
+        batch_event.positions.iter().for_each(|position| {
+            new_positions.insert(*position);
+        });
+    }
 
-    let origin = IVec3::ZERO;
-    let chunks = chunk_manager.instantiate_new_chunks(origin, render_distance);
+    let old_positions = &all_requests.previous_chunks;
+    let diff: HashSet<&IVec3> = new_positions.difference(old_positions).collect();
+    let diff: Vec<IVec3> = diff.into_iter().copied().collect();
 
-    let mut positions: Vec<IVec3> = chunks.into_iter().map(|chunk| chunk.position).collect();
-    positions.sort_by(|a, b| {
-        (a - origin)
-            .length_squared()
-            .cmp(&(b - origin).length_squared())
-    });
-
-    let batched_positions = positions.chunks(32);
-    assert!(batched_positions.len() > 0, "Batched positions is empty");
+    let batched_positions = diff.chunks(32);
 
     batched_positions.enumerate().for_each(|(index, batch)| {
         let request_positions = batch.to_vec();
@@ -76,6 +83,10 @@ pub fn generate_world_system(
         info!("requesting chunks #{}", index);
         client.send_message(DefaultChannel::ReliableUnordered, message.unwrap());
     });
+
+    diff.iter().for_each(|position| {
+        all_requests.previous_chunks.insert(*position);
+    })
 }
 
 pub fn handle_chunk_mesh_update_events_system(
@@ -101,6 +112,20 @@ pub fn handle_chunk_mesh_update_events_system(
                 println!("No chunk found");
             }
         }
+    }
+}
+
+pub fn handle_chunk_rerequests_system(
+    chunk_manager: Res<ChunkManager>,
+    mut terrain_events: MessageReader<terrain_events::RerequestChunks>,
+    mut batch_events: MessageWriter<terrain_events::RequestChunkBatch>,
+) {
+    for event in terrain_events.read() {
+        info!("Sending chunk requests for chunks");
+
+        let origin = event.center_chunk_position;
+        let positions = chunk_manager.sorted_new_chunk_positions(origin, RENDER_DISTANCE);
+        batch_events.write(terrain_events::RequestChunkBatch { positions });
     }
 }
 
@@ -176,6 +201,47 @@ pub fn handle_chunk_tasks_system(
 
         DISCARD
     });
+}
+
+pub fn cleanup_chunk_entities_system(
+    mut commands: Commands,
+    mut chunk_entities: ResMut<terrain_resources::ChunkEntityMap>,
+    mut cleanup_events: MessageReader<terrain_events::CleanupChunksAroundOrigin>,
+) {
+    let last_event = cleanup_events.read().last();
+
+    if let Some(event) = last_event {
+        chunk_entities
+            .extract_outside_distance(&event.center_chunk_position, &CLEANUP_DISTANCE)
+            .iter()
+            .for_each(|(_position, entities)| {
+                entities
+                    .iter()
+                    .for_each(|entity| commands.entity(*entity).despawn())
+            });
+    }
+}
+
+pub fn check_if_spawn_area_is_loaded_system(
+    chunk_manager: Res<ChunkManager>,
+    spawn_area: Res<terrain_resources::SpawnRegion>,
+    mut spawn_area_loaded: ResMut<terrain_resources::SpawnRegionLoaded>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    let required_positions = ChunkManager::get_sorted_chunk_positions_in_range(
+        spawn_area.origin_chunk_position,
+        MIN_SPAWN_AREA_DISTANCE,
+    );
+
+    let all_required_loaded = required_positions
+        .iter()
+        .all(|pos| chunk_manager.get_chunk(pos).is_some());
+
+    if all_required_loaded {
+        info!("All chunks for spawn area loaded, proceeding with GameState::Playing");
+        spawn_area_loaded.0 = true;
+        next_state.set(GameState::Playing);
+    }
 }
 
 fn create_chunk_bundle(

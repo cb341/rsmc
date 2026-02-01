@@ -119,12 +119,55 @@ pub struct PastBlockUpdates {
 
 #[derive(Resource, Clone, Serialize, Deserialize)]
 pub struct Generator {
-    pub seed: u32,
+    pub noise: Noise,
     pub params: TerrainGeneratorParams,
+}
 
-    #[serde(skip_serializing)]
-    #[serde(skip_deserializing)]
-    pub perlin: Perlin,
+#[derive(Clone)]
+pub struct Noise {
+    pub seed: u32,
+    perlin: Perlin,
+}
+
+pub trait NoiseSample<T> {
+    fn get(&self, position: T) -> f64;
+}
+
+impl Noise {
+    pub fn new(seed: u32) -> Self {
+        Self {
+            seed,
+            perlin: Perlin::new(seed),
+        }
+    }
+}
+
+impl NoiseSample<DVec3> for Noise {
+    fn get(&self, position: DVec3) -> f64 {
+        self.perlin.get(position.to_array())
+    }
+}
+
+impl NoiseSample<DVec2> for Noise {
+    fn get(&self, position: DVec2) -> f64 {
+        self.perlin.get(position.to_array())
+    }
+}
+
+impl Serialize for Noise {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u32(self.seed)
+    }
+}
+
+impl<'de> Deserialize<'de> for Noise {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let seed = u32::deserialize(deserializer)?;
+        Ok(Noise::new(seed))
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

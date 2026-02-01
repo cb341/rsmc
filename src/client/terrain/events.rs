@@ -6,6 +6,21 @@ pub struct ChunkMeshUpdateEvent {
 }
 
 #[derive(Message)]
+pub struct RerequestChunks {
+    pub center_chunk_position: IVec3,
+}
+
+#[derive(Message)]
+pub struct RequestChunkBatch {
+    pub positions: Vec<IVec3>,
+}
+
+#[derive(Message)]
+pub struct CleanupChunksAroundOrigin {
+    pub center_chunk_position: IVec3,
+}
+
+#[derive(Message)]
 pub struct BlockUpdateEvent {
     pub position: IVec3,
     pub block: BlockId,

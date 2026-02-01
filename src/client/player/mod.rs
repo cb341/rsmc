@@ -20,17 +20,13 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(player_resources::PlayerSpawned(false));
         app.insert_resource(player_resources::LastPlayerPosition::new());
         app.add_systems(
-            Startup,
+            OnExit(GameState::LoadingSpawnRegion),
             (
                 player_systems::setup_highlight_cube_system,
                 player_systems::setup_player_camera,
-            ),
-        );
-        app.add_systems(
-            Update,
-            (player_systems::setup_controller_on_area_ready_system,)
-                .run_if(terrain_resources::SpawnAreaLoaded::is_loaded)
-                .run_if(player_resources::PlayerSpawned::is_not_spawned),
+                player_systems::setup_controller_on_area_ready_system,
+            )
+                .chain(),
         );
         app.add_systems(
             Update,
@@ -38,6 +34,7 @@ impl Plugin for PlayerPlugin {
                 player_systems::handle_controller_movement_system,
                 player_systems::handle_player_collider_events_system,
             )
+                .run_if(terrain_resources::SpawnRegionLoaded::is_loaded) // TODO: doublecheck
                 .run_if(player_resources::PlayerSpawned::is_spawned),
         );
         app.add_systems(

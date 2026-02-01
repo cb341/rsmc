@@ -5,6 +5,35 @@ use crate::{
 
 use bevy::prelude::*;
 
+fn find_ground_spawn_position(chunk_manager: &ChunkManager, base_world_position: IVec3) -> IVec3 {
+    const MAX_DELTA: i32 = 64;
+
+    for dy in 0..MAX_DELTA {
+        let pos_down = base_world_position + IVec3::new(0, -dy, 0);
+        if is_standable(chunk_manager, pos_down) {
+            return pos_down;
+        }
+
+        let pos_up = base_world_position + IVec3::new(0, dy, 0);
+        if is_standable(chunk_manager, pos_up) {
+            return pos_up;
+        }
+    }
+
+    warn!("No standable ground found near {base_world_position}, using as-is");
+    base_world_position
+}
+
+fn is_standable(chunk_manager: &ChunkManager, world_position: IVec3) -> bool {
+    let head_block = chunk_manager.get_block(world_position + IVec3::Y);
+    let legs_block = chunk_manager.get_block(world_position);
+    let ground_block = chunk_manager.get_block(world_position - IVec3::Y);
+
+    legs_block.is_some_and(|b| b.is_walkable())
+        && head_block.is_some_and(|b| b.is_walkable())
+        && ground_block.is_some_and(|b| b.is_standable())
+}
+
 pub fn disconnect_all_clients_on_exit_system(
     mut server: ResMut<RenetServer>,
     mut exit_events: MessageReader<AppExit>,
@@ -122,6 +151,7 @@ pub fn handle_events_system(
         chat_events::SyncPlayerChatMessagesEvent,
     >,
     transport: Res<NetcodeServerTransport>,
+    chunk_manager: Res<ChunkManager>,
 ) {
     for event in server_events.read() {
         match event {
@@ -135,7 +165,7 @@ pub fn handle_events_system(
                             *client_id,
                             DefaultChannel::ReliableOrdered,
                             bincode::serialize(&NetworkingMessage::PlayerReject(String::from(
-                                "Another Client is already connected with that Username.",
+                                "Another Client is already connected with that Username. Wait 15 seconds before trying again.",
                             )))
                             .expect("Message should always be sendable"),
                         );
@@ -148,7 +178,19 @@ pub fn handle_events_system(
 
                 active_connections.accept(*client_id);
 
-                let player_state = player_states.players.entry(username).or_default();
+                let player_state =
+                    player_states
+                        .players
+                        .entry(username)
+                        .or_insert_with(|| PlayerState {
+                            position: find_ground_spawn_position(
+                                &chunk_manager,
+                                DEFAULT_SPAWN_POINT,
+                            )
+                            .as_vec3()
+                                + Vec3::new(0.5, 0.0, 0.5),
+                            rotation: Quat::IDENTITY,
+                        });
 
                 client_usernames.insert(*client_id, username);
                 server.send_message(

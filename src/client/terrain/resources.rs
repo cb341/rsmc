@@ -1,14 +1,21 @@
+use std::collections::HashSet;
+
 use bevy::tasks::Task;
 
 use crate::prelude::*;
 
 #[derive(Resource)]
-pub struct SpawnAreaLoaded(pub bool);
+pub struct SpawnRegionLoaded(pub bool);
 
-impl SpawnAreaLoaded {
-    pub fn is_loaded(resource: Res<SpawnAreaLoaded>) -> bool {
+impl SpawnRegionLoaded {
+    pub fn is_loaded(resource: Res<SpawnRegionLoaded>) -> bool {
         resource.0
     }
+}
+
+#[derive(Resource, Default)]
+pub struct RequestedChunks {
+    pub previous_chunks: HashSet<IVec3>,
 }
 
 #[derive(Eq, Hash, Clone, PartialEq)]
@@ -38,13 +45,47 @@ pub struct ChunkEntityMap {
     map: HashMap<IVec3, Vec<Entity>>,
 }
 
+#[derive(Resource, Default)]
+pub struct SpawnRegion {
+    pub origin_chunk_position: IVec3,
+}
+
+impl SpawnRegion {
+    pub fn from_world_position(world_position: IVec3) -> Self {
+        Self {
+            origin_chunk_position: ChunkManager::world_position_to_chunk_position(world_position),
+        }
+    }
+}
+
 impl ChunkEntityMap {
+    pub fn count(&self) -> usize {
+        self.map.len()
+    }
+
     pub fn add(&mut self, chunk_position: IVec3, entity: Entity) {
         self.map.entry(chunk_position).or_default().push(entity);
     }
 
     pub fn remove(&mut self, chunk_position: IVec3) -> Option<Vec<Entity>> {
         self.map.remove(&chunk_position)
+    }
+
+    pub fn extract_outside_distance(
+        &mut self,
+        origin: &IVec3,
+        distance: &IVec3,
+    ) -> Vec<(IVec3, Vec<Entity>)> {
+        let extracted: HashMap<IVec3, Vec<Entity>> = self
+            .map
+            .extract_if(|k, _v| {
+                (k.x - origin.x).abs() > distance.x
+                    || (k.y - origin.y).abs() > distance.y
+                    || (k.z - origin.z).abs() > distance.z
+            })
+            .collect();
+
+        extracted.into_iter().collect()
     }
 }
 

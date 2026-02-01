@@ -35,7 +35,7 @@ impl BlockSelection {
 }
 
 #[derive(Resource)]
-pub struct LastPlayerPosition(pub Vec3);
+pub struct LastPlayerPosition(pub IVec3);
 
 impl Default for LastPlayerPosition {
     fn default() -> Self {
@@ -45,7 +45,19 @@ impl Default for LastPlayerPosition {
 
 impl LastPlayerPosition {
     pub fn new() -> Self {
-        Self(Vec3::ZERO)
+        Self(IVec3::ZERO)
+    }
+
+    pub fn chunk_position(&self) -> IVec3 {
+        Self::chunk_pos(self.0)
+    }
+
+    pub fn has_same_chunk_position_as(&self, other_world_position: IVec3) -> bool {
+        Self::chunk_pos(self.0) == Self::chunk_pos(other_world_position)
+    }
+
+    fn chunk_pos(world_pos: IVec3) -> IVec3 {
+        ChunkManager::world_position_to_chunk_position(world_pos)
     }
 }
 

@@ -55,21 +55,25 @@ pub fn chat_state_transition_system(
     mut chat_state: ResMut<chat_resources::ChatState>,
 ) {
     let current_state_value = current_state.get();
-    let mut next_state_value = current_state_value.clone();
+
+    if *current_state_value == GameState::WaitingForServer
+        || *current_state_value == GameState::LoadingSpawnRegion
+    {
+        // TODO: Introduce Chatting Substate
+        return;
+    }
 
     if keyboard_input.just_pressed(KeyCode::KeyT) {
         info!("Focusing chat via KeyT");
         if *current_state_value == GameState::Playing {
             chat_state.just_focused = true;
-            next_state_value = GameState::Chatting;
+            next_state.set(GameState::Chatting);
         }
     }
     if keyboard_input.just_pressed(KeyCode::Escape) && *current_state_value == GameState::Chatting {
         info!("Unfocusing chat via Escape");
-        next_state_value = GameState::Playing;
+        next_state.set(GameState::Playing);
     }
-
-    next_state.set(next_state_value);
 }
 
 pub fn process_chat_input_system(
