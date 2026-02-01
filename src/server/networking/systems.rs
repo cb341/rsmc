@@ -25,8 +25,8 @@ fn find_ground_spawn_position(chunk_manager: &ChunkManager, base_world_position:
 }
 
 fn is_standable(chunk_manager: &ChunkManager, world_position: IVec3) -> bool {
-    let legs_block = chunk_manager.get_block(world_position);
     let head_block = chunk_manager.get_block(world_position + IVec3::Y);
+    let legs_block = chunk_manager.get_block(world_position);
     let ground_block = chunk_manager.get_block(world_position - IVec3::Y);
 
     legs_block.is_some_and(|b| b.is_walkable())
