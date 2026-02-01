@@ -54,7 +54,6 @@ pub fn setup_controller_on_area_ready_system(
             Sleeping::disabled(),
             LockedAxes::ROTATION_LOCKED,
             AdditionalMassProperties::Mass(1.0),
-            GravityScale(0.0),
             Ccd { enabled: true },
             Transform::from_translation(spawn_position),
             LogicalPlayer,
@@ -74,15 +73,17 @@ pub fn setup_controller_on_area_ready_system(
                 ..default()
             },
             FpsController {
-                upright_height: 1.25,
-                height: 1.0,
-                crouch_height: 0.6,
+                upright_height: 1.8,
+                height: 1.8,
+                crouch_height: 1.2,
                 air_acceleration: 80.0,
                 radius: 0.75,
                 ..default()
             },
         ))
-        .insert(CameraConfig { height_offset: 0.0 })
+        .insert(CameraConfig {
+            height_offset: -0.2,
+        })
         .insert(player_components::Player)
         .id();
 
